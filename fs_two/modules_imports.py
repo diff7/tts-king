@@ -7,8 +7,11 @@ import audio as Audio
 
 from fastspeech2 import FastSpeech2
 from loss import FastSpeech2Loss
+from optimizer import ScheduledOptim, Ranger
+from pcgrad import PCGrad
 from evaluate import evaluate
 import utils
+
 
 
 class FSTWOTrainable:
@@ -20,20 +23,59 @@ class FSTWOTrainable:
         if weights_path is not None:
             checkpoint = torch.load(weights_path)
             self.model.load_state_dict(checkpoint["model"])
+        
+        self.cfg = config
+        self.device = device
 
-    def train(self, dataset):
+        # TODO get the righ restore step
+        self.restore_step = 0 
+
+    def train(self, data_loader, loss_fn, voocoder=None, logger=None):
+        
+        optimizer = PCGrad(
+        Ranger(
+            self.model.parameters(),
+            betas = self.cfg.betas,
+            eps = self.cfg.eps,
+            weight_decay = self.cfg.weight_decay,
+        )
+    )
+        scheduled_optim = ScheduledOptim(
+        self.cfg.decoder_hidden, self.cfg.n_warm_up_step, self.restore_step
+    )
         self.model.train()
-        model_train(cfg, model, loss, data_loader, device)
+        model_train(self.cfg, 
+                    self.model, 
+                    loss_fn, 
+                    data_loader, 
+                    scheduled_optim, 
+                    optimizer, 
+                    logger,
+                    voocoder,
+                    self.device)
 
-        pass
+        return self.model
 
-    def generate(self, text):
-        self.model.eval()
+    def generate(self, phonemes, duration_control=1.0, pitch_control=1.0, energy_control=1.0, speaker=None):
 
-        pass
+        self.model.eval()        
+        src_len = torch.from_numpy(np.array([phonemes.shape[1]])).to(self.device)
+        result = self.model(
+            phonemes, src_len, d_control=duration_control, p_control=pitch_control, e_control=energy_control, speaker_emb=speaker)
+
+        # mel, mel_postnet, log_duration_output, f0_output, energy_output
+        return result 
 
 
-def model_train(cfg, model, loss, data_loader, device="gpu"):
+def model_train(cfg, 
+                model, 
+                loss_fn, 
+                data_loader, 
+                scheduled_optim, 
+                optimizer, 
+                logger,
+                voocoder,
+                device="gpu"):
 
     # INIT LOSSES
     losses_dict = dict()
@@ -48,7 +90,7 @@ def model_train(cfg, model, loss, data_loader, device="gpu"):
     for l_n in losses_names:
         losses_dict[l_n] = 0
 
-    for epoch in range(hp.epochs):
+    for epoch in range(cfg.epochs):
         # Get Training data_loader
         total_step = cfg.epochs * len(data_loader) * cfg.batch_size
 
@@ -64,7 +106,7 @@ def model_train(cfg, model, loss, data_loader, device="gpu"):
 
                 # Get Data
                 # TODO extract speaker embedding
-                text = torch.from_numpy(data_of_batch["text"]).long().to(device)
+                phonemes = torch.from_numpy(data_of_batch["text"]).long().to(device)
                 mel_target = (
                     torch.from_numpy(data_of_batch["mel_target"])
                     .float()
@@ -99,7 +141,7 @@ def model_train(cfg, model, loss, data_loader, device="gpu"):
                     mel_mask,
                     _,
                 ) = model(
-                    text,
+                    phonemes,
                     src_len,
                     mel_len,
                     D,
@@ -111,7 +153,7 @@ def model_train(cfg, model, loss, data_loader, device="gpu"):
 
                 # Cal Loss
                 # mel_loss, mel_postnet_loss, d_loss, f_loss, e_loss
-                losses_values = loss(
+                losses_values = loss_fn(
                     log_duration_output,
                     log_D,
                     f0_output,
@@ -153,14 +195,13 @@ def model_train(cfg, model, loss, data_loader, device="gpu"):
                 )
 
                 # Update weights
-                scheduled_optim.step_and_update_lr(
-                    [mel_loss, mel_postnet_loss, d_loss, f_loss, e_loss]
-                )
+                scheduled_optim.step_and_update_lr(*losses_values)
                 scheduled_optim.zero_grad()
 
                 # Print
                 if current_step % cfg.log_step == 0:
-                    logging_step(losses_dict, logger, current_step)
+                    if logger is not None:
+                        logging_step(cfg, epoch, losses_dict, logger, current_step, total_step)
                     
 
                 if current_step % cfg.save_step == 0:
@@ -168,15 +209,16 @@ def model_train(cfg, model, loss, data_loader, device="gpu"):
                    
 
                 if current_step % cfg.synth_step == 0:
-                    mel_postnet, length = synth_step(cfg, mel_len, mel_target, mel_postnet_output, current_step, mel_output, vocoder=None)
+                    mel_postnet, length = synth_step(cfg, mel_len, mel_target, mel_postnet_output, current_step, mel_output, voocoder)
                     save_plots(cfg, f0, f0_output, length, energy_output, energy, mel_postnet, mel_target, current_step)
                     
 
                 if current_step % cfg.eval_step == 0:
-                    eval_model_step(model, logger, current_step)
+                    if logger is not None:
+                        eval_model_step(model, logger, current_step, voocoder)
 
 
-def logging_step(losses_dict, logger, current_step):
+def logging_step(cfg, epoch, losses_dict, logger, current_step, total_step):
     str1 = "Epoch [{}/{}], Step [{}/{}]:".format(
         epoch + 1, cfg.epochs, current_step, total_step
     )
@@ -203,10 +245,10 @@ def save_model(model, optimizer, current_step):
     ),)
     print("save model at step {} ...".format(current_step))
 
-def eval_model_step(model, logger, current_step):
+def eval_model_step(model, logger, current_step, voocoder):
     model.eval()
     with torch.no_grad():
-        d_l, f_l, e_l, m_l, m_p_l = evaluate(model, current_step)
+        d_l, f_l, e_l, m_l, m_p_l = evaluate(model, current_step, voocoder)
         t_l = d_l + f_l + e_l + m_l + m_p_l
 
         logger.add_scalar("Loss/total_loss", t_l, current_step)
@@ -227,7 +269,7 @@ def synth_step(
     mel_postnet_output,
     current_step,
     mel_output,
-    vocoder
+    voocoder
 ):
     length = mel_len[0].item()
     mel_target_torch = (
@@ -255,36 +297,36 @@ def synth_step(
         ),
     )
 
-    if vocoder is not None:
-        if cfg.vocoder == "melgan":
+    if voocoder is not None:
+        if cfg.voocoder == "melgan":
             utils.melgan_infer(
                 mel_torch,
-                vocoder,
+                voocoder,
                 os.path.join(
                     cfg.results_path,
-                    "step_{}_{}.wav".format(current_step, cfg.vocoder),
+                    "step_{}_{}.wav".format(current_step, cfg.voocoder),
                 ),
             )
             utils.melgan_infer(
                 mel_postnet_torch,
-                vocoder,
+                voocoder,
                 os.path.join(
                     cfg.results_path,
-                    "step_{}_postnet_{}.wav".format(current_step, cfg.vocoder),
+                    "step_{}_postnet_{}.wav".format(current_step, cfg.voocoder),
                 ),
             )
             utils.melgan_infer(
                 mel_target_torch,
-                vocoder,
+                voocoder,
                 os.path.join(
                     cfg.results_path,
-                    "step_{}_ground-truth_{}.wav".format(current_step, cfg.vocoder),
+                    "step_{}_ground-truth_{}.wav".format(current_step, cfg.voocoder),
                 ),
             )
         elif cfg.vocoder == "waveglow":
             utils.waveglow_infer(
                 mel_torch,
-                waveglow,
+                voocoder,
                 os.path.join(
                     cfg.results_path,
                     "step_{}_{}.wav".format(current_step, cfg.vocoder),
@@ -292,7 +334,7 @@ def synth_step(
             )
             utils.waveglow_infer(
                 mel_postnet_torch,
-                waveglow,
+                voocoder,
                 os.path.join(
                     cfg.results_path,
                     "step_{}_postnet_{}.wav".format(current_step, cfg.vocoder),
@@ -300,10 +342,10 @@ def synth_step(
             )
             utils.waveglow_infer(
                 mel_target_torch,
-                vocoder,
+                voocoder,
                 os.path.join(
                     cfg.results_path,
-                    "step_{}_ground-truth_{}.wav".format(current_step, cfg.vocoder),
+                    "step_{}_ground-truth_{}.wav".format(current_step, cfg.voocoder),
                 ),
             )
 
