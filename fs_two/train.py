@@ -80,6 +80,8 @@ def main(args):
         melgan = utils.get_melgan()
     elif hp.vocoder == "waveglow":
         waveglow = utils.get_waveglow()
+    elif hp.vocoder == "hifigan":
+        hifigan = utils.get_hifigan()
 
     # Init logger
     log_path = hp.log_path
@@ -119,7 +121,8 @@ def main(args):
 
                 # Get Data
                 # TODO extract speaker embedding
-                text = torch.from_numpy(data_of_batch["text"]).long().to(device)
+                text = torch.from_numpy(
+                    data_of_batch["text"]).long().to(device)
                 mel_target = (
                     torch.from_numpy(data_of_batch["mel_target"])
                     .float()
@@ -131,13 +134,16 @@ def main(args):
                 )
                 f0 = torch.from_numpy(data_of_batch["f0"]).float().to(device)
                 energy = (
-                    torch.from_numpy(data_of_batch["energy"]).float().to(device)
+                    torch.from_numpy(
+                        data_of_batch["energy"]).float().to(device)
                 )
                 src_len = (
-                    torch.from_numpy(data_of_batch["src_len"]).long().to(device)
+                    torch.from_numpy(
+                        data_of_batch["src_len"]).long().to(device)
                 )
                 mel_len = (
-                    torch.from_numpy(data_of_batch["mel_len"]).long().to(device)
+                    torch.from_numpy(
+                        data_of_batch["mel_len"]).long().to(device)
                 )
                 max_src_len = np.max(data_of_batch["src_len"]).astype(np.int32)
                 max_mel_len = np.max(data_of_batch["mel_len"]).astype(np.int32)
@@ -395,7 +401,37 @@ def main(args):
                                 ),
                             ),
                         )
-
+                    elif hp.vocoder == "hifigan":
+                        utils.hifigan_infer(
+                            mel_torch,
+                            hifigan,
+                            os.path.join(
+                                hp.synth_path,
+                                "step_{}_{}.wav".format(
+                                    current_step, hp.vocoder
+                                ),
+                            ),
+                        )
+                        utils.hifigan_infer(
+                            mel_postnet_torch,
+                            hifigan,
+                            os.path.join(
+                                hp.synth_path,
+                                "step_{}_postnet_{}.wav".format(
+                                    current_step, hp.vocoder
+                                ),
+                            ),
+                        )
+                        utils.hifigan_infer(
+                            mel_target_torch,
+                            hifigan,
+                            os.path.join(
+                                hp.synth_path,
+                                "step_{}_ground-truth_{}.wav".format(
+                                    current_step, hp.vocoder
+                                ),
+                            ),
+                        )
                     f0 = f0[0, :length].detach().cpu().numpy()
                     energy = energy[0, :length].detach().cpu().numpy()
                     f0_output = f0_output[0, :length].detach().cpu().numpy()
@@ -434,7 +470,8 @@ def main(args):
                         val_logger.add_scalar(
                             "Loss/duration_loss", d_l, current_step
                         )
-                        val_logger.add_scalar("Loss/F0_loss", f_l, current_step)
+                        val_logger.add_scalar(
+                            "Loss/F0_loss", f_l, current_step)
                         val_logger.add_scalar(
                             "Loss/energy_loss", e_l, current_step
                         )

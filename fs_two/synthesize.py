@@ -43,7 +43,7 @@ def get_FastSpeech2(num):
     return model
 
 
-def synthesize(model, waveglow, melgan, text, sentence, prefix='', duration_control=1.0, pitch_control=1.0, energy_control=1.0, speaker=None):
+def synthesize(model, waveglow, melgan, text, sentence, prefix='', duration_control=1.0, pitch_control=1.0, energy_control=1.0, speaker=None, hifigan=None):
     sentence = sentence[:200]  # long filename will result in OS Error
 
     src_len = torch.from_numpy(np.array([text.shape[1]])).to(device)
@@ -68,6 +68,9 @@ def synthesize(model, waveglow, melgan, text, sentence, prefix='', duration_cont
             hp.test_path, '{}_{}_{}.wav'.format(prefix, hp.vocoder, sentence)))
     if melgan is not None:
         utils.melgan_infer(mel_postnet_torch, melgan, os.path.join(
+            hp.test_path, '{}_{}_{}.wav'.format(prefix, hp.vocoder, sentence)))
+    if hifigan is not None:
+        utils.hifigan_infer(mel_postnet_torch, melgan, os.path.join(
             hp.test_path, '{}_{}_{}.wav'.format(prefix, hp.vocoder, sentence)))
 
     utils.plot_data([(mel_postnet.numpy(), f0_output, energy_output)], [
@@ -99,13 +102,16 @@ if __name__ == "__main__":
 
     model = get_FastSpeech2(args.step).to(device)
     melgan = waveglow = None
+    hifigan = None
     if hp.vocoder == 'melgan':
         melgan = utils.get_melgan()
     elif hp.vocoder == 'waveglow':
         waveglow = utils.get_waveglow()
+    elif hp.vocoder == 'hifigan':
+        hifigan = utils.get_hifigan()
 
     with torch.no_grad():
         for sentence in sentences:
             text = preprocess(sentence)
             synthesize(model, waveglow, melgan, text, sentence, 'step_{}'.format(
-                args.step), args.duration_control, args.pitch_control, args.energy_control)
+                args.step), args.duration_control, args.pitch_control, args.energy_control, hifigan=hifigan)

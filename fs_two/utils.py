@@ -9,6 +9,10 @@ import torch.nn.functional as F
 import numpy as np
 import matplotlib
 import matplotlib
+
+from vocoder.inference import load_hifigan, hifigan_infer
+from vocoder.meldataset import MAX_WAV_VALUE
+
 matplotlib.use("Agg")
 
 
@@ -151,6 +155,22 @@ def get_melgan():
     melgan.to(device)
 
     return melgan
+
+
+def get_hifigan(model_path, config_path):
+    hifigan = load_hifigan(model_path, config_path, device)
+    hifigan.eval()
+    return hifigan
+
+
+def hifigan_infer(mel, hifigan, path):
+    with torch.no_grad():
+        y_g_hat = hifigan(mel)
+        audio = y_g_hat.squeeze()
+        audio = audio * MAX_WAV_VALUE
+        wav = audio.cpu().numpy()
+    wav = wav.astype('int16')
+    wavfile.write(path, hp.sampling_rate, wav)
 
 
 def pad_1D(inputs, PAD=0):

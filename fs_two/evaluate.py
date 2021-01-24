@@ -111,6 +111,11 @@ def evaluate(model, step, vocoder=None):
                                 hp.eval_path, 'ground-truth_{}_{}.wav'.format(basename, hp.vocoder)))
                             utils.waveglow_infer(mel_postnet_torch, vocoder, os.path.join(
                                 hp.eval_path, 'eval_{}_{}.wav'.format(basename, hp.vocoder)))
+                        elif hp.vocoder == 'hifigan':
+                            utils.hifigan_infer(mel_target_torch, vocoder, os.path.join(
+                                hp.eval_path, 'ground-truth_{}_{}.wav'.format(basename, hp.vocoder)))
+                            utils.hifigan_infer(mel_postnet_torch, vocoder, os.path.join(
+                                hp.eval_path, 'eval_{}_{}.wav'.format(basename, hp.vocoder)))
 
                         np.save(os.path.join(hp.eval_path, 'eval_{}_mel.npy'.format(
                             basename)), mel_postnet.numpy())
@@ -177,6 +182,8 @@ if __name__ == "__main__":
         vocoder = utils.get_melgan()
     elif hp.vocoder == 'waveglow':
         vocoder = utils.get_waveglow()
+    elif hp.vocoder == 'hifigan':
+        vocoder = utils.get_hifigan()
 
     # Init directories
     if not os.path.exists(hp.log_path):
