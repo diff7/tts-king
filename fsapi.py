@@ -5,16 +5,19 @@ import torch.nn as nn
 
 import audio as Audio
 
-from fastspeech2 import FastSpeech2
-from loss import FastSpeech2Loss
-from optimizer import ScheduledOptim, Ranger
-from pcgrad import PCGrad
-from evaluate import evaluate
+from fs_two.fastspeech2 import FastSpeech2
+from fs_two.loss import FastSpeech2Loss
+from fs_two.optimizer import ScheduledOptim, Ranger
+from fs_two.pcgrad import PCGrad
+from fs_two.evaluate import evaluate
+
+import pytorch_lightning as pl
+import wandb
+
 import utils
 
 
-
-class FSTWOTrainable:
+class FSTWOapi:
     def __init__(self, config, weights_path=None, device="gpu"):
 
         self.model = nn.DataParallel(FastSpeech2()).to(device)
@@ -30,8 +33,8 @@ class FSTWOTrainable:
         # TODO get the righ restore step
         self.restore_step = 0 
 
-    def train(self, data_loader, loss_fn, voocoder=None, logger=None):
-        
+    def train(self, data_loader, voocoder=None, logger=None):
+        loss_fn = FastSpeech2Loss().to(self.device)
         optimizer = PCGrad(
         Ranger(
             self.model.parameters(),
@@ -65,6 +68,9 @@ class FSTWOTrainable:
 
         # mel, mel_postnet, log_duration_output, f0_output, energy_output
         return result 
+
+
+def training_step(self, batch, batch_nb)
 
 
 def model_train(cfg, 
