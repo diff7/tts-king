@@ -11,7 +11,21 @@ class FastSpeech2Loss(nn.Module):
         self.mse_loss = nn.MSELoss()
         self.mae_loss = nn.L1Loss()
 
-    def forward(self, log_d_predicted, log_d_target, p_predicted, p_target, e_predicted, e_target, mel, mel_postnet, mel_target, src_mask, mel_mask):
+    def forward(
+        self,
+        log_d_predicted,
+        log_d_target,
+        p_predicted,
+        p_target,
+        e_predicted,
+        e_target,
+        mel,
+        mel_postnet,
+        mel_target,
+        src_mask,
+        mel_mask,
+    ):
+        src_mask, mel_mask = ~src_mask, ~mel_mask
         log_d_target.requires_grad = False
         p_target.requires_grad = False
         e_target.requires_grad = False

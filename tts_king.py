@@ -44,7 +44,10 @@ class TTSKing:
 
     # TODO :
     def train_tts(self, data_loader):
-        self.tts.train(data_loader, self.vocoder, self.logger)
+
+        # get val train data loader
+
+        self.tts.train(train_data_loader, val_data_loader, self.vocoder)
 
     # TODO
     def train_vocoder(self, dataset, epochs):

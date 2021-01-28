@@ -10,13 +10,14 @@ import audio as Audio
 from utils import pad_1D, pad_2D, process_meta
 from text import text_to_sequence, sequence_to_text
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 class Dataset(Dataset):
     def __init__(self, filename="train.txt", sort=True):
         self.basename, self.text = process_meta(
-            os.path.join(hparams.preprocessed_path, filename))
+            os.path.join(hparams.preprocessed_path, filename)
+        )
         self.sort = sort
 
     def __len__(self):
@@ -26,24 +27,38 @@ class Dataset(Dataset):
         basename = self.basename[idx]
         phone = np.array(text_to_sequence(self.text[idx], []))
         mel_path = os.path.join(
-            hparams.preprocessed_path, "mel", "{}-mel-{}.npy".format(hparams.dataset, basename))
+            hparams.preprocessed_path,
+            "mel",
+            "{}-mel-{}.npy".format(hparams.dataset, basename),
+        )
         mel_target = np.load(mel_path)
         D_path = os.path.join(
-            hparams.preprocessed_path, "alignment", "{}-ali-{}.npy".format(hparams.dataset, basename))
+            hparams.preprocessed_path,
+            "alignment",
+            "{}-ali-{}.npy".format(hparams.dataset, basename),
+        )
         D = np.load(D_path)
         f0_path = os.path.join(
-            hparams.preprocessed_path, "f0", "{}-f0-{}.npy".format(hparams.dataset, basename))
+            hparams.preprocessed_path,
+            "f0",
+            "{}-f0-{}.npy".format(hparams.dataset, basename),
+        )
         f0 = np.load(f0_path)
         energy_path = os.path.join(
-            hparams.preprocessed_path, "energy", "{}-energy-{}.npy".format(hparams.dataset, basename))
+            hparams.preprocessed_path,
+            "energy",
+            "{}-energy-{}.npy".format(hparams.dataset, basename),
+        )
         energy = np.load(energy_path)
 
-        sample = {"id": basename,
-                  "text": phone,
-                  "mel_target": mel_target,
-                  "D": D,
-                  "f0": f0,
-                  "energy": energy}
+        sample = {
+            "id": basename,
+            "text": phone,
+            "mel_target": mel_target,
+            "D": D,
+            "f0": f0,
+            "energy": energy,
+        }
 
         return sample
 
@@ -72,15 +87,17 @@ class Dataset(Dataset):
         energies = pad_1D(energies)
         log_Ds = np.log(Ds + hparams.log_offset)
 
-        out = {"id": ids,
-               "text": texts,
-               "mel_target": mel_targets,
-               "D": Ds,
-               "log_D": log_Ds,
-               "f0": f0s,
-               "energy": energies,
-               "src_len": length_text,
-               "mel_len": length_mel}
+        out = {
+            "id": torch.tensor(ids),
+            "text": torch.tensor(texts).long(),
+            "mel_target": torch.tensor(mel_targets).float(),
+            "D": torch.tensor(Ds).long(),
+            "log_D": torch.tensor(log_Ds).float(),
+            "f0": torch.tensor(f0s).float(),
+            "energy": torch.tensor(energies).float(),
+            "src_len": torch.tensor(length_text).long(),
+            "mel_len": torch.tensor(length_mel).long(),
+        }
 
         return out
 
@@ -94,10 +111,12 @@ class Dataset(Dataset):
         for i in range(real_batchsize):
             if self.sort:
                 cut_list.append(
-                    index_arr[i*real_batchsize:(i+1)*real_batchsize])
+                    index_arr[i * real_batchsize : (i + 1) * real_batchsize]
+                )
             else:
                 cut_list.append(
-                    np.arange(i*real_batchsize, (i+1)*real_batchsize))
+                    np.arange(i * real_batchsize, (i + 1) * real_batchsize)
+                )
 
         output = list()
         for i in range(real_batchsize):
@@ -108,16 +127,23 @@ class Dataset(Dataset):
 
 if __name__ == "__main__":
     # Test
-    dataset = Dataset('val.txt')
-    training_loader = DataLoader(dataset, batch_size=1, shuffle=False, collate_fn=dataset.collate_fn,
-                                 drop_last=True, num_workers=0)
+    dataset = Dataset("val.txt")
+    training_loader = DataLoader(
+        dataset,
+        batch_size=1,
+        shuffle=False,
+        collate_fn=dataset.collate_fn,
+        drop_last=True,
+        num_workers=0,
+    )
     total_step = hparams.epochs * len(training_loader) * hparams.batch_size
 
     cnt = 0
     for i, batchs in enumerate(training_loader):
         for j, data_of_batch in enumerate(batchs):
-            mel_target = torch.from_numpy(
-                data_of_batch["mel_target"]).float().to(device)
+            mel_target = (
+                torch.from_numpy(data_of_batch["mel_target"]).float().to(device)
+            )
             D = torch.from_numpy(data_of_batch["D"]).int().to(device)
             if mel_target.shape[1] == D.sum().item():
                 cnt += 1
