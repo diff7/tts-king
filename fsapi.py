@@ -32,7 +32,10 @@ class FSTWOapi:
                 eps=self.cfg.eps,
                 weight_decay=self.cfg.weight_decay)
         )
-
+        # TODO Change parameters
+        optimizer = ScheduledOptim(
+            optimizer, hp.decoder_hidden, hp.n_warm_up_step, args.restore_step
+        )
         train_fs(
             self.cfg,
             self.model,

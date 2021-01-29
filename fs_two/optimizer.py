@@ -220,9 +220,9 @@ class ScheduledOptim():
         self.n_current_steps = current_steps
         self.init_lr = np.power(d_model, -0.5)
 
-    def step_and_update_lr(self, losses):
+    def step(self, losses):
         self._update_learning_rate()
-        self._optimizer.pc_backward(losses)
+        #self._optimizer.pc_backward(losses)
         self._optimizer.step()
 
     def zero_grad(self):

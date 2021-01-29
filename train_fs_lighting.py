@@ -24,10 +24,10 @@ class LTraier(pl.LightningModule):
     def forward(self, values):
         return self.model(*values)
 
-    # def configure_optimizers(self):
-    #     optimizer = self.optimizer
-    #     #scheduler = CosineAnnealingLR(optimizer, T_max=1000)
-    #     return [optimizer], #[scheduler]
+    def configure_optimizers(self):
+        optimizer = self.optimizer
+        #scheduler = CosineAnnealingLR(optimizer, T_max=1000)
+        return [optimizer], #[scheduler]
 
 
     # def optimizer_step(self, current_epoch, batch_nb, optimizer, optimizer_i, second_order_closure=None):
