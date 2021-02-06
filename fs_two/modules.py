@@ -7,24 +7,24 @@ import numpy as np
 import copy
 import math
 
-import hparams as hp
-import utils
+import fs_two.hparams as hp
+import fs_two.utils
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 @torch.jit.script
 def mish(input):
-    '''
+    """
     Applies the mish function element-wise:
     mish(x) = x * tanh(softplus(x)) = x * tanh(ln(1 + exp(x)))
     See additional documentation for mish class.
-    '''
+    """
     return input * torch.tanh(F.softplus(input))
 
 
 class Mish(nn.Module):
-    '''
+    """
     Applies the mish function element-wise:
     mish(x) = x * tanh(softplus(x)) = x * tanh(ln(1 + exp(x)))
     Shape:
@@ -35,18 +35,18 @@ class Mish(nn.Module):
         >>> m = Mish()
         >>> input = torch.randn(2)
         >>> output = m(input)
-    '''
+    """
 
     def __init__(self):
-        '''
+        """
         Init method.
-        '''
+        """
         super().__init__()
 
     def forward(self, input):
-        '''
+        """
         Forward pass of the function.
-        '''
+        """
         return mish(input)
 
 
@@ -64,47 +64,87 @@ class VarianceAdaptor(nn.Module):
         self.pitch_predictor = VariancePredictor()
         self.energy_predictor = VariancePredictor()
 
-        self.pitch_bins = nn.Parameter(torch.exp(torch.linspace(
-            np.log(hp.f0_min), np.log(hp.f0_max), hp.n_bins-1)), requires_grad=False)
-        self.energy_bins = nn.Parameter(torch.linspace(
-            hp.energy_min, hp.energy_max, hp.n_bins-1), requires_grad=False)
+        self.pitch_bins = nn.Parameter(
+            torch.exp(
+                torch.linspace(
+                    np.log(hp.f0_min), np.log(hp.f0_max), hp.n_bins - 1
+                )
+            ),
+            requires_grad=False,
+        )
+        self.energy_bins = nn.Parameter(
+            torch.linspace(hp.energy_min, hp.energy_max, hp.n_bins - 1),
+            requires_grad=False,
+        )
         self.pitch_embedding = nn.Embedding(
-            hp.n_bins, hp.encoder_hidden+hp.speaker_dim)
+            hp.n_bins, hp.encoder_hidden + hp.speaker_dim
+        )
         self.energy_embedding = nn.Embedding(
-            hp.n_bins, hp.encoder_hidden+hp.speaker_dim)
+            hp.n_bins, hp.encoder_hidden + hp.speaker_dim
+        )
 
-    def forward(self, x, src_mask, mel_mask=None, duration_target=None, pitch_target=None, energy_target=None, max_len=None, d_control=1.0, p_control=1.0, e_control=1.0):
+    def forward(
+        self,
+        x,
+        src_mask,
+        mel_mask=None,
+        duration_target=None,
+        pitch_target=None,
+        energy_target=None,
+        max_len=None,
+        d_control=1.0,
+        p_control=1.0,
+        e_control=1.0,
+    ):
 
         log_duration_prediction = self.duration_predictor(x, src_mask)
         if duration_target is not None:
             x, mel_len = self.length_regulator(x, duration_target, max_len)
         else:
             duration_rounded = torch.clamp(
-                (torch.round(torch.exp(log_duration_prediction)-hp.log_offset)*d_control), min=0)
+                (
+                    torch.round(
+                        torch.exp(log_duration_prediction) - hp.log_offset
+                    )
+                    * d_control
+                ),
+                min=0,
+            )
             x, mel_len = self.length_regulator(x, duration_rounded, max_len)
             mel_mask = utils.get_mask_from_lengths(mel_len)
 
         pitch_prediction = self.pitch_predictor(x, mel_mask)
         if pitch_target is not None:
             pitch_embedding = self.pitch_embedding(
-                torch.bucketize(pitch_target, self.pitch_bins))
+                torch.bucketize(pitch_target, self.pitch_bins)
+            )
         else:
-            pitch_prediction = pitch_prediction*p_control
+            pitch_prediction = pitch_prediction * p_control
             pitch_embedding = self.pitch_embedding(
-                torch.bucketize(pitch_prediction, self.pitch_bins))
+                torch.bucketize(pitch_prediction, self.pitch_bins)
+            )
 
         energy_prediction = self.energy_predictor(x, mel_mask)
         if energy_target is not None:
             energy_embedding = self.energy_embedding(
-                torch.bucketize(energy_target, self.energy_bins))
+                torch.bucketize(energy_target, self.energy_bins)
+            )
         else:
-            energy_prediction = energy_prediction*e_control
+            energy_prediction = energy_prediction * e_control
             energy_embedding = self.energy_embedding(
-                torch.bucketize(energy_prediction, self.energy_bins))
+                torch.bucketize(energy_prediction, self.energy_bins)
+            )
 
         x = x + pitch_embedding + energy_embedding
 
-        return x, log_duration_prediction, pitch_prediction, energy_prediction, mel_len, mel_mask
+        return (
+            x,
+            log_duration_prediction,
+            pitch_prediction,
+            energy_prediction,
+            mel_len,
+            mel_mask,
+        )
 
 
 class LengthRegulator(nn.Module):
@@ -155,22 +195,36 @@ class VariancePredictor(nn.Module):
         self.conv_output_size = hp.variance_predictor_filter_size
         self.dropout = hp.variance_predictor_dropout
 
-        self.conv_layer = nn.Sequential(OrderedDict([
-            ("conv1d_1", Conv(self.input_size,
-                              self.filter_size,
-                              kernel_size=self.kernel,
-                              padding=(self.kernel-1)//2)),
-            ("mish_1", Mish()),
-            ("layer_norm_1", nn.LayerNorm(self.filter_size)),
-            ("dropout_1", nn.Dropout(self.dropout)),
-            ("conv1d_2", Conv(self.filter_size,
-                              self.filter_size,
-                              kernel_size=self.kernel,
-                              padding=1)),
-            ("mish_2", Mish()),
-            ("layer_norm_2", nn.LayerNorm(self.filter_size)),
-            ("dropout_2", nn.Dropout(self.dropout))
-        ]))
+        self.conv_layer = nn.Sequential(
+            OrderedDict(
+                [
+                    (
+                        "conv1d_1",
+                        Conv(
+                            self.input_size,
+                            self.filter_size,
+                            kernel_size=self.kernel,
+                            padding=(self.kernel - 1) // 2,
+                        ),
+                    ),
+                    ("mish_1", Mish()),
+                    ("layer_norm_1", nn.LayerNorm(self.filter_size)),
+                    ("dropout_1", nn.Dropout(self.dropout)),
+                    (
+                        "conv1d_2",
+                        Conv(
+                            self.filter_size,
+                            self.filter_size,
+                            kernel_size=self.kernel,
+                            padding=1,
+                        ),
+                    ),
+                    ("mish_2", Mish()),
+                    ("layer_norm_2", nn.LayerNorm(self.filter_size)),
+                    ("dropout_2", nn.Dropout(self.dropout)),
+                ]
+            )
+        )
 
         self.linear_layer = nn.Linear(self.conv_output_size, 1)
 
@@ -180,7 +234,7 @@ class VariancePredictor(nn.Module):
         out = out.squeeze(-1)
 
         if mask is not None:
-            out = out.masked_fill(mask, 0.)
+            out = out.masked_fill(mask, 0.0)
 
         return out
 
@@ -190,15 +244,17 @@ class Conv(nn.Module):
     Convolution Module
     """
 
-    def __init__(self,
-                 in_channels,
-                 out_channels,
-                 kernel_size=1,
-                 stride=1,
-                 padding=0,
-                 dilation=1,
-                 bias=True,
-                 w_init='linear'):
+    def __init__(
+        self,
+        in_channels,
+        out_channels,
+        kernel_size=1,
+        stride=1,
+        padding=0,
+        dilation=1,
+        bias=True,
+        w_init="linear",
+    ):
         """
         :param in_channels: dimension of input
         :param out_channels: dimension of output
@@ -211,13 +267,15 @@ class Conv(nn.Module):
         """
         super(Conv, self).__init__()
 
-        self.conv = nn.Conv1d(in_channels,
-                              out_channels,
-                              kernel_size=kernel_size,
-                              stride=stride,
-                              padding=padding,
-                              dilation=dilation,
-                              bias=bias)
+        self.conv = nn.Conv1d(
+            in_channels,
+            out_channels,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=padding,
+            dilation=dilation,
+            bias=bias,
+        )
 
     def forward(self, x):
         x = x.contiguous().transpose(1, 2)

@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import hparams as hp
+import fs_two.hparams as hp
 
 
 class FastSpeech2Loss(nn.Module):

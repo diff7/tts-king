@@ -6,7 +6,7 @@ data_path = "/home/ming/Data/Raw/LJSpeech-1.1"
 
 
 # Text
-text_cleaners = ['english_cleaners']
+text_cleaners = ["english_cleaners"]
 
 
 # Audio and mel
@@ -16,10 +16,10 @@ filter_length = 1024
 hop_length = 256
 win_length = 1024
 ### for Blizzard2013 ###
-#sampling_rate = 16000
-#filter_length = 800
-#hop_length = 200
-#win_length = 800
+# sampling_rate = 16000
+# filter_length = 800
+# hop_length = 200
+# win_length = 800
 
 max_wav_value = 32768.0
 n_mel_channels = 80
@@ -54,10 +54,10 @@ f0_max = 795.8
 energy_min = 0.0
 energy_max = 315.0
 ### for Blizzard2013 ###
-#f0_min = 71.0
-#f0_max = 786.7
-#energy_min = 21.23
-#energy_max = 101.02
+# f0_min = 71.0
+# f0_max = 786.7
+# energy_min = 21.23
+# energy_max = 101.02
 
 n_bins = 256
 
@@ -80,15 +80,15 @@ acc_steps = 1
 
 betas = (0.9, 0.98)
 eps = 1e-9
-weight_decay = 0.
+weight_decay = 0.0
 
 
 # Vocoder
-vocoder = 'melgan'  # 'waveglow' or 'melgan'
+vocoder = "melgan"  # 'waveglow' or 'melgan'
 
 
 # Log-scaled duration
-log_offset = 1.
+log_offset = 1.0
 
 
 # Save, log and synthesis

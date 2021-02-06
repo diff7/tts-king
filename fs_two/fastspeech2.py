@@ -2,11 +2,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from transformer.Models import Encoder, Decoder
-from transformer.Layers import PostNet
-from modules import VarianceAdaptor
-from utils import get_mask_from_lengths
-import hparams as hp
+from fs_two.transformer.Models import Encoder, Decoder
+
+from fs_two.transformer.Layers import PostNet
+from fs_two.modules import VarianceAdaptor
+from fs_two.utils import get_mask_from_lengths
+import fs_two.hparams as hp
 
 
 class FastSpeech2(nn.Module):
@@ -25,26 +26,79 @@ class FastSpeech2(nn.Module):
         if self.use_postnet:
             self.postnet = PostNet()
 
-    def forward(self, src_seq, src_len, mel_len=None, d_target=None, p_target=None, e_target=None, max_src_len=None, max_mel_len=None, d_control=1.0, p_control=1.0, e_control=1.0, speaker_emb=None):
+    def forward(
+        self,
+        src_seq,
+        src_len,
+        mel_len=None,
+        d_target=None,
+        p_target=None,
+        e_target=None,
+        max_src_len=None,
+        max_mel_len=None,
+        d_control=1.0,
+        p_control=1.0,
+        e_control=1.0,
+        speaker_emb=None,
+    ):
         src_mask = get_mask_from_lengths(src_len, max_src_len)
-        mel_mask = get_mask_from_lengths(
-            mel_len, max_mel_len) if mel_len is not None else None
+        mel_mask = (
+            get_mask_from_lengths(mel_len, max_mel_len)
+            if mel_len is not None
+            else None
+        )
 
         encoder_output = self.encoder(src_seq, src_mask)
         # speaker_emb - {batch, emb_dim} -> {batch, seq_len, emb_dim}
         if speaker_emb is not None:
-            speaker_emb = speaker_emb.unsqueeze(
-                1).repeat(1, encoder_output.size(1), 1)
+            speaker_emb = speaker_emb.unsqueeze(1).repeat(
+                1, encoder_output.size(1), 1
+            )
         else:
             speaker_emb = torch.zeros(
-                (encoder_output.size(0), encoder_output.size(1), hp.speaker_dim))
+                (encoder_output.size(0), encoder_output.size(1), hp.speaker_dim)
+            )
         encoder_output = torch.cat([encoder_output, speaker_emb], 2)
         if d_target is not None:
-            variance_adaptor_output, d_prediction, p_prediction, e_prediction, _, _ = self.variance_adaptor(
-                encoder_output, src_mask, mel_mask, d_target, p_target, e_target, max_mel_len, d_control, p_control, e_control)
+            (
+                variance_adaptor_output,
+                d_prediction,
+                p_prediction,
+                e_prediction,
+                _,
+                _,
+            ) = self.variance_adaptor(
+                encoder_output,
+                src_mask,
+                mel_mask,
+                d_target,
+                p_target,
+                e_target,
+                max_mel_len,
+                d_control,
+                p_control,
+                e_control,
+            )
         else:
-            variance_adaptor_output, d_prediction, p_prediction, e_prediction, mel_len, mel_mask = self.variance_adaptor(
-                encoder_output, src_mask, mel_mask, d_target, p_target, e_target, max_mel_len, d_control, p_control, e_control)
+            (
+                variance_adaptor_output,
+                d_prediction,
+                p_prediction,
+                e_prediction,
+                mel_len,
+                mel_mask,
+            ) = self.variance_adaptor(
+                encoder_output,
+                src_mask,
+                mel_mask,
+                d_target,
+                p_target,
+                e_target,
+                max_mel_len,
+                d_control,
+                p_control,
+                e_control,
+            )
 
         decoder_output = self.decoder(variance_adaptor_output, mel_mask)
         mel_output = self.mel_linear(decoder_output)
@@ -54,7 +108,16 @@ class FastSpeech2(nn.Module):
         else:
             mel_output_postnet = mel_output
 
-        return mel_output, mel_output_postnet, d_prediction, p_prediction, e_prediction, src_mask, mel_mask, mel_len
+        return (
+            mel_output,
+            mel_output_postnet,
+            d_prediction,
+            p_prediction,
+            e_prediction,
+            src_mask,
+            mel_mask,
+            mel_len,
+        )
 
 
 if __name__ == "__main__":

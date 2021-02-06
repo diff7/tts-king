@@ -1,6 +1,7 @@
-import importlib
+# import importlib
 from omegaconf import DictConfig, OmegaConf
 from fsapi import FSTWOapi
+from fs_two.preprocess import prepare_dataset_lj_speech
 from hifiapi import HIFIapi
 
 
@@ -10,8 +11,9 @@ class TTSKing:
         cfg = OmegaConf.load(config_path)
 
         self.tts = FSTWOapi(cfg.tts, cfg.tts_weights_path, cfg.device)
-        self.vocoder = HIFIapi(cfg.higi, cfg.hifi_weights_path, cfg.device)
+        self.vocoder = HIFIapi(cfg.hifi, cfg.hifi_weights_path, cfg.device)
         self.logger = None
+        self.cfg = cfg
 
     def generate_mel(
         self, text, duration_control=1.0, pitch_control=1.0, energy_control=1.0
@@ -61,6 +63,9 @@ class TTSKing:
     def prepare_dataset_tts(self, path_to_data):
         # TODO
         pass
+
+    def prepare_dataset_lj_speech(self):
+        prepare_dataset_lj_speech(self.cfg)
 
     def text_preprocess(self, text):
         # TODO write processing function

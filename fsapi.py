@@ -24,18 +24,22 @@ class FSTWOapi:
         # TODO get the righ restore step
         self.restore_step = 0
 
-    def train(self, train_data_loader, val_data_loader, voocoder=None, logger=None):
+    def train(
+        self, train_data_loader, val_data_loader, voocoder=None, logger=None
+    ):
         loss_fn = FastSpeech2Loss().to(self.device)
         optimizer = Ranger(
-                self.model.parameters(),
-                betas=self.cfg.betas,
-                eps=self.cfg.eps,
-                weight_decay=self.cfg.weight_decay)
+            self.model.parameters(),
+            betas=self.cfg.betas,
+            eps=self.cfg.eps,
+            weight_decay=self.cfg.weight_decay,
         )
-        # TODO Change parameters
-        optimizer = ScheduledOptim(
-            optimizer, hp.decoder_hidden, hp.n_warm_up_step, args.restore_step
-        )
+
+        # TODO ADD _update_learning_rate to Lighting
+        # optimizer = ScheduledOptim(
+        #     optimizer, cfg.decoder_hidden, cfg.n_warm_up_step, cfg.restore_step
+        # )
+
         train_fs(
             self.cfg,
             self.model,
@@ -46,7 +50,8 @@ class FSTWOapi:
             logger,
             voocoder,
             self.device,
-            sefl.cfg.weights_dir
+            self.cfg.save_weights_dir,
+            self.cfg.resume_lighting,
         )
 
         return self.model

@@ -3,14 +3,19 @@ import numpy as np
 from scipy.io.wavfile import read
 from scipy.io.wavfile import write
 
-import audio.stft as stft
-from audio.audio_processing import griffin_lim
-import hparams
+import fs_two.audio.stft as stft
+from fs_two.audio.audio_processing import griffin_lim
+import fs_two.hparams as hp
 
 _stft = stft.TacotronSTFT(
-    hparams.filter_length, hparams.hop_length, hparams.win_length,
-    hparams.n_mel_channels, hparams.sampling_rate, hparams.mel_fmin,
-    hparams.mel_fmax)
+    hp.filter_length,
+    hp.hop_length,
+    hp.win_length,
+    hp.n_mel_channels,
+    hp.sampling_rate,
+    hp.mel_fmin,
+    hp.mel_fmax,
+)
 
 
 def load_wav_to_torch(full_path):
@@ -21,8 +26,11 @@ def load_wav_to_torch(full_path):
 def get_mel(filename):
     audio, sampling_rate = load_wav_to_torch(filename)
     if sampling_rate != _stft.sampling_rate:
-        raise ValueError("{} {} SR doesn't match target {} SR".format(
-            sampling_rate, _stft.sampling_rate))
+        raise ValueError(
+            "{} {} SR doesn't match target {} SR".format(
+                sampling_rate, _stft.sampling_rate
+            )
+        )
     audio_norm = audio / hparams.max_wav_value
     audio_norm = audio_norm.unsqueeze(0)
     audio_norm = torch.autograd.Variable(audio_norm, requires_grad=False)
@@ -37,8 +45,11 @@ def get_mel(filename):
 def get_mel_from_wav(audio):
     sampling_rate = hparams.sampling_rate
     if sampling_rate != _stft.sampling_rate:
-        raise ValueError("{} {} SR doesn't match target {} SR".format(
-            sampling_rate, _stft.sampling_rate))
+        raise ValueError(
+            "{} {} SR doesn't match target {} SR".format(
+                sampling_rate, _stft.sampling_rate
+            )
+        )
     audio_norm = audio / hparams.max_wav_value
     audio_norm = audio_norm.unsqueeze(0)
     audio_norm = torch.autograd.Variable(audio_norm, requires_grad=False)
@@ -59,8 +70,11 @@ def inv_mel_spec(mel, out_filename, griffin_iters=60):
     spec_from_mel = spec_from_mel.transpose(0, 1).unsqueeze(0)
     spec_from_mel = spec_from_mel * spec_from_mel_scaling
 
-    audio = griffin_lim(torch.autograd.Variable(
-        spec_from_mel[:, :, :-1]), _stft.stft_fn, griffin_iters)
+    audio = griffin_lim(
+        torch.autograd.Variable(spec_from_mel[:, :, :-1]),
+        _stft.stft_fn,
+        griffin_iters,
+    )
 
     audio = audio.squeeze()
     audio = audio.cpu().numpy()
