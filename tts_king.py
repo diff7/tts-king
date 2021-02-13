@@ -1,4 +1,12 @@
-# import importlib
+# IMPORTS FOR PREPROCESS
+import re
+import torch
+import numpy as np
+from string import punctuation
+from g2p_en import G2p
+from fs_two.text import text_to_sequence
+
+# OTHER IMPORTS
 from omegaconf import DictConfig, OmegaConf
 from fsapi import FSTWOapi
 from fs_two.preprocess import prepare_dataset_lj_speech
@@ -21,7 +29,6 @@ class TTSKing:
 
         phonemes = self.text_preprocess(text)
         result = self.tts.generate(
-            self,
             phonemes,
             duration_control,
             pitch_control,
@@ -68,9 +75,21 @@ class TTSKing:
         prepare_dataset_lj_speech(self.cfg)
 
     def text_preprocess(self, text):
-        # TODO write processing function
-        # return process_txt(text)
-        pass
+        text = text.rstrip(punctuation)
+        g2p = G2p()
+        phone = g2p(text)
+        phone = list(filter(lambda p: p != " ", phone))
+        phone = "{" + "}{".join(phone) + "}"
+        phone = re.sub(r"\{[^\w\s]?\}", "{sp}", phone)
+        phone = phone.replace("}{", " ")
+
+        sequence = np.array(text_to_sequence(phone, ["english_cleaners"]))
+        sequence = np.stack([sequence])
+
+        return torch.from_numpy(sequence).long().to(self.cfg.device)
+
+    def to_torch_device(self, items):
+        return [torch.tensor(t).to(self.cfg.device) for t in items]
 
 
 # def get_class(main, module):

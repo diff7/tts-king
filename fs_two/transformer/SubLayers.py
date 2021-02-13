@@ -7,16 +7,6 @@ from fs_two.transformer.Modules import ScaledDotProductAttention
 import fs_two.hparams as hp
 
 
-@torch.jit.script
-def mish(input):
-    """
-    Applies the mish function element-wise:
-    mish(x) = x * tanh(softplus(x)) = x * tanh(ln(1 + exp(x)))
-    See additional documentation for mish class.
-    """
-    return input * torch.tanh(F.softplus(input))
-
-
 class MultiHeadAttention(nn.Module):
     """ Multi-Head Attention module """
 
@@ -40,7 +30,7 @@ class MultiHeadAttention(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, q, k, v, mask=None, prev=None):
+    def forward(self, q, k, v, mask=None):
 
         d_k, d_v, n_head = self.d_k, self.d_v, self.n_head
 
@@ -64,7 +54,7 @@ class MultiHeadAttention(nn.Module):
         )  # (n*b) x lv x dv
 
         mask = mask.repeat(n_head, 1, 1)  # (n*b) x .. x ..
-        output, attn, prev = self.attention(q, k, v, prev, mask=mask)
+        output, attn = self.attention(q, k, v, mask=mask)
 
         output = output.view(n_head, sz_b, len_q, d_v)
         output = (
@@ -74,7 +64,7 @@ class MultiHeadAttention(nn.Module):
         output = self.dropout(self.fc(output))
         output = self.layer_norm(output + residual)
 
-        return output, attn, prev
+        return output, attn
 
 
 class PositionwiseFeedForward(nn.Module):
@@ -105,7 +95,7 @@ class PositionwiseFeedForward(nn.Module):
     def forward(self, x):
         residual = x
         output = x.transpose(1, 2)
-        output = self.w_2(mish(self.w_1(output)))
+        output = self.w_2(F.relu(self.w_1(output)))
         output = output.transpose(1, 2)
         output = self.dropout(output)
         output = self.layer_norm(output + residual)

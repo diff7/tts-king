@@ -39,7 +39,6 @@ class FastSpeech2(nn.Module):
         d_control=1.0,
         p_control=1.0,
         e_control=1.0,
-        speaker_emb=None,
     ):
         src_mask = get_mask_from_lengths(src_len, max_src_len)
         mel_mask = (
@@ -49,16 +48,6 @@ class FastSpeech2(nn.Module):
         )
 
         encoder_output = self.encoder(src_seq, src_mask)
-        # speaker_emb - {batch, emb_dim} -> {batch, seq_len, emb_dim}
-        if speaker_emb is not None:
-            speaker_emb = speaker_emb.unsqueeze(1).repeat(
-                1, encoder_output.size(1), 1
-            )
-        else:
-            speaker_emb = torch.zeros(
-                (encoder_output.size(0), encoder_output.size(1), hp.speaker_dim)
-            )
-        encoder_output = torch.cat([encoder_output, speaker_emb], 2)
         if d_target is not None:
             (
                 variance_adaptor_output,

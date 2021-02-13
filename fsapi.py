@@ -9,9 +9,11 @@ from train_fs_lighting import train_fs
 
 
 class FSTWOapi:
-    def __init__(self, config, weights_path=None, device="gpu"):
+    def __init__(self, config, weights_path=None, device=0):
 
-        self.model = nn.DataParallel(FastSpeech2()).to(device)
+        self.model = nn.DataParallel(FastSpeech2(), device_ids=[device]).to(
+            device
+        )
         # Load checkpoint if exists
         self.weights_path = weights_path
         if weights_path is not None:
@@ -64,7 +66,6 @@ class FSTWOapi:
         energy_control=1.0,
         speaker=None,
     ):
-
         self.model.eval()
         src_len = torch.from_numpy(np.array([phonemes.shape[1]])).to(
             self.device
@@ -75,7 +76,7 @@ class FSTWOapi:
             d_control=duration_control,
             p_control=pitch_control,
             e_control=energy_control,
-            speaker_emb=speaker,
+            # speaker_emb=speaker,
         )
 
         # mel, mel_postnet, log_duration_output, f0_output, energy_output

@@ -4,19 +4,16 @@ import numpy as np
 
 
 class ScaledDotProductAttention(nn.Module):
-    ''' Scaled Dot-Product Attention '''
+    """ Scaled Dot-Product Attention """
 
     def __init__(self, temperature):
         super().__init__()
         self.temperature = temperature
         self.softmax = nn.Softmax(dim=2)
 
-    def forward(self, q, k, v, mask=None, prev=None):
+    def forward(self, q, k, v, mask=None):
 
-        if prev is None:
-            attn = torch.bmm(q, k.transpose(1, 2))
-        else:
-            attn = torch.bmm(q, k.transpose(1, 2)) + prev
+        attn = torch.bmm(q, k.transpose(1, 2))
         attn = attn / self.temperature
 
         if mask is not None:
@@ -25,4 +22,4 @@ class ScaledDotProductAttention(nn.Module):
         attn = self.softmax(attn)
         output = torch.bmm(attn, v)
 
-        return output, attn, prev
+        return output, attn

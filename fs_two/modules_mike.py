@@ -8,9 +8,46 @@ import copy
 import math
 
 import fs_two.hparams as hp
-import fs_two.utils as utils
+import fs_two.utils
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+@torch.jit.script
+def mish(input):
+    """
+    Applies the mish function element-wise:
+    mish(x) = x * tanh(softplus(x)) = x * tanh(ln(1 + exp(x)))
+    See additional documentation for mish class.
+    """
+    return input * torch.tanh(F.softplus(input))
+
+
+class Mish(nn.Module):
+    """
+    Applies the mish function element-wise:
+    mish(x) = x * tanh(softplus(x)) = x * tanh(ln(1 + exp(x)))
+    Shape:
+        - Input: (N, *) where * means, any number of additional
+          dimensions
+        - Output: (N, *), same shape as the input
+    Examples:
+        >>> m = Mish()
+        >>> input = torch.randn(2)
+        >>> output = m(input)
+    """
+
+    def __init__(self):
+        """
+        Init method.
+        """
+        super().__init__()
+
+    def forward(self, input):
+        """
+        Forward pass of the function.
+        """
+        return mish(input)
 
 
 def clones(module, N):
@@ -39,8 +76,12 @@ class VarianceAdaptor(nn.Module):
             torch.linspace(hp.energy_min, hp.energy_max, hp.n_bins - 1),
             requires_grad=False,
         )
-        self.pitch_embedding = nn.Embedding(hp.n_bins, hp.encoder_hidden)
-        self.energy_embedding = nn.Embedding(hp.n_bins, hp.encoder_hidden)
+        self.pitch_embedding = nn.Embedding(
+            hp.n_bins, hp.encoder_hidden + hp.speaker_dim
+        )
+        self.energy_embedding = nn.Embedding(
+            hp.n_bins, hp.encoder_hidden + hp.speaker_dim
+        )
 
     def forward(
         self,
@@ -148,7 +189,7 @@ class VariancePredictor(nn.Module):
     def __init__(self):
         super(VariancePredictor, self).__init__()
 
-        self.input_size = hp.encoder_hidden
+        self.input_size = hp.encoder_hidden + hp.speaker_dim
         self.filter_size = hp.variance_predictor_filter_size
         self.kernel = hp.variance_predictor_kernel_size
         self.conv_output_size = hp.variance_predictor_filter_size
@@ -166,7 +207,7 @@ class VariancePredictor(nn.Module):
                             padding=(self.kernel - 1) // 2,
                         ),
                     ),
-                    ("relu_1", nn.ReLU()),
+                    ("mish_1", Mish()),
                     ("layer_norm_1", nn.LayerNorm(self.filter_size)),
                     ("dropout_1", nn.Dropout(self.dropout)),
                     (
@@ -178,7 +219,7 @@ class VariancePredictor(nn.Module):
                             padding=1,
                         ),
                     ),
-                    ("relu_2", nn.ReLU()),
+                    ("mish_2", Mish()),
                     ("layer_norm_2", nn.LayerNorm(self.filter_size)),
                     ("dropout_2", nn.Dropout(self.dropout)),
                 ]

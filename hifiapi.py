@@ -2,15 +2,23 @@ import torch
 from hifi.models import Generator
 
 
+class AttrDict(dict):
+    def __init__(self, *args, **kwargs):
+        super(AttrDict, self).__init__(*args, **kwargs)
+        self.__dict__ = self
+
+
 class HIFIapi:
     def __init__(self, config, weights_path=None, device="gpu"):
 
-        self.model = Generator(config).to(device)
         # Load checkpoint if exists
         self.weights_path = weights_path
+
         if weights_path is not None:
             checkpoint = torch.load(weights_path)
-            self.model.load_state_dict(checkpoint)
+
+        self.model = Generator(config).to(device)
+        self.model.load_state_dict(checkpoint["generator"])
 
         self.cfg = config
         self.device = device
@@ -31,7 +39,7 @@ class HIFIapi:
         """
 
         self.model.eval()
-        self.model.remove_weight_norm()
+        # self.model.remove_weight_norm()
         with torch.no_grad():
             audio = self.model(mel_specs)
             audio = audio * self.cfg.MAX_WAV_VALUE

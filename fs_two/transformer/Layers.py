@@ -22,16 +22,16 @@ class FFTBlock(torch.nn.Module):
             d_model, d_inner, dropout=dropout
         )
 
-    def forward(self, enc_input, mask=None, slf_attn_mask=None, prev=None):
-        enc_output, enc_slf_attn, prev = self.slf_attn(
-            enc_input, enc_input, enc_input, mask=slf_attn_mask, prev=None
+    def forward(self, enc_input, mask=None, slf_attn_mask=None):
+        enc_output, enc_slf_attn = self.slf_attn(
+            enc_input, enc_input, enc_input, mask=slf_attn_mask
         )
         enc_output = enc_output.masked_fill(mask.unsqueeze(-1), 0)
 
         enc_output = self.pos_ffn(enc_output)
         enc_output = enc_output.masked_fill(mask.unsqueeze(-1), 0)
 
-        return enc_output, enc_slf_attn, prev
+        return enc_output, enc_slf_attn
 
 
 class ConvNorm(torch.nn.Module):

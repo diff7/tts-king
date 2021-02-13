@@ -94,10 +94,10 @@ class Encoder(nn.Module):
             enc_output = self.src_word_emb(src_seq) + self.position_enc[
                 :, :max_len, :
             ].expand(batch_size, -1, -1)
-
+        prev = None
         for enc_layer in self.layer_stack:
-            enc_output, enc_slf_attn = enc_layer(
-                enc_output, mask=mask, slf_attn_mask=slf_attn_mask
+            enc_output, enc_slf_attn, prev = enc_layer(
+                enc_output, mask=mask, slf_attn_mask=slf_attn_mask, prev=prev
             )
             if return_attns:
                 enc_slf_attn_list += [enc_slf_attn]
@@ -111,7 +111,7 @@ class Decoder(nn.Module):
     def __init__(
         self,
         len_max_seq=hp.max_seq_len,
-        d_word_vec=hp.encoder_hidden,
+        d_word_vec=hp.encoder_hidden + hp.speaker_dim,
         n_layers=hp.decoder_layer,
         n_head=hp.decoder_head,
         d_k=hp.decoder_hidden // hp.decoder_head,
@@ -157,9 +157,10 @@ class Decoder(nn.Module):
                 batch_size, -1, -1
             )
 
+        prev = None
         for dec_layer in self.layer_stack:
-            dec_output, dec_slf_attn = dec_layer(
-                dec_output, mask=mask, slf_attn_mask=slf_attn_mask
+            dec_output, dec_slf_attn, prev = dec_layer(
+                dec_output, mask=mask, slf_attn_mask=slf_attn_mask, prev=prev
             )
             if return_attns:
                 dec_slf_attn_list += [dec_slf_attn]
