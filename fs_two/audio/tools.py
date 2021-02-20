@@ -3,8 +3,8 @@ import numpy as np
 from scipy.io.wavfile import read
 from scipy.io.wavfile import write
 
-import fs_two.audio.stft as stft
 from fs_two.audio.audio_processing import griffin_lim
+from fs_two.audio import stft
 import fs_two.hparams as hp
 
 _stft = stft.TacotronSTFT(
