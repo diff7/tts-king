@@ -40,7 +40,7 @@ class TTSKing:
         return result
 
     def mel_to_wav(self, mel_spec):
-        wav_cpu = self.vocoder.generate(mel_spec)
+        wav_cpu = self.vocoder.generate(mel_spec.transpose(1,2))
         return wav_cpu
 
     def speak(
