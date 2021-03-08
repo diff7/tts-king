@@ -26,6 +26,8 @@ class HIFIapi:
         # TODO get the righ restore step
         self.restore_step = 0
 
+        self.model.remove_weight_norm()
+
     # TODO:
     def train(self):
         raise NotImplemented(" Train for HiFi was not implemented yet")
@@ -39,7 +41,6 @@ class HIFIapi:
         """
 
         self.model.eval()
-        # self.model.remove_weight_norm()
         with torch.no_grad():
             audio = self.model(mel_specs)
             audio = audio * self.cfg.MAX_WAV_VALUE

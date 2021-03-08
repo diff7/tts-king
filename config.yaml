@@ -1,5 +1,5 @@
-data_path: ''
-processed_data_path: ''
+data_path:  '/home/dev/other/fsp/data/aligned/' #'../ljspeech_dataset'
+processed_data_path: /home/dev/other/fsp/data/ailabs_speaker' #'../ljspeech_dataset_processed'
 device: 0
 
 tts_weights_path: '/home/dev/other/fsp/weights/trained_original/fsp/checkpoint_300000.pth'

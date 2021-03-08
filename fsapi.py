@@ -2,9 +2,9 @@ import torch
 import numpy as np
 import torch.nn as nn
 
-from fs_two.fastspeech2 import FastSpeech2
-from fs_two.loss import FastSpeech2Loss
-from fs_two.optimizer import ScheduledOptim, Ranger
+from fs_two.model import FastSpeech2
+from fs_two.model.loss import FastSpeech2Loss
+from fs_two.model.optimizer import ScheduledOptim, Ranger
 from train_fs_lighting import train_fs
 
 

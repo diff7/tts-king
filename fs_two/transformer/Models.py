@@ -2,10 +2,9 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-from fs_two.transformer import Constants
-from fs_two.transformer.Layers import FFTBlock
+import fs_two.transformer.Constants as Constants
+from .Layers import FFTBlock
 from fs_two.text.symbols import symbols
-import fs_two.hparams as hp
 
 
 def get_sinusoid_encoding_table(n_position, d_hid, padding_idx=None):
@@ -34,23 +33,25 @@ def get_sinusoid_encoding_table(n_position, d_hid, padding_idx=None):
 class Encoder(nn.Module):
     """ Encoder """
 
-    def __init__(
-        self,
-        n_src_vocab=len(symbols) + 1,
-        len_max_seq=hp.max_seq_len,
-        d_word_vec=hp.encoder_hidden,
-        n_layers=hp.encoder_layer,
-        n_head=hp.encoder_head,
-        d_k=hp.encoder_hidden // hp.encoder_head,
-        d_v=hp.encoder_hidden // hp.encoder_head,
-        d_model=hp.encoder_hidden,
-        d_inner=hp.fft_conv1d_filter_size,
-        dropout=hp.encoder_dropout,
-    ):
-
+    def __init__(self, config):
         super(Encoder, self).__init__()
 
-        n_position = len_max_seq + 1
+        n_position = config["max_seq_len"] + 1
+        n_src_vocab = len(symbols) + 1
+        d_word_vec = config["transformer"]["encoder_hidden"]
+        n_layers = config["transformer"]["encoder_layer"]
+        n_head = config["transformer"]["encoder_head"]
+        d_k = d_v = (
+            config["transformer"]["encoder_hidden"]
+            // config["transformer"]["encoder_head"]
+        )
+        d_model = config["transformer"]["encoder_hidden"]
+        d_inner = config["transformer"]["conv_filter_size"]
+        kernel_size = config["transformer"]["conv_kernel_size"]
+        dropout = config["transformer"]["encoder_dropout"]
+
+        self.max_seq_len = config["max_seq_len"]
+        self.d_model = d_model
 
         self.src_word_emb = nn.Embedding(
             n_src_vocab, d_word_vec, padding_idx=Constants.PAD
@@ -62,7 +63,15 @@ class Encoder(nn.Module):
 
         self.layer_stack = nn.ModuleList(
             [
-                FFTBlock(d_model, d_inner, n_head, d_k, d_v, dropout=dropout)
+                FFTBlock(
+                    d_model,
+                    n_head,
+                    d_k,
+                    d_v,
+                    d_inner,
+                    kernel_size,
+                    dropout=dropout,
+                )
                 for _ in range(n_layers)
             ]
         )
@@ -76,12 +85,10 @@ class Encoder(nn.Module):
         slf_attn_mask = mask.unsqueeze(1).expand(-1, max_len, -1)
 
         # -- Forward
-        if not self.training and src_seq.shape[1] > hp.max_seq_len:
+        if not self.training and src_seq.shape[1] > self.max_seq_len:
             enc_output = self.src_word_emb(
                 src_seq
-            ) + get_sinusoid_encoding_table(
-                src_seq.shape[1], hp.encoder_hidden
-            )[
+            ) + get_sinusoid_encoding_table(src_seq.shape[1], self.d_model)[
                 : src_seq.shape[1], :
             ].unsqueeze(
                 0
@@ -108,22 +115,24 @@ class Encoder(nn.Module):
 class Decoder(nn.Module):
     """ Decoder """
 
-    def __init__(
-        self,
-        len_max_seq=hp.max_seq_len,
-        d_word_vec=hp.encoder_hidden,
-        n_layers=hp.decoder_layer,
-        n_head=hp.decoder_head,
-        d_k=hp.decoder_hidden // hp.decoder_head,
-        d_v=hp.decoder_hidden // hp.decoder_head,
-        d_model=hp.decoder_hidden,
-        d_inner=hp.fft_conv1d_filter_size,
-        dropout=hp.decoder_dropout,
-    ):
-
+    def __init__(self, config):
         super(Decoder, self).__init__()
 
-        n_position = len_max_seq + 1
+        n_position = config["max_seq_len"] + 1
+        d_word_vec = config["transformer"]["decoder_hidden"]
+        n_layers = config["transformer"]["decoder_layer"]
+        n_head = config["transformer"]["decoder_head"]
+        d_k = d_v = (
+            config["transformer"]["decoder_hidden"]
+            // config["transformer"]["decoder_head"]
+        )
+        d_model = config["transformer"]["decoder_hidden"]
+        d_inner = config["transformer"]["conv_filter_size"]
+        kernel_size = config["transformer"]["conv_kernel_size"]
+        dropout = config["transformer"]["decoder_dropout"]
+
+        self.max_seq_len = config["max_seq_len"]
+        self.d_model = d_model
 
         self.position_enc = nn.Parameter(
             get_sinusoid_encoding_table(n_position, d_word_vec).unsqueeze(0),
@@ -132,7 +141,15 @@ class Decoder(nn.Module):
 
         self.layer_stack = nn.ModuleList(
             [
-                FFTBlock(d_model, d_inner, n_head, d_k, d_v, dropout=dropout)
+                FFTBlock(
+                    d_model,
+                    n_head,
+                    d_k,
+                    d_v,
+                    d_inner,
+                    kernel_size,
+                    dropout=dropout,
+                )
                 for _ in range(n_layers)
             ]
         )
@@ -142,20 +159,25 @@ class Decoder(nn.Module):
         dec_slf_attn_list = []
         batch_size, max_len = enc_seq.shape[0], enc_seq.shape[1]
 
-        # -- Prepare masks
-        slf_attn_mask = mask.unsqueeze(1).expand(-1, max_len, -1)
-
         # -- Forward
-        if not self.training and enc_seq.shape[1] > hp.max_seq_len:
+        if not self.training and enc_seq.shape[1] > self.max_seq_len:
+            # -- Prepare masks
+            slf_attn_mask = mask.unsqueeze(1).expand(-1, max_len, -1)
             dec_output = enc_seq + get_sinusoid_encoding_table(
-                enc_seq.shape[1], hp.decoder_hidden
+                enc_seq.shape[1], self.d_model
             )[: enc_seq.shape[1], :].unsqueeze(0).expand(batch_size, -1, -1).to(
                 enc_seq.device
             )
         else:
-            dec_output = enc_seq + self.position_enc[:, :max_len, :].expand(
-                batch_size, -1, -1
-            )
+            max_len = min(max_len, self.max_seq_len)
+
+            # -- Prepare masks
+            slf_attn_mask = mask.unsqueeze(1).expand(-1, max_len, -1)
+            dec_output = enc_seq[:, :max_len, :] + self.position_enc[
+                :, :max_len, :
+            ].expand(batch_size, -1, -1)
+            mask = mask[:, :max_len]
+            slf_attn_mask = slf_attn_mask[:, :, :max_len]
 
         for dec_layer in self.layer_stack:
             dec_output, dec_slf_attn = dec_layer(
@@ -164,4 +186,4 @@ class Decoder(nn.Module):
             if return_attns:
                 dec_slf_attn_list += [dec_slf_attn]
 
-        return dec_output
+        return dec_output, mask

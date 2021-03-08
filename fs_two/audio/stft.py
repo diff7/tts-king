@@ -1,15 +1,15 @@
 import torch
 import torch.nn.functional as F
-from torch.autograd import Variable
 import numpy as np
-
 from scipy.signal import get_window
 from librosa.util import pad_center, tiny
 from librosa.filters import mel as librosa_mel_fn
 
-from fs_two.audio.audio_processing import dynamic_range_compression
-from fs_two.audio.audio_processing import dynamic_range_decompression
-from fs_two.audio.audio_processing import window_sumsquare
+from audio.audio_processing import (
+    dynamic_range_compression,
+    dynamic_range_decompression,
+    window_sumsquare,
+)
 
 
 class STFT(torch.nn.Module):
@@ -27,10 +27,7 @@ class STFT(torch.nn.Module):
 
         cutoff = int((self.filter_length / 2 + 1))
         fourier_basis = np.vstack(
-            [
-                np.real(fourier_basis[:cutoff, :]),
-                np.imag(fourier_basis[:cutoff, :]),
-            ]
+            [np.real(fourier_basis[:cutoff, :]), np.imag(fourier_basis[:cutoff, :])]
         )
 
         forward_basis = torch.FloatTensor(fourier_basis[:, None, :])
@@ -69,7 +66,7 @@ class STFT(torch.nn.Module):
 
         forward_transform = F.conv1d(
             input_data.cuda(),
-            Variable(self.forward_basis, requires_grad=False).cuda(),
+            torch.autograd.Variable(self.forward_basis, requires_grad=False).cuda(),
             stride=self.hop_length,
             padding=0,
         ).cpu()
@@ -79,9 +76,7 @@ class STFT(torch.nn.Module):
         imag_part = forward_transform[:, cutoff:, :]
 
         magnitude = torch.sqrt(real_part ** 2 + imag_part ** 2)
-        phase = torch.autograd.Variable(
-            torch.atan2(imag_part.data, real_part.data)
-        )
+        phase = torch.autograd.Variable(torch.atan2(imag_part.data, real_part.data))
 
         return magnitude, phase
 
@@ -92,7 +87,7 @@ class STFT(torch.nn.Module):
 
         inverse_transform = F.conv_transpose1d(
             recombine_magnitude_phase,
-            Variable(self.inverse_basis, requires_grad=False),
+            torch.autograd.Variable(self.inverse_basis, requires_grad=False),
             stride=self.hop_length,
             padding=0,
         )
@@ -121,12 +116,8 @@ class STFT(torch.nn.Module):
             # scale by hop ratio
             inverse_transform *= float(self.filter_length) / self.hop_length
 
-        inverse_transform = inverse_transform[
-            :, :, int(self.filter_length / 2) :
-        ]
-        inverse_transform = inverse_transform[
-            :, :, : -int(self.filter_length / 2) :
-        ]
+        inverse_transform = inverse_transform[:, :, int(self.filter_length / 2) :]
+        inverse_transform = inverse_transform[:, :, : -int(self.filter_length / 2) :]
 
         return inverse_transform
 
@@ -144,8 +135,8 @@ class TacotronSTFT(torch.nn.Module):
         win_length,
         n_mel_channels,
         sampling_rate,
-        mel_fmin=0.0,
-        mel_fmax=8000.0,
+        mel_fmin,
+        mel_fmax,
     ):
         super(TacotronSTFT, self).__init__()
         self.n_mel_channels = n_mel_channels
@@ -170,6 +161,7 @@ class TacotronSTFT(torch.nn.Module):
         PARAMS
         ------
         y: Variable(torch.FloatTensor) with shape (B, T) in range [-1, 1]
+
         RETURNS
         -------
         mel_output: torch.FloatTensor of shape (B, n_mel_channels, T)
