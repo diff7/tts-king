@@ -10,7 +10,7 @@ from scipy.interpolate import interp1d
 from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 
-import audio as Audio
+import fs_two.audio as Audio
 
 
 class Preprocessor:

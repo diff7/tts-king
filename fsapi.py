@@ -4,7 +4,9 @@ import torch.nn as nn
 
 from fs_two.model import FastSpeech2
 from fs_two.model.loss import FastSpeech2Loss
-from fs_two.model.optimizer import ScheduledOptim, Ranger
+
+# from fs_two.model.optimizer import ScheduledOptim
+from fs_two.ranger import Ranger
 from train_fs_lighting import train_fs
 
 

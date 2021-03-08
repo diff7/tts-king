@@ -2,7 +2,7 @@ import argparse
 
 import yaml
 
-from preprocessor.preprocessor import Preprocessor
+from fs_two.preprocessor.preprocessor import Preprocessor
 
 
 if __name__ == "__main__":
