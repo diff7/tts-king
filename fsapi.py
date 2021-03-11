@@ -70,8 +70,8 @@ class FSTWOapi:
         src_len = np.array([len(phonemes[0])])
         result = self.model(
             speaker,
-            phonemes,
-            src_len,
+            torch.from_numpy(phonemes).long().to(self.device),
+            torch.from_numpy(src_len).to(self.device),
             max(src_len),
             d_control=duration_control,
             p_control=pitch_control,
