@@ -8,18 +8,31 @@ from fs_two.text import text_to_sequence
 
 # OTHER IMPORTS
 from omegaconf import DictConfig, OmegaConf
+import yaml
 from fsapi import FSTWOapi
 
 # from fs_two.preprocess import prepare_dataset_lj_speech
 from hifiapi import HIFIapi
 
+from input_process import preprocess_english
+
 
 class TTSKing:
-    def __init__(self, config_path="config.yaml"):
+    def __init__(self, preprocess_config, model_config, train_config, config_path):
+
+        self.preprocess_config_c = yaml.load(
+            open(preprocess_config, "r"), Loader=yaml.FullLoader
+        )
+        self.model_config_c = yaml.load(
+            open(model_config, "r"), Loader=yaml.FullLoader)
+        self.train_config_c = yaml.load(
+            open(train_config, "r"), Loader=yaml.FullLoader)
+        configs = (self.preprocess_config_c,
+                   self.model_config_c, self.train_config_c)
 
         cfg = OmegaConf.load(config_path)
 
-        self.tts = FSTWOapi(cfg.tts, cfg.tts_weights_path, cfg.device)
+        self.tts = FSTWOapi(cfg.tts, cfg.tts_weights_path, cfg.device, configs)
         self.vocoder = HIFIapi(cfg.hifi, cfg.hifi_weights_path, cfg.device)
         self.logger = None
         self.cfg = cfg
@@ -29,6 +42,7 @@ class TTSKing:
     ):
 
         phonemes = self.text_preprocess(text)
+
         result = self.tts.generate(
             phonemes,
             duration_control,
@@ -76,18 +90,7 @@ class TTSKing:
         prepare_dataset_lj_speech(self.cfg)
 
     def text_preprocess(self, text):
-        text = text.rstrip(punctuation)
-        g2p = G2p()
-        phone = g2p(text)
-        phone = list(filter(lambda p: p != " ", phone))
-        phone = "{" + "}{".join(phone) + "}"
-        phone = re.sub(r"\{[^\w\s]?\}", "{sp}", phone)
-        phone = phone.replace("}{", " ")
-
-        sequence = np.array(text_to_sequence(phone, ["english_cleaners"]))
-        sequence = np.stack([sequence])
-
-        return torch.from_numpy(sequence).long().to(self.cfg.device)
+        return np.array([preprocess_english(text, self.preprocess_config_c)])
 
     def to_torch_device(self, items):
         return [torch.tensor(t).to(self.cfg.device) for t in items]

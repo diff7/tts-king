@@ -11,11 +11,9 @@ from train_fs_lighting import train_fs
 
 
 class FSTWOapi:
-    def __init__(self, config, weights_path=None, device=0):
-
-        self.model = nn.DataParallel(FastSpeech2(), device_ids=[device]).to(
-            device
-        )
+    def __init__(self, config, weights_path=None, device=0, configs=None):
+        (preprocess_config, model_config, train_config) = configs
+        self.model = FastSpeech2(preprocess_config, model_config).to(device)
         # Load checkpoint if exists
         self.weights_path = weights_path
         if weights_path is not None:
@@ -29,7 +27,7 @@ class FSTWOapi:
         self.restore_step = 0
 
     def train(
-        self, train_data_loader, val_data_loader, voocoder=None, logger=None
+        self, train_data_loader, val_data_loader, vocoder=None, logger=None
     ):
         loss_fn = FastSpeech2Loss().to(self.device)
         optimizer = Ranger(
@@ -52,7 +50,7 @@ class FSTWOapi:
             val_data_loader,
             optimizer,
             logger,
-            voocoder,
+            vocoder,
             self.device,
             self.cfg.save_weights_dir,
             self.cfg.resume_lighting,
@@ -69,16 +67,15 @@ class FSTWOapi:
         speaker=None,
     ):
         self.model.eval()
-        src_len = torch.from_numpy(np.array([phonemes.shape[1]])).to(
-            self.device
-        )
+        src_len = np.array([len(phonemes[0])])
         result = self.model(
+            speaker,
             phonemes,
             src_len,
+            max(src_len),
             d_control=duration_control,
             p_control=pitch_control,
             e_control=energy_control,
-            # speaker_emb=speaker,
         )
 
         # mel, mel_postnet, log_duration_output, f0_output, energy_output
