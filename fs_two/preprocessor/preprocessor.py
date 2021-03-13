@@ -6,11 +6,19 @@ import tgt
 import librosa
 import numpy as np
 import pyworld as pw
+import librosa
+from scipy.io import wavfile
 from scipy.interpolate import interp1d
 from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 
 import fs_two.audio as Audio
+
+
+def wav_rescale(wav_path, sampling_rate, max_wav_value):
+    wav, _ = librosa.load(wav_path, sampling_rate)
+    wav = wav / max(abs(wav)) * max_wav_value
+    wavfile.write(wav_path, sampling_rate, wav.astype(np.int16))
 
 
 class Preprocessor:
@@ -21,6 +29,8 @@ class Preprocessor:
         self.val_size = config["preprocessing"]["val_size"]
         self.sampling_rate = config["preprocessing"]["audio"]["sampling_rate"]
         self.hop_length = config["preprocessing"]["stft"]["hop_length"]
+        self.sampling_rate = config["preprocessing"]["audio"]["sampling_rate"]
+        self.max_wav_value = config["preprocessing"]["audio"]["max_wav_value"]
 
         assert config["preprocessing"]["pitch"]["feature"] in [
             "phoneme_level",
@@ -37,8 +47,12 @@ class Preprocessor:
             config["preprocessing"]["energy"]["feature"] == "phoneme_level"
         )
 
-        self.pitch_normalization = config["preprocessing"]["pitch"]["normalization"]
-        self.energy_normalization = config["preprocessing"]["energy"]["normalization"]
+        self.pitch_normalization = config["preprocessing"]["pitch"][
+            "normalization"
+        ]
+        self.energy_normalization = config["preprocessing"]["energy"][
+            "normalization"
+        ]
 
         self.STFT = Audio.stft.TacotronSTFT(
             config["preprocessing"]["stft"]["filter_length"],
@@ -64,15 +78,22 @@ class Preprocessor:
 
         # Compute pitch, energy, duration, and mel-spectrogram
         speakers = {}
-        for i, speaker in enumerate(tqdm(os.listdir(self.in_dir))):
+        for i, speaker in enumerate(os.listdir(self.in_dir)):
+            print(f"PROCESSIN SPEAKER {i+1} {speaker}")
             speakers[speaker] = i
-            for wav_name in os.listdir(os.path.join(self.in_dir, speaker)):
+            for wav_name in tqdm(
+                os.listdir(os.path.join(self.in_dir, speaker))
+            ):
                 if ".wav" not in wav_name:
                     continue
 
                 basename = wav_name.split(".")[0]
+                wav_path = os.path.join(self.in_dir, speaker, wav_name)
+                wav_rescale(wav_path, self.sampling_rate, self.max_wav_value)
                 tg_path = os.path.join(
-                    self.out_dir, "TextGrid", speaker, "{}.TextGrid".format(basename)
+                    self.in_dir,
+                    speaker,
+                    "{}.TextGrid".format(basename),
                 )
                 if os.path.exists(tg_path):
                     ret = self.process_utterance(speaker, basename)
@@ -143,10 +164,14 @@ class Preprocessor:
         out = [r for r in out if r is not None]
 
         # Write metadata
-        with open(os.path.join(self.out_dir, "train.txt"), "w", encoding="utf-8") as f:
+        with open(
+            os.path.join(self.out_dir, "train.txt"), "w", encoding="utf-8"
+        ) as f:
             for m in out[self.val_size :]:
                 f.write(m + "\n")
-        with open(os.path.join(self.out_dir, "val.txt"), "w", encoding="utf-8") as f:
+        with open(
+            os.path.join(self.out_dir, "val.txt"), "w", encoding="utf-8"
+        ) as f:
             for m in out[: self.val_size]:
                 f.write(m + "\n")
 
@@ -154,9 +179,11 @@ class Preprocessor:
 
     def process_utterance(self, speaker, basename):
         wav_path = os.path.join(self.in_dir, speaker, "{}.wav".format(basename))
-        text_path = os.path.join(self.in_dir, speaker, "{}.lab".format(basename))
+        text_path = os.path.join(
+            self.in_dir, speaker, "{}.lab".format(basename)
+        )
         tg_path = os.path.join(
-            self.out_dir, "TextGrid", speaker, "{}.TextGrid".format(basename)
+            self.in_dir, speaker, "{}.TextGrid".format(basename)
         )
 
         # Get alignments
@@ -184,7 +211,9 @@ class Preprocessor:
             self.sampling_rate,
             frame_period=self.hop_length / self.sampling_rate * 1000,
         )
-        pitch = pw.stonemask(wav.astype(np.float64), pitch, t, self.sampling_rate)
+        pitch = pw.stonemask(
+            wav.astype(np.float64), pitch, t, self.sampling_rate
+        )
 
         pitch = pitch[: sum(duration)]
         if np.sum(pitch != 0) <= 1:

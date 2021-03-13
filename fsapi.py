@@ -7,12 +7,24 @@ from fs_two.model.loss import FastSpeech2Loss
 
 # from fs_two.model.optimizer import ScheduledOptim
 from fs_two.ranger import Ranger
-from train_fs_lighting import train_fs
+
+
+# from train_fs_lighting import train_fs
+
+"""
+
+ python3 prepare_align.py config/LJSpeech/preprocess.yaml
+ python3 preprocess.py config/LJSpeech/preprocess.yaml
+ python3 train.py -p config/LJSpeech/preprocess.yaml -m config/LJSpeech/model.yaml -t config/LJSpeech/train.yaml
+
+
+"""
 
 
 class FSTWOapi:
     def __init__(self, config, weights_path=None, device=0, configs=None):
         (preprocess_config, model_config, train_config) = configs
+        self.preprocess_config = preprocess_config
         self.model = FastSpeech2(preprocess_config, model_config).to(device)
         # Load checkpoint if exists
         self.weights_path = weights_path
@@ -78,5 +90,17 @@ class FSTWOapi:
             e_control=energy_control,
         )
 
-        # mel, mel_postnet, log_duration_output, f0_output, energy_output
-        return result
+        (
+            output,
+            postnet_output,
+            p_predictions,
+            e_predictions,
+            log_d_predictions,
+            d_rounded,
+            src_masks,
+            mel_masks,
+            src_lens,
+            mel_lens,
+        ) = result
+
+        return postnet_output

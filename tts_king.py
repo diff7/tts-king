@@ -1,14 +1,12 @@
 # IMPORTS FOR PREPROCESS
-import re
+import os
 import torch
 import numpy as np
 from string import punctuation
-from g2p_en import G2p
 from fs_two.text import text_to_sequence
 
 # OTHER IMPORTS
-from omegaconf import DictConfig, OmegaConf
-import yaml
+from omegaconf import OmegaConf
 from fsapi import FSTWOapi
 
 # from fs_two.preprocess import prepare_dataset_lj_speech
@@ -17,18 +15,20 @@ from hifiapi import HIFIapi
 from input_process import preprocess_english
 
 
-class TTSKing:
-    def __init__(self, preprocess_config, model_config, train_config, config_path):
+def get_fsp_configs(
+    config_folder, config_names=["preprocess.yaml", "model.yaml", "train.yaml"]
+):
+    configs = []
+    for name in config_names:
+        full_path = os.path.join(config_folder, name)
+        configs.append(OmegaConf.load(full_path))
+    return configs
 
-        self.preprocess_config_c = yaml.load(
-            open(preprocess_config, "r"), Loader=yaml.FullLoader
-        )
-        self.model_config_c = yaml.load(
-            open(model_config, "r"), Loader=yaml.FullLoader)
-        self.train_config_c = yaml.load(
-            open(train_config, "r"), Loader=yaml.FullLoader)
-        configs = (self.preprocess_config_c,
-                   self.model_config_c, self.train_config_c)
+
+class TTSKing:
+    def __init__(self, config_path, config_folder="./multi_config/"):
+        configs = get_fsp_configs(config_folder)
+        self.preprocess_config_c, _, _ = configs
 
         cfg = OmegaConf.load(config_path)
 
@@ -86,8 +86,8 @@ class TTSKing:
         # TODO
         pass
 
-    def prepare_dataset_lj_speech(self):
-        prepare_dataset_lj_speech(self.cfg)
+    def preprocess(self):
+        self.tts.preprocess()
 
     def text_preprocess(self, text):
         return np.array([preprocess_english(text, self.preprocess_config_c)])

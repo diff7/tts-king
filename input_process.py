@@ -3,8 +3,11 @@ from string import punctuation
 
 import numpy as np
 from g2p_en import G2p
-
 from fs_two.text import text_to_sequence
+
+
+# NO CLEANERS FOR RUSSIAN DATASET
+CLEANERS = []
 
 
 def read_lexicon(lex_path):
@@ -37,10 +40,6 @@ def preprocess_english(text, preprocess_config):
 
     print("Raw Text Sequence: {}".format(text))
     print("Phoneme Sequence: {}".format(phones))
-    sequence = np.array(
-        text_to_sequence(
-            phones, preprocess_config["preprocessing"]["text"]["text_cleaners"]
-        )
-    )
+    sequence = np.array(text_to_sequence(phones, CLEANERS))
 
     return np.array(sequence)
