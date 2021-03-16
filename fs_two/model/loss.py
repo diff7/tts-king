@@ -73,8 +73,9 @@ class FastSpeech2Loss(nn.Module):
         )
         mel_targets = mel_targets.masked_select(mel_masks.unsqueeze(-1))
 
-        mel_loss = self.mae_loss(mel_predictions, mel_targets)
-        postnet_mel_loss = self.mae_loss(postnet_mel_predictions, mel_targets)
+        mel_loss = self.mse_loss(mel_predictions, mel_targets)
+        mel_loss_mae = self.mae_loss(mel_predictions, mel_targets)
+        postnet_mel_loss = self.mse_loss(postnet_mel_predictions, mel_targets)
 
         pitch_loss = self.mse_loss(pitch_predictions, pitch_targets)
         energy_loss = self.mse_loss(energy_predictions, energy_targets)
@@ -88,6 +89,7 @@ class FastSpeech2Loss(nn.Module):
         return (
             # total_loss,
             mel_loss,
+            mel_loss_mae,
             postnet_mel_loss,
             pitch_loss,
             energy_loss,
