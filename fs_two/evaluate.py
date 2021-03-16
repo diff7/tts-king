@@ -64,7 +64,7 @@ def evaluate(model, step, configs, logger=None, train_val="val", vocoder=None):
             preprocess_config,
         )
 
-        log(logger, step, losses=loss_means)
+        log(logger, "val", step, losses=loss_means)
         log(
             logger,
             "val",
