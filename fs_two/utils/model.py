@@ -4,8 +4,8 @@ import json
 import torch
 import numpy as np
 
-import hifigan
-from model import FastSpeech2, ScheduledOptim
+import fs_two.hifigan as hifigan
+from fs_two.model import FastSpeech2, ScheduledOptim
 
 
 def get_model(args, configs, device, train=False):
@@ -22,7 +22,7 @@ def get_model(args, configs, device, train=False):
 
     if train:
         scheduled_optim = ScheduledOptim(
-            model, train_config, model_config, args.restore_step
+            model, train_config, model_config, args.tts.restore_step
         )
         if args.restore_step:
             scheduled_optim.load_state_dict(ckpt["optimizer"])
@@ -55,14 +55,16 @@ def get_vocoder(config, device):
         vocoder.mel2wav.eval()
         vocoder.mel2wav.to(device)
     elif name == "HiFi-GAN":
-        with open("hifigan/config.json", "r") as f:
+        with open("./fs_two/hifigan/config.json", "r") as f:
             config = json.load(f)
         config = hifigan.AttrDict(config)
         vocoder = hifigan.Generator(config)
         if speaker == "LJSpeech":
             ckpt = torch.load("hifigan/generator_LJSpeech.pth.tar")
         elif speaker == "universal":
-            ckpt = torch.load("hifigan/generator_universal.pth.tar")
+            ckpt = torch.load(
+                "/home/dev/other/fsp/weights/trained_original/hifi/generator_v1.pth"
+            )
         vocoder.load_state_dict(ckpt["generator"])
         vocoder.eval()
         vocoder.remove_weight_norm()

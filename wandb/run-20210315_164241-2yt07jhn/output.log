@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "train.py", line 210, in <module>
+    main(cfg, configs)
+  File "train.py", line 66, in main
+    step = cfg.restore_step + 1
+TypeError: unsupported operand type(s) for +: 'NoneType' and 'int'

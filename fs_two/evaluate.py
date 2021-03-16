@@ -1,21 +1,22 @@
 import argparse
 import os
 
+
 import torch
 import yaml
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from utils.model import get_model, get_vocoder
-from utils.tools import to_device, log, synth_one_sample
-from model import FastSpeech2Loss
-from dataset import Dataset
+from fs_two.utils.model import get_model, get_vocoder
+from fs_two.utils.tools import to_device, log, synth_one_sample
+from fs_two.model import FastSpeech2Loss
+from fs_two.dataset import Dataset
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def evaluate(model, step, configs, logger=None, vocoder=None):
+def evaluate(model, step, configs, logger=None, train_val="val", vocoder=None):
     preprocess_config, model_config, train_config = configs
 
     # Get dataset
@@ -66,18 +67,23 @@ def evaluate(model, step, configs, logger=None, vocoder=None):
         log(logger, step, losses=loss_means)
         log(
             logger,
+            "val",
             fig=fig,
             tag="Validation/step_{}_{}".format(step, tag),
         )
-        sampling_rate = preprocess_config["preprocessing"]["audio"]["sampling_rate"]
+        sampling_rate = preprocess_config["preprocessing"]["audio"][
+            "sampling_rate"
+        ]
         log(
             logger,
+            "val",
             audio=wav_reconstruction,
             sampling_rate=sampling_rate,
             tag="Validation/step_{}_{}_reconstructed".format(step, tag),
         )
         log(
             logger,
+            "val",
             audio=wav_prediction,
             sampling_rate=sampling_rate,
             tag="Validation/step_{}_{}_synthesized".format(step, tag),
@@ -98,10 +104,18 @@ if __name__ == "__main__":
         help="path to preprocess.yaml",
     )
     parser.add_argument(
-        "-m", "--model_config", type=str, required=True, help="path to model.yaml"
+        "-m",
+        "--model_config",
+        type=str,
+        required=True,
+        help="path to model.yaml",
     )
     parser.add_argument(
-        "-t", "--train_config", type=str, required=True, help="path to train.yaml"
+        "-t",
+        "--train_config",
+        type=str,
+        required=True,
+        help="path to train.yaml",
     )
     args = parser.parse_args()
 
@@ -109,8 +123,12 @@ if __name__ == "__main__":
     preprocess_config = yaml.load(
         open(args.preprocess_config, "r"), Loader=yaml.FullLoader
     )
-    model_config = yaml.load(open(args.model_config, "r"), Loader=yaml.FullLoader)
-    train_config = yaml.load(open(args.train_config, "r"), Loader=yaml.FullLoader)
+    model_config = yaml.load(
+        open(args.model_config, "r"), Loader=yaml.FullLoader
+    )
+    train_config = yaml.load(
+        open(args.train_config, "r"), Loader=yaml.FullLoader
+    )
     configs = (preprocess_config, model_config, train_config)
 
     # Get model

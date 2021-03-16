@@ -5,23 +5,27 @@ import torch
 import yaml
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
+
+# from torch.utils.tensorboard import SummaryWriter
+import wandb as logger
+
 from tqdm import tqdm
+from omegaconf import OmegaConf
 
-from utils.model import get_model, get_vocoder, get_param_num
-from utils.tools import to_device, log, synth_one_sample
-from model import FastSpeech2Loss
-from dataset import Dataset
+from fs_two.utils.model import get_model, get_vocoder, get_param_num
+from fs_two.utils.tools import to_device, log, synth_one_sample
+from fs_two.model import FastSpeech2Loss
+from fs_two.dataset import Dataset
 
-from evaluate import evaluate
+from fs_two.evaluate import evaluate
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def main(args, configs):
+def main(configs):
     print("Prepare training ...")
 
-    preprocess_config, model_config, train_config = configs
+    cfg, preprocess_config, model_config, train_config = configs
 
     # Get dataset
     dataset = Dataset(
@@ -38,7 +42,7 @@ def main(args, configs):
     )
 
     # Prepare model
-    model, optimizer = get_model(args, configs, device, train=True)
+    model, optimizer = get_model(cfg, configs, device, train=True)
     model = nn.DataParallel(model)
     num_param = get_param_num(model)
     Loss = FastSpeech2Loss(preprocess_config, model_config).to(device)
@@ -54,11 +58,13 @@ def main(args, configs):
     val_log_path = os.path.join(train_config["path"]["log_path"], "val")
     os.makedirs(train_log_path, exist_ok=True)
     os.makedirs(val_log_path, exist_ok=True)
-    train_logger = SummaryWriter(train_log_path)
-    val_logger = SummaryWriter(val_log_path)
+
+    os.environ["WANDB_API_KEY"] = cfg.wandb_key
+
+    logger.init(name="ai labs", project="FSP", reinit=True)
 
     # Training
-    step = args.restore_step + 1
+    step = cfg.restore_step + 1
     epoch = 1
     grad_acc_step = train_config["optimizer"]["grad_acc_step"]
     grad_clip_thresh = train_config["optimizer"]["grad_clip_thresh"]
@@ -69,11 +75,13 @@ def main(args, configs):
     val_step = train_config["step"]["val_step"]
 
     outer_bar = tqdm(total=total_step, desc="Training", position=0)
-    outer_bar.n = args.restore_step
+    outer_bar.n = cfg.restore_step
     outer_bar.update()
 
     while True:
-        inner_bar = tqdm(total=len(loader), desc="Epoch {}".format(epoch), position=1)
+        inner_bar = tqdm(
+            total=len(loader), desc="Epoch {}".format(epoch), position=1
+        )
         for batchs in loader:
             for batch in batchs:
                 batch = to_device(batch, device)
@@ -90,7 +98,9 @@ def main(args, configs):
                 total_loss.backward()
                 if step % grad_acc_step == 0:
                     # Clipping gradients to avoid gradient explosion
-                    nn.utils.clip_grad_norm_(model.parameters(), grad_clip_thresh)
+                    nn.utils.clip_grad_norm_(
+                        model.parameters(), grad_clip_thresh
+                    )
 
                     # Update weights
                     optimizer.step_and_update_lr()
@@ -103,15 +113,22 @@ def main(args, configs):
                         *losses
                     )
 
-                    with open(os.path.join(train_log_path, "log.txt"), "a") as f:
+                    with open(
+                        os.path.join(train_log_path, "log.txt"), "a"
+                    ) as f:
                         f.write(message1 + message2 + "\n")
 
                     outer_bar.write(message1 + message2)
 
-                    log(train_logger, step, losses=losses)
+                    log(logger, "train", step, losses=losses)
 
                 if step % synth_step == 0:
-                    fig, wav_reconstruction, wav_prediction, tag = synth_one_sample(
+                    (
+                        fig,
+                        wav_reconstruction,
+                        wav_prediction,
+                        tag,
+                    ) = synth_one_sample(
                         batch,
                         output,
                         vocoder,
@@ -119,7 +136,8 @@ def main(args, configs):
                         preprocess_config,
                     )
                     log(
-                        train_logger,
+                        logger,
+                        "train",
                         fig=fig,
                         tag="Training/step_{}_{}".format(step, tag),
                     )
@@ -127,13 +145,17 @@ def main(args, configs):
                         "sampling_rate"
                     ]
                     log(
-                        train_logger,
+                        logger,
+                        "train",
                         audio=wav_reconstruction,
                         sampling_rate=sampling_rate,
-                        tag="Training/step_{}_{}_reconstructed".format(step, tag),
+                        tag="Training/step_{}_{}_reconstructed".format(
+                            step, tag
+                        ),
                     )
                     log(
-                        train_logger,
+                        logger,
+                        "train",
                         audio=wav_prediction,
                         sampling_rate=sampling_rate,
                         tag="Training/step_{}_{}_synthesized".format(step, tag),
@@ -141,7 +163,9 @@ def main(args, configs):
 
                 if step % val_step == 0:
                     model.eval()
-                    message = evaluate(model, step, configs, val_logger, vocoder)
+                    message = evaluate(
+                        model, step, configs, logger, "val", vocoder
+                    )
                     with open(os.path.join(val_log_path, "log.txt"), "a") as f:
                         f.write(message + "\n")
                     outer_bar.write(message)
@@ -170,29 +194,18 @@ def main(args, configs):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--restore_step", type=int, default=0)
-    parser.add_argument(
-        "-p",
-        "--preprocess_config",
-        type=str,
-        required=True,
-        help="path to preprocess.yaml",
-    )
-    parser.add_argument(
-        "-m", "--model_config", type=str, required=True, help="path to model.yaml"
-    )
-    parser.add_argument(
-        "-t", "--train_config", type=str, required=True, help="path to train.yaml"
-    )
-    args = parser.parse_args()
 
-    # Read Config
-    preprocess_config = yaml.load(
-        open(args.preprocess_config, "r"), Loader=yaml.FullLoader
-    )
-    model_config = yaml.load(open(args.model_config, "r"), Loader=yaml.FullLoader)
-    train_config = yaml.load(open(args.train_config, "r"), Loader=yaml.FullLoader)
-    configs = (preprocess_config, model_config, train_config)
+    def get_fsp_configs(
+        config_folder,
+        config_names=["preprocess.yaml", "model.yaml", "train.yaml"],
+    ):
+        configs = []
+        for name in config_names:
+            full_path = os.path.join(config_folder, name)
+            configs.append(OmegaConf.load(full_path))
+        return configs
 
-    main(args, configs)
+    configs = get_fsp_configs("./multi_config/")
+    cfg = OmegaConf.load("./config.yaml")
+    configs = [cfg] + configs
+    main(configs)

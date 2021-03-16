@@ -5,22 +5,32 @@ import os
 import numpy as np
 from torch.utils.data import Dataset
 
-from text import text_to_sequence
-from utils.tools import pad_1D, pad_2D
+from fs_two.text import text_to_sequence
+from fs_two.utils.tools import pad_1D, pad_2D
 
 
 class Dataset(Dataset):
     def __init__(
-        self, filename, preprocess_config, train_config, sort=False, drop_last=False
+        self,
+        filename,
+        preprocess_config,
+        train_config,
+        sort=False,
+        drop_last=False,
     ):
         self.dataset_name = preprocess_config["dataset"]
         self.preprocessed_path = preprocess_config["path"]["preprocessed_path"]
-        self.cleaners = preprocess_config["preprocessing"]["text"]["text_cleaners"]
+        self.cleaners = preprocess_config["preprocessing"]["text"][
+            "text_cleaners"
+        ]
         self.batch_size = train_config["optimizer"]["batch_size"]
 
-        self.basename, self.speaker, self.text, self.raw_text = self.process_meta(
-            filename
-        )
+        (
+            self.basename,
+            self.speaker,
+            self.text,
+            self.raw_text,
+        ) = self.process_meta(filename)
         with open(os.path.join(self.preprocessed_path, "speakers.json")) as f:
             self.speaker_map = json.load(f)
         self.sort = sort
@@ -75,7 +85,9 @@ class Dataset(Dataset):
 
     def process_meta(self, filename):
         with open(
-            os.path.join(self.preprocessed_path, filename), "r", encoding="utf-8"
+            os.path.join(self.preprocessed_path, filename),
+            "r",
+            encoding="utf-8",
         ) as f:
             name = []
             speaker = []
@@ -148,11 +160,16 @@ class Dataset(Dataset):
 
 class TextDataset(Dataset):
     def __init__(self, filepath, preprocess_config):
-        self.cleaners = preprocess_config["preprocessing"]["text"]["text_cleaners"]
+        self.cleaners = preprocess_config["preprocessing"]["text"][
+            "text_cleaners"
+        ]
 
-        self.basename, self.speaker, self.text, self.raw_text = self.process_meta(
-            filepath
-        )
+        (
+            self.basename,
+            self.speaker,
+            self.text,
+            self.raw_text,
+        ) = self.process_meta(filepath)
         with open(
             os.path.join(
                 preprocess_config["path"]["preprocessed_path"], "speakers.json"
