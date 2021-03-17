@@ -50,9 +50,11 @@ def evaluate(model, step, configs, logger=None, train_val="val", vocoder=None):
                     loss_sums[i] += losses[i].item() * len(batch[0])
 
     loss_means = [loss_sum / len(dataset) for loss_sum in loss_sums]
+    loss_means = [sum(loss_means)] + loss_means
+    loss_means = [step] + loss_means
 
     message = "Validation Step {}, Total Loss: {:.4f}, Mel Loss: {:.4f}, Mel Loss MAE: {:.4f}, Mel PostNet Loss: {:.4f}, Pitch Loss: {:.4f}, Energy Loss: {:.4f}, Duration Loss: {:.4f}".format(
-        *([step] + [sum([loss_means])] + [loss_means])
+        *loss_means
     )
 
     if logger is not None:
