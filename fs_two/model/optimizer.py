@@ -333,15 +333,15 @@ class ScheduledOptim:
 
     def step_and_update_lr(self, losses):
         self._update_learning_rate()
-        self.optimizer.pc_backward(losses)
-        self.optimizer.step()
+        self._optimizer.pc_backward(losses)
+        self._optimizer.step()
 
     def zero_grad(self):
         # print(self.init_lr)
-        self.optimizer.zero_grad()
+        self._optimizer.zero_grad()
 
     def load_state_dict(self, path):
-        self.optimizer._optimizer.load_state_dict(path)
+        self._optimizer.optimizer.load_state_dict(path)
 
     def _get_lr_scale(self):
         lr = np.min(
@@ -360,5 +360,5 @@ class ScheduledOptim:
         self.current_step += 1
         lr = self.init_lr * self._get_lr_scale()
 
-        for param_group in self.optimizer._optimizer.param_groups:
+        for param_group in self._optimizer.optimizer.param_groups:
             param_group["lr"] = lr

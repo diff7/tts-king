@@ -177,7 +177,7 @@ def main(cfg, configs):
                     torch.save(
                         {
                             "model": model.module.state_dict(),
-                            "optimizer": optimizer.optimizer._optimizer.state_dict(),
+                            "optimizer": optimizer._optimizer.optimizer.state_dict(),
                         },
                         os.path.join(
                             train_config["path"]["ckpt_path"],
