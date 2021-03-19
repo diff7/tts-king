@@ -18,14 +18,14 @@ from fs_two.dataset import Dataset
 
 from fs_two.evaluate import evaluate
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 
 def main(cfg, configs):
     print("Prepare training ...")
 
     preprocess_config, model_config, train_config = configs
-
+    device = (
+        cfg.gpu
+    )  # torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Get dataset
     dataset = Dataset(
         "train.txt", preprocess_config, train_config, sort=True, drop_last=True
@@ -42,7 +42,7 @@ def main(cfg, configs):
 
     # Prepare model
     model, optimizer = get_model(cfg, configs, device, train=True)
-    model = nn.DataParallel(model)
+    # model = nn.DataParallel(model)
     num_param = get_param_num(model)
     Loss = FastSpeech2Loss(preprocess_config, model_config).to(device)
     print("Number of FastSpeech2 Parameters:", num_param)
@@ -90,10 +90,10 @@ def main(cfg, configs):
 
                 # Cal Loss
                 losses = Loss(batch, output)
-                #total_loss = losses[0]
+                # total_loss = losses[0]
 
                 # Backward
-                #total_loss = total_loss / grad_acc_step
+                # total_loss = total_loss / grad_acc_step
                 # total_loss.backward()
                 if step % grad_acc_step == 0:
                     # Clipping gradients to avoid gradient explosion
@@ -158,8 +158,7 @@ def main(cfg, configs):
                         "train",
                         audio=wav_prediction,
                         sampling_rate=sampling_rate,
-                        tag="Training/step_{}_{}_synthesized".format(
-                            step, tag),
+                        tag="Training/step_{}_{}_synthesized".format(step, tag),
                     )
 
                 if step % val_step == 0:
@@ -176,7 +175,7 @@ def main(cfg, configs):
                 if step % save_step == 0:
                     torch.save(
                         {
-                            "model": model.module.state_dict(),
+                            "model": model.state_dict(),
                             "optimizer": optimizer._optimizer.optimizer.state_dict(),
                         },
                         os.path.join(

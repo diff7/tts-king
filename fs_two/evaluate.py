@@ -12,8 +12,8 @@ from fs_two.utils.tools import to_device, log, synth_one_sample
 from fs_two.model import FastSpeech2Loss
 from fs_two.dataset import Dataset
 
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# TODO SET device via config
+device = 1  # torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def evaluate(model, step, configs, logger=None, train_val="val", vocoder=None):

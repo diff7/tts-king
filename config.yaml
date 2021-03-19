@@ -7,6 +7,7 @@ hifi_weights_path:  '/home/dev/other/fsp/weights/trained_original/hifi/generator
 
 
 wandb_key: "beca9453c7ef6a20e21d5705275a0ff72842cbf3"
+gpu: 1
 
 tts:
   betas:

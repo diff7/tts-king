@@ -13,8 +13,9 @@ import wandb
 
 matplotlib.use("Agg")
 
+# TODO SET  device from congig
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = 1  # torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def to_device(data, device):

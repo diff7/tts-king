@@ -1,0 +1,15 @@
+Training:   0%|                                                                | 0/900000 [00:00<?, ?it/s]
+Epoch 1:   0%|                                                                    | 0/311 [00:00<?, ?it/s][ATraceback (most recent call last):
+  File "train.py", line 211, in <module>
+    main(cfg, configs)
+  File "train.py", line 89, in main
+    output = model(*(batch[2:]))
+  File "/opt/conda/lib/python3.7/site-packages/torch/nn/modules/module.py", line 727, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "/home/dev/other/fsp/tts-king/fs_two/model/fastspeech2.py", line 60, in forward
+    src_masks = get_mask_from_lengths(src_lens, max_src_len)
+  File "/home/dev/other/fsp/tts-king/fs_two/utils/tools.py", line 115, in get_mask_from_lengths
+    mask = ids >= lengths.unsqueeze(1).expand(-1, max_len)
+  File "/opt/conda/lib/python3.7/site-packages/torch/tensor.py", line 27, in wrapped
+    return f(*args, **kwargs)
+RuntimeError: Expected all tensors to be on the same device, but found at least two devices, cuda:0 and cuda:1!
