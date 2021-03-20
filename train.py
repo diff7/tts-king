@@ -158,7 +158,8 @@ def main(cfg, configs):
                         "train",
                         audio=wav_prediction,
                         sampling_rate=sampling_rate,
-                        tag="Training/step_{}_{}_synthesized".format(step, tag),
+                        tag="Training/step_{}_{}_synthesized".format(
+                            step, tag),
                     )
 
                 if step % val_step == 0:

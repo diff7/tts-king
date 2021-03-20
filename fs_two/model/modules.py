@@ -11,10 +11,6 @@ import torch.nn.functional as F
 
 from fs_two.utils.tools import get_mask_from_lengths, pad
 
-torch.cuda.set_device(1)
-device = 1
-# torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 
 class VarianceAdaptor(nn.Module):
     """ Variance Adaptor """
@@ -197,7 +193,7 @@ class LengthRegulator(nn.Module):
         else:
             output = pad(output)
 
-        return output, torch.LongTensor(mel_len).to(device)
+        return output, torch.LongTensor(mel_len).to(x.device)
 
     def expand(self, batch, predicted):
         out = list()

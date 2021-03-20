@@ -15,7 +15,7 @@ matplotlib.use("Agg")
 
 # TODO SET  device from congig
 
-torch.cuda.set_device(1)
+# torch.cuda.set_device(1)
 device = 1
 # torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -85,7 +85,8 @@ def log(
         logger.log(
             {f"Loss/total_loss {train_val.upper()}": losses[0]}, step=step
         )
-        logger.log({f"Loss/mel_loss {train_val.upper()}": losses[1]}, step=step)
+        logger.log(
+            {f"Loss/mel_loss {train_val.upper()}": losses[1]}, step=step)
         logger.log(
             {f"Loss/mel_postnet_loss {train_val.upper()}": losses[2]}, step=step
         )
@@ -280,7 +281,8 @@ def plot_mel(data, stats, titles):
         axes[i][0].set_aspect(2.5, adjustable="box")
         axes[i][0].set_ylim(0, mel.shape[0])
         axes[i][0].set_title(titles[i], fontsize="medium")
-        axes[i][0].tick_params(labelsize="x-small", left=False, labelleft=False)
+        axes[i][0].tick_params(labelsize="x-small",
+                               left=False, labelleft=False)
         axes[i][0].set_anchor("W")
 
         ax1 = add_axis(fig, axes[i][0])
