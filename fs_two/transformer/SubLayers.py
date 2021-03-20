@@ -27,7 +27,7 @@ class MultiHeadAttention(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
 
-    def forward(self, q, k, v, mask=None, prev=None):
+    def forward(self, q, k, v, mask=None):
 
         d_k, d_v, n_head = self.d_k, self.d_v, self.n_head
 
@@ -48,7 +48,7 @@ class MultiHeadAttention(nn.Module):
                                                     len_v, d_v)  # (n*b) x lv x dv
 
         mask = mask.repeat(n_head, 1, 1)  # (n*b) x .. x ..
-        output, attn, prev = self.attention(q, k, v, mask=mask, prev=prev)
+        output, attn = self.attention(q, k, v, mask=mask)
 
         output = output.view(n_head, sz_b, len_q, d_v)
         output = (
@@ -58,7 +58,7 @@ class MultiHeadAttention(nn.Module):
         output = self.dropout(self.fc(output))
         output = self.layer_norm(output + residual)
 
-        return output, attn, prev
+        return output, attn
 
 
 class PositionwiseFeedForward(nn.Module):
