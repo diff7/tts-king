@@ -84,16 +84,18 @@ def log(
         logger.log(
             {f"Loss/mel_loss {train_val.upper()}": losses[1]}, step=step)
         logger.log(
-            {f"Loss/mel_postnet_loss {train_val.upper()}": losses[2]}, step=step
+            {f"Loss/mel_loss mae {train_val.upper()}": losses[2]}, step=step)
+        logger.log(
+            {f"Loss/mel_postnet_loss {train_val.upper()}": losses[3]}, step=step
         )
         logger.log(
-            {f"Loss/pitch_loss {train_val.upper()}": losses[3]}, step=step
+            {f"Loss/pitch_loss {train_val.upper()}": losses[4]}, step=step
         )
         logger.log(
-            {f"Loss/energy_loss {train_val.upper()}": losses[4]}, step=step
+            {f"Loss/energy_loss {train_val.upper()}": losses[5]}, step=step
         )
         logger.log(
-            {f"Loss/duration_loss {train_val.upper()}": losses[5]}, step=step
+            {f"Loss/duration_loss {train_val.upper()}": losses[6]}, step=step
         )
 
     if fig is not None:
