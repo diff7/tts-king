@@ -15,7 +15,9 @@ matplotlib.use("Agg")
 
 # TODO SET  device from congig
 
-device = 1  # torch.device("cuda" if torch.cuda.is_available() else "cpu")
+torch.cuda.set_device(1)
+device = 1
+# torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def to_device(data, device):
@@ -113,7 +115,7 @@ def get_mask_from_lengths(lengths, max_len=None):
     ids = (
         torch.arange(0, max_len).unsqueeze(0).expand(batch_size, -1).to(device)
     )
-    mask = ids >= lengths.unsqueeze(1).expand(-1, max_len)
+    mask = ids >= lengths.unsqueeze(1).float().expand(-1, max_len)
 
     return mask
 

@@ -14,7 +14,9 @@ from utils.tools import to_device, synth_samples
 from dataset import TextDataset
 from text import text_to_sequence
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+torch.cuda.set_device(1)
+device = 1
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def read_lexicon(lex_path):
@@ -145,10 +147,18 @@ if __name__ == "__main__":
         help="path to preprocess.yaml",
     )
     parser.add_argument(
-        "-m", "--model_config", type=str, required=True, help="path to model.yaml"
+        "-m",
+        "--model_config",
+        type=str,
+        required=True,
+        help="path to model.yaml",
     )
     parser.add_argument(
-        "-t", "--train_config", type=str, required=True, help="path to train.yaml"
+        "-t",
+        "--train_config",
+        type=str,
+        required=True,
+        help="path to train.yaml",
     )
     parser.add_argument(
         "--pitch_control",
@@ -180,8 +190,12 @@ if __name__ == "__main__":
     preprocess_config = yaml.load(
         open(args.preprocess_config, "r"), Loader=yaml.FullLoader
     )
-    model_config = yaml.load(open(args.model_config, "r"), Loader=yaml.FullLoader)
-    train_config = yaml.load(open(args.train_config, "r"), Loader=yaml.FullLoader)
+    model_config = yaml.load(
+        open(args.model_config, "r"), Loader=yaml.FullLoader
+    )
+    train_config = yaml.load(
+        open(args.train_config, "r"), Loader=yaml.FullLoader
+    )
     configs = (preprocess_config, model_config, train_config)
 
     # Get model
@@ -205,10 +219,18 @@ if __name__ == "__main__":
         if preprocess_config["preprocessing"]["text"]["language"] == "en":
             texts = np.array([preprocess_english(args.text, preprocess_config)])
         elif preprocess_config["preprocessing"]["text"]["language"] == "zh":
-            texts = np.array([preprocess_mandarin(args.text, preprocess_config)])
+            texts = np.array(
+                [preprocess_mandarin(args.text, preprocess_config)]
+            )
         text_lens = np.array([len(texts[0])])
         batchs = [(ids, raw_texts, speakers, texts, text_lens, max(text_lens))]
 
-    control_values = args.pitch_control, args.energy_control, args.duration_control
+    control_values = (
+        args.pitch_control,
+        args.energy_control,
+        args.duration_control,
+    )
 
-    synthesize(model, args.restore_step, configs, vocoder, batchs, control_values)
+    synthesize(
+        model, args.restore_step, configs, vocoder, batchs, control_values
+    )

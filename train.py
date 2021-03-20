@@ -5,7 +5,8 @@ import torch
 import yaml
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
+
+# from torch.utils.tensorboard import SummaryWriter
 import wandb as logger
 
 from tqdm import tqdm
@@ -23,9 +24,8 @@ def main(cfg, configs):
     print("Prepare training ...")
 
     preprocess_config, model_config, train_config = configs
-    device = (
-        cfg.gpu
-    )  # torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = 1
+    # torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Get dataset
     dataset = Dataset(
         "train.txt", preprocess_config, train_config, sort=True, drop_last=True

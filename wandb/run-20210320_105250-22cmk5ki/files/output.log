@@ -1,0 +1,11 @@
+Training:   0%|          | 0/900000 [00:00<?, ?it/s]
+Epoch 1:   0%|          | 0/78 [00:00<?, ?it/s][ATraceback (most recent call last):
+  File "/home/dev/other/fsp/tts-king/train.py", line 211, in <module>
+    main(cfg, configs)
+  File "/home/dev/other/fsp/tts-king/train.py", line 92, in main
+    losses = Loss(batch, output)
+  File "/opt/conda/envs/fsp/lib/python3.9/site-packages/torch/nn/modules/module.py", line 727, in _call_impl
+    result = self.forward(*input, **kwargs)
+  File "/home/dev/other/fsp/tts-king/fs_two/model/loss.py", line 74, in forward
+    mel_targets = mel_targets.masked_select(mel_masks.unsqueeze(-1))
+RuntimeError: CUDA out of memory. Tried to allocate 20.00 MiB (GPU 1; 23.65 GiB total capacity; 15.69 GiB already allocated; 14.06 MiB free; 15.99 GiB reserved in total by PyTorch)

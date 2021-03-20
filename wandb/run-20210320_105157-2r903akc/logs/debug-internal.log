@@ -1,0 +1,76 @@
+2021-03-20 10:51:58,550 INFO    MainThread:45305 [internal.py:wandb_internal():88] W&B internal server running at pid: 45305, started at: 2021-03-20 10:51:58.549850
+2021-03-20 10:51:58,552 INFO    WriterThread:45305 [datastore.py:open_for_write():77] open: /home/dev/other/fsp/tts-king/wandb/run-20210320_105157-2r903akc/run-2r903akc.wandb
+2021-03-20 10:51:58,553 DEBUG   HandlerThread:45305 [handler.py:handle_request():101] handle_request: check_version
+2021-03-20 10:51:58,555 DEBUG   SenderThread:45305 [sender.py:send():122] send: header
+2021-03-20 10:51:58,555 DEBUG   SenderThread:45305 [sender.py:send():122] send: request
+2021-03-20 10:51:58,555 DEBUG   SenderThread:45305 [sender.py:send_request():131] send_request: check_version
+2021-03-20 10:51:58,756 DEBUG   SenderThread:45305 [sender.py:send():122] send: run
+2021-03-20 10:51:59,037 INFO    SenderThread:45305 [sender.py:_start_run_threads():596] run started: 2r903akc with start time 1616248317
+2021-03-20 10:51:59,038 DEBUG   SenderThread:45305 [sender.py:send():122] send: summary
+2021-03-20 10:51:59,038 DEBUG   HandlerThread:45305 [handler.py:handle_request():101] handle_request: run_start
+2021-03-20 10:51:59,039 INFO    SenderThread:45305 [sender.py:_save_file():730] saving file wandb-summary.json with policy end
+2021-03-20 10:51:59,045 DEBUG   HandlerThread:45305 [meta.py:__init__():34] meta init
+2021-03-20 10:51:59,045 DEBUG   HandlerThread:45305 [meta.py:__init__():48] meta init done
+2021-03-20 10:51:59,045 DEBUG   HandlerThread:45305 [meta.py:probe():190] probe
+2021-03-20 10:51:59,053 DEBUG   HandlerThread:45305 [meta.py:_setup_git():180] setup git
+2021-03-20 10:51:59,071 DEBUG   HandlerThread:45305 [meta.py:_setup_git():187] setup git done
+2021-03-20 10:51:59,071 DEBUG   HandlerThread:45305 [meta.py:_save_pip():52] save pip
+2021-03-20 10:51:59,072 DEBUG   HandlerThread:45305 [meta.py:_save_pip():66] save pip done
+2021-03-20 10:51:59,072 DEBUG   HandlerThread:45305 [meta.py:probe():231] probe done
+2021-03-20 10:51:59,076 DEBUG   SenderThread:45305 [sender.py:send():122] send: files
+2021-03-20 10:51:59,076 INFO    SenderThread:45305 [sender.py:_save_file():730] saving file wandb-metadata.json with policy now
+2021-03-20 10:51:59,086 DEBUG   HandlerThread:45305 [handler.py:handle_request():101] handle_request: status
+2021-03-20 10:51:59,086 DEBUG   SenderThread:45305 [sender.py:send():122] send: request
+2021-03-20 10:51:59,087 DEBUG   SenderThread:45305 [sender.py:send_request():131] send_request: status
+2021-03-20 10:52:02,477 DEBUG   SenderThread:45305 [sender.py:send():122] send: stats
+2021-03-20 10:52:06,981 DEBUG   SenderThread:45305 [sender.py:send():122] send: stats
+2021-03-20 10:52:11,480 DEBUG   SenderThread:45305 [sender.py:send():122] send: stats
+2021-03-20 10:52:12,134 WARNING MainThread:45305 [internal.py:wandb_internal():146] Internal process interrupt: 1
+2021-03-20 10:52:12,162 DEBUG   HandlerThread:45305 [handler.py:handle_request():101] handle_request: poll_exit
+2021-03-20 10:52:12,163 DEBUG   SenderThread:45305 [sender.py:send():122] send: telemetry
+2021-03-20 10:52:12,415 DEBUG   SenderThread:45305 [sender.py:send():122] send: exit
+2021-03-20 10:52:12,415 INFO    SenderThread:45305 [sender.py:send_exit():200] handling exit code: 255
+2021-03-20 10:52:12,416 INFO    SenderThread:45305 [sender.py:send_exit():208] send defer
+2021-03-20 10:52:12,416 DEBUG   SenderThread:45305 [sender.py:send():122] send: request
+2021-03-20 10:52:12,416 DEBUG   SenderThread:45305 [sender.py:send_request():131] send_request: poll_exit
+2021-03-20 10:52:12,417 DEBUG   HandlerThread:45305 [handler.py:handle_request():101] handle_request: defer
+2021-03-20 10:52:12,417 INFO    HandlerThread:45305 [handler.py:handle_request_defer():115] handle defer: 0
+2021-03-20 10:52:12,417 DEBUG   SenderThread:45305 [sender.py:send():122] send: request
+2021-03-20 10:52:12,418 DEBUG   SenderThread:45305 [sender.py:send_request():131] send_request: defer
+2021-03-20 10:52:12,418 INFO    SenderThread:45305 [sender.py:send_request_defer():217] handle sender defer: 0
+2021-03-20 10:52:12,418 INFO    SenderThread:45305 [sender.py:send_request_defer():253] send defer: 1
+2021-03-20 10:52:12,418 DEBUG   HandlerThread:45305 [handler.py:handle_request():101] handle_request: defer
+2021-03-20 10:52:12,419 INFO    HandlerThread:45305 [handler.py:handle_request_defer():115] handle defer: 1
+2021-03-20 10:52:12,500 DEBUG   SenderThread:45305 [sender.py:send():122] send: request
+2021-03-20 10:52:12,501 DEBUG   SenderThread:45305 [sender.py:send_request():131] send_request: defer
+2021-03-20 10:52:12,501 INFO    SenderThread:45305 [sender.py:send_request_defer():217] handle sender defer: 1
+2021-03-20 10:52:12,501 INFO    SenderThread:45305 [sender.py:send_request_defer():253] send defer: 2
+2021-03-20 10:52:12,501 DEBUG   SenderThread:45305 [sender.py:send():122] send: stats
+2021-03-20 10:52:12,503 DEBUG   HandlerThread:45305 [handler.py:handle_request():101] handle_request: defer
+2021-03-20 10:52:12,503 INFO    HandlerThread:45305 [handler.py:handle_request_defer():115] handle defer: 2
+2021-03-20 10:52:12,503 DEBUG   SenderThread:45305 [sender.py:send():122] send: request
+2021-03-20 10:52:12,503 DEBUG   SenderThread:45305 [sender.py:send_request():131] send_request: defer
+2021-03-20 10:52:12,503 INFO    SenderThread:45305 [sender.py:send_request_defer():217] handle sender defer: 2
+2021-03-20 10:52:12,503 INFO    SenderThread:45305 [sender.py:send_request_defer():253] send defer: 3
+2021-03-20 10:52:12,504 DEBUG   HandlerThread:45305 [handler.py:handle_request():101] handle_request: defer
+2021-03-20 10:52:12,504 INFO    HandlerThread:45305 [handler.py:handle_request_defer():115] handle defer: 3
+2021-03-20 10:52:12,504 DEBUG   SenderThread:45305 [sender.py:send():122] send: summary
+2021-03-20 10:52:12,505 INFO    SenderThread:45305 [sender.py:_save_file():730] saving file wandb-summary.json with policy end
+2021-03-20 10:52:12,505 DEBUG   SenderThread:45305 [sender.py:send():122] send: request
+2021-03-20 10:52:12,505 DEBUG   SenderThread:45305 [sender.py:send_request():131] send_request: defer
+2021-03-20 10:52:12,505 INFO    SenderThread:45305 [sender.py:send_request_defer():217] handle sender defer: 3
+2021-03-20 10:52:12,505 INFO    SenderThread:45305 [sender.py:send_request_defer():253] send defer: 4
+2021-03-20 10:52:12,506 DEBUG   HandlerThread:45305 [handler.py:handle_request():101] handle_request: defer
+2021-03-20 10:52:12,506 INFO    HandlerThread:45305 [handler.py:handle_request_defer():115] handle defer: 4
+2021-03-20 10:52:12,506 DEBUG   SenderThread:45305 [sender.py:send():122] send: request
+2021-03-20 10:52:12,506 DEBUG   SenderThread:45305 [sender.py:send_request():131] send_request: defer
+2021-03-20 10:52:12,507 INFO    SenderThread:45305 [sender.py:send_request_defer():217] handle sender defer: 4
+2021-03-20 10:52:12,561 WARNING MainThread:45305 [internal.py:wandb_internal():146] Internal process interrupt: 2
+2021-03-20 10:52:12,561 ERROR   MainThread:45305 [internal.py:wandb_internal():149] Internal process interrupted.
+2021-03-20 10:52:13,057 INFO    SenderThread:45305 [sender.py:send_request_defer():253] send defer: 5
+2021-03-20 10:52:13,058 INFO    SenderThread:45305 [sender.py:finish():814] shutting down sender
+2021-03-20 10:52:13,059 DEBUG   HandlerThread:45305 [handler.py:handle_request():101] handle_request: defer
+2021-03-20 10:52:13,059 INFO    HandlerThread:45305 [handler.py:handle_request_defer():115] handle defer: 5
+2021-03-20 10:52:13,059 INFO    HandlerThread:45305 [handler.py:finish():532] shutting down handler
+2021-03-20 10:52:13,505 INFO    WriterThread:45305 [datastore.py:close():258] close: /home/dev/other/fsp/tts-king/wandb/run-20210320_105157-2r903akc/run-2r903akc.wandb
+2021-03-20 10:52:14,436 INFO    MainThread:45305 [internal.py:handle_exit():78] Internal process exited

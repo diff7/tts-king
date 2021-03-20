@@ -1,0 +1,26 @@
+{
+    "root": "/home/dev/other/fsp/tts-king",
+    "program": "train.py",
+    "git": {
+        "remote": "https://github.com/diff7/tts-king.git",
+        "commit": "a180d5731d637fba9ad613112a34fcd28fed93db"
+    },
+    "email": "geksut@gmail.com",
+    "startedAt": "2021-03-20T12:59:35.119744",
+    "host": "76ce895496cb",
+    "username": "root",
+    "executable": "/opt/conda/bin/python3",
+    "os": "Linux-5.3.0-28-generic-x86_64-with-debian-buster-sid",
+    "python": "3.7.7",
+    "gpu": "TITAN RTX",
+    "gpu_count": 2,
+    "cpu_count": 80,
+    "args": [],
+    "state": "failed",
+    "jobType": null,
+    "mode": "run",
+    "name": "FS2",
+    "project": "TEST",
+    "heartbeatAt": "2021-03-20T12:59:37.208900",
+    "exitcode": 1
+}

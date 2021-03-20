@@ -19,7 +19,10 @@ from fs_two.dataset import Dataset
 
 from fs_two.evaluate import evaluate
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+torch.cuda.set_device(1)
+device = 1
+
+# torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def main(configs):

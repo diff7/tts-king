@@ -16,10 +16,11 @@
     "gpu_count": 2,
     "cpu_count": 80,
     "args": [],
-    "state": "running",
+    "state": "failed",
     "jobType": null,
     "mode": "run",
     "name": "FS2",
     "project": "TEST",
-    "heartbeatAt": "2021-03-19T12:03:25.519728"
+    "heartbeatAt": "2021-03-19T13:13:47.000973",
+    "exitcode": 1
 }
