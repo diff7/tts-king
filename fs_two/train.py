@@ -94,7 +94,6 @@ def main(configs):
 
                 # Cal Loss
                 losses = Loss(batch, output)
-                total_loss = losses[0]
 
                 # Backward
                 total_loss = total_loss / grad_acc_step

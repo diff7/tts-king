@@ -19,6 +19,8 @@ from fs_two.dataset import Dataset
 
 from fs_two.evaluate import evaluate
 
+torch.cuda.set_device(1)
+
 
 def main(cfg, configs):
     print("Prepare training ...")
