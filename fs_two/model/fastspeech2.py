@@ -18,7 +18,8 @@ class FastSpeech2(nn.Module):
         self.model_config = model_config
 
         self.encoder = Encoder(model_config)
-        self.variance_adaptor = VarianceAdaptor(preprocess_config, model_config)
+        self.variance_adaptor = VarianceAdaptor(
+            preprocess_config, model_config)
         self.decoder = Decoder(model_config)
         self.mel_linear = nn.Linear(
             model_config["transformer"]["decoder_hidden"],
@@ -57,9 +58,10 @@ class FastSpeech2(nn.Module):
         e_control=1.0,
         d_control=1.0,
     ):
-        src_masks = get_mask_from_lengths(src_lens, max_src_len)
+        src_masks = get_mask_from_lengths(
+            src_lens, max_src_len, device=texts.device)
         mel_masks = (
-            get_mask_from_lengths(mel_lens, max_mel_len)
+            get_mask_from_lengths(mel_lens, max_mel_len, device=texts.device)
             if mel_lens is not None
             else None
         )

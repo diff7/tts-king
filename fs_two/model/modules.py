@@ -150,7 +150,7 @@ class VarianceAdaptor(nn.Module):
                 min=0,
             )
             x, mel_len = self.length_regulator(x, duration_rounded, max_len)
-            mel_mask = get_mask_from_lengths(mel_len)
+            mel_mask = get_mask_from_lengths(mel_len, device=x.device)
 
         if self.pitch_feature_level == "frame_level":
             pitch_prediction, pitch_embedding = self.get_pitch_embedding(

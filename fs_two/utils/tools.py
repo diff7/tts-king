@@ -15,10 +15,6 @@ matplotlib.use("Agg")
 
 # TODO SET  device from congig
 
-# torch.cuda.set_device(1)
-device = 1
-# torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 
 def to_device(data, device):
     if len(data) == 12:
@@ -108,7 +104,7 @@ def log(
         logger.log({f"Audio {train_val.upper()}": a})
 
 
-def get_mask_from_lengths(lengths, max_len=None):
+def get_mask_from_lengths(lengths, max_len=None, device=1):
     batch_size = lengths.shape[0]
     if max_len is None:
         max_len = torch.max(lengths).item()
