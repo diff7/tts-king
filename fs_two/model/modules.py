@@ -12,6 +12,33 @@ import torch.nn.functional as F
 from fs_two.utils.tools import get_mask_from_lengths, pad
 
 
+class RMSNorm(nn.Module):
+
+    def __init__(self, dimension: int, epsilon: float = 1e-8, is_bias: bool = False):
+        """
+        Args:
+            dimension (int): the dimension of the layer output to normalize
+            epsilon (float): an epsilon to prevent dividing by zero
+                in case the layer has zero variance. (default = 1e-8)
+            is_bias (bool): a boolean value whether to include bias term
+                while normalization
+        """
+        super().__init__()
+        self.dimension = dimension
+        self.epsilon = epsilon
+        self.is_bias = is_bias
+        self.scale = nn.Parameter(torch.ones(self.dimension))
+        if self.is_bias:
+            self.bias = nn.Parameter(torch.zeros(self.dimension))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x_std = torch.sqrt(torch.mean(x ** 2, -1, keepdim=True))
+        x_norm = x / (x_std + self.epsilon)
+        if self.is_bias:
+            return self.scale * x_norm + self.bias
+        return self.scale * x_norm
+
+
 class VarianceAdaptor(nn.Module):
     """ Variance Adaptor """
 
@@ -237,7 +264,7 @@ class VariancePredictor(nn.Module):
                         ),
                     ),
                     ("relu_1", nn.ReLU()),
-                    ("layer_norm_1", nn.LayerNorm(self.filter_size)),
+                    ("layer_norm_1", RMSNorm(self.filter_size)),
                     ("dropout_1", nn.Dropout(self.dropout)),
                     (
                         "conv1d_2",
@@ -249,7 +276,7 @@ class VariancePredictor(nn.Module):
                         ),
                     ),
                     ("relu_2", nn.ReLU()),
-                    ("layer_norm_2", nn.LayerNorm(self.filter_size)),
+                    ("layer_norm_2", RMSNorm(self.filter_size)),
                     ("dropout_2", nn.Dropout(self.dropout)),
                 ]
             )
