@@ -12,7 +12,7 @@ from fsapi import FSTWOapi
 # from fs_two.preprocess import prepare_dataset_lj_speech
 from hifiapi import HIFIapi
 
-from input_process import preprocess_english
+from input_process import preprocess_lang, preprocess_eng
 
 
 def get_fsp_configs(
@@ -38,7 +38,7 @@ class TTSKing:
         self.cfg = cfg
 
     def generate_mel(
-        self, text, duration_control=1.0, pitch_control=1.0, energy_control=1.0
+        self, text, duration_control=1.0, pitch_control=1.0, energy_control=1.0, speaker=0
     ):
 
         phonemes = self.text_preprocess(text)
@@ -48,7 +48,7 @@ class TTSKing:
             duration_control,
             pitch_control,
             energy_control,
-            speaker=None,
+            speaker=speaker,
         )
 
         # mel, mel_postnet, log_duration_output, f0_output, energy_output
@@ -66,31 +66,11 @@ class TTSKing:
         )
         return self.vocoder(mel_specs_batch)
 
-    # TODO :
-    def train_tts(self, data_loader):
-
-        # get val train data loader
-
-        self.tts.train(train_data_loader, val_data_loader, self.vocoder)
-
-    # TODO
-    def train_vocoder(self, dataset, epochs):
-        pass
-
-    # TODO
-    def init_data_loader_tts(self, data_folder_path):
-        # return data_loader
-        pass
-
-    def prepare_dataset_tts(self, path_to_data):
-        # TODO
-        pass
-
-    def preprocess(self):
-        self.tts.preprocess()
-
     def text_preprocess(self, text):
-        return np.array([preprocess_english(text, self.preprocess_config_c)])
+        return np.array([preprocess_lang(text, self.preprocess_config_c)])
+    
+    def text_preprocess_eng(self, text):
+        return np.array([preprocess_eng(text, self.preprocess_config_c)])
 
     def to_torch_device(self, items):
         return [torch.tensor(t).to(self.cfg.device) for t in items]

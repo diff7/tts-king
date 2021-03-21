@@ -1,11 +1,0 @@
-Training:   0%|                                                                                                                                                                                                     | 0/900000 [00:00<?, ?it/s]
-Epoch 1:   0%|                                                                                                                                                                                                         | 0/311 [00:00<?, ?it/s][ATraceback (most recent call last):
-  File "train.py", line 212, in <module>
-    main(cfg, configs)
-  File "train.py", line 105, in main
-    optimizer.step_and_update_lr(losses)
-  File "/home/dev/other/fsp/tts-king/fs_two/model/optimizer.py", line 335, in step_and_update_lr
-    self._update_learning_rate()
-  File "/home/dev/other/fsp/tts-king/fs_two/model/optimizer.py", line 363, in _update_learning_rate
-    for param_group in self.optimizer._optimizer.param_groups:
-AttributeError: 'ScheduledOptim' object has no attribute 'optimizer'

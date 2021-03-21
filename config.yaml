@@ -2,7 +2,7 @@ data_path:  '/home/dev/other/fsp/data/aligned/' #'../ljspeech_dataset'
 processed_data_path: /home/dev/other/fsp/data/ailabs_speaker' #'../ljspeech_dataset_processed'
 device: 0
 
-tts_weights_path: 
+tts_weights_path: '/home/dev/other/fsp/output/ckpt/ailabs/65000.pth.tar'
 hifi_weights_path:  '/home/dev/other/fsp/weights/trained_original/hifi/generator_v1.pth'
 
 

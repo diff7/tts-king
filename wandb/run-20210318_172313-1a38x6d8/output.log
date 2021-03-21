@@ -1,15 +1,0 @@
-Training:   0%|                                                                | 0/900000 [00:00<?, ?it/s]
-Epoch 1:   0%|                                                                    | 0/311 [00:00<?, ?it/s][ATraining:   0%|                                                    | 2/900000 [00:03<418:49:07,  1.68s/it]Training:   0%|                                                    | 3/900000 [00:05<446:04:55,  1.78s/it]Training:   0%|                                                    | 4/900000 [00:06<392:53:55,  1.57s/it]Training:   0%|                                                    | 5/900000 [00:07<336:24:59,  1.35s/it]
-Epoch 1:   0%|▏                                                           | 1/311 [00:07<38:21,  7.42s/it][ATraining:   0%|                                                    | 6/900000 [00:10<509:39:08,  2.04s/it]Training:   0%|                                                    | 7/900000 [00:12<473:40:22,  1.89s/it]Training:   0%|                                                    | 8/900000 [00:13<445:08:54,  1.78s/it]Training:   0%|                                                    | 9/900000 [00:14<368:08:05,  1.47s/it]
-Epoch 1:   1%|▍                                                           | 2/311 [00:14<37:59,  7.38s/it][ATraining:   0%|                                                   | 10/900000 [00:17<494:30:18,  1.98s/it]Traceback (most recent call last):
-  File "train.py", line 211, in <module>
-    main(cfg, configs)
-  File "train.py", line 105, in main
-    optimizer.step_and_update_lr(losses)
-  File "/home/dev/other/fsp/tts-king/fs_two/model/optimizer.py", line 336, in step_and_update_lr
-    self._optimizer.pc_backward(losses)
-  File "/home/dev/other/fsp/tts-king/fs_two/model/optimizer.py", line 41, in pc_backward
-    pc_grad = self._project_conflicting(grads, has_grads)
-  File "/home/dev/other/fsp/tts-king/fs_two/model/optimizer.py", line 59, in _project_conflicting
-    for g in pc_grad]).sum(dim=0)
-RuntimeError: CUDA out of memory. Tried to allocate 540.00 MiB (GPU 0; 23.65 GiB total capacity; 7.46 GiB already allocated; 525.06 MiB free; 10.53 GiB reserved in total by PyTorch)

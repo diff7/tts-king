@@ -78,6 +78,9 @@ class FSTWOapi:
         energy_control=1.0,
         speaker=None,
     ):
+        if speaker is not None:
+            speaker = torch.tensor(speaker).long().unsqueeze(0)
+            speaker = speaker.to(self.device)
         self.model.eval()
         src_len = np.array([len(phonemes[0])])
         result = self.model(

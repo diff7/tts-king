@@ -1,17 +1,0 @@
-Training:   0%|          | 0/900000 [00:00<?, ?it/s]
-Epoch 1:   0%|          | 0/311 [00:00<?, ?it/s][ATraceback (most recent call last):
-  File "train.py", line 211, in <module>
-    main(cfg, configs)
-  File "train.py", line 89, in main
-    output = model(*(batch[2:]))
-  File "/opt/conda/lib/python3.7/site-packages/torch/nn/modules/module.py", line 491, in __call__
-    result = self.forward(*input, **kwargs)
-  File "/home/dev/other/fsp/tts-king/fs_two/model/fastspeech2.py", line 92, in forward
-    d_control,
-  File "/opt/conda/lib/python3.7/site-packages/torch/nn/modules/module.py", line 491, in __call__
-    result = self.forward(*input, **kwargs)
-  File "/home/dev/other/fsp/tts-king/fs_two/model/modules.py", line 135, in forward
-    x, pitch_target, src_mask, p_control
-  File "/home/dev/other/fsp/tts-king/fs_two/model/modules.py", line 96, in get_pitch_embedding
-    torch.bucketize(target, self.pitch_bins)
-AttributeError: module 'torch' has no attribute 'bucketize'
