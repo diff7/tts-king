@@ -17,7 +17,7 @@ matplotlib.use("Agg")
 
 
 def to_device(data, device):
-    if len(data) == 12:
+    if len(data) == 13:
         (
             ids,
             raw_texts,
@@ -31,6 +31,7 @@ def to_device(data, device):
             pitches,
             energies,
             durations,
+            speakers_emb
         ) = data
 
         speakers = torch.from_numpy(speakers).long().to(device)
@@ -41,11 +42,12 @@ def to_device(data, device):
         pitches = torch.from_numpy(pitches).float().to(device)
         energies = torch.from_numpy(energies).to(device)
         durations = torch.from_numpy(durations).long().to(device)
+        speakers_emb = torch.from_numpy(speakers_emb).to(device)
 
         return (
             ids,
             raw_texts,
-            speakers,
+            speakers_emb,
             texts,
             src_lens,
             max_src_len,
@@ -54,17 +56,18 @@ def to_device(data, device):
             max_mel_len,
             pitches,
             energies,
-            durations,
+            durations
         )
 
-    if len(data) == 6:
-        (ids, raw_texts, speakers, texts, src_lens, max_src_len) = data
+    if len(data) == 7:
+        (ids, raw_texts, speakers, texts, src_lens, max_src_len, speakers_emb) = data
 
         speakers = torch.from_numpy(speakers).long().to(device)
         texts = torch.from_numpy(texts).long().to(device)
         src_lens = torch.from_numpy(src_lens).to(device)
+        speakers_emb = torch.from_numpy(speakers_emb).to(device)
 
-        return (ids, raw_texts, speakers, texts, src_lens, max_src_len)
+        return (ids, raw_texts, speakers_emb, texts, src_lens, max_src_len)
 
 
 def log(
