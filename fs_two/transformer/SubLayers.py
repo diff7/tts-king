@@ -1,8 +1,56 @@
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
 from .Modules import ScaledDotProductAttention
+
+
+class Swish(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, i):
+        result = i * torch.sigmoid(i)
+        ctx.save_for_backward(i)
+        return result
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        i = ctx.saved_variables[0]
+        sigmoid_i = torch.sigmoid(i)
+        return grad_output * (sigmoid_i * (1 + i * (1 - sigmoid_i)))
+
+
+def swiglu_fn(x):
+    """ Swish activation function """
+    # return x * torch.sigmoid(x)
+    return Swish.apply(x)
+
+
+class RMSNorm(nn.Module):
+
+    def __init__(self, dimension: int, epsilon: float = 1e-8, is_bias: bool = False):
+        """
+        Args:
+            dimension (int): the dimension of the layer output to normalize
+            epsilon (float): an epsilon to prevent dividing by zero
+                in case the layer has zero variance. (default = 1e-8)
+            is_bias (bool): a boolean value whether to include bias term
+                while normalization
+        """
+        super().__init__()
+        self.dimension = dimension
+        self.epsilon = epsilon
+        self.is_bias = is_bias
+        self.scale = nn.Parameter(torch.ones(self.dimension))
+        if self.is_bias:
+            self.bias = nn.Parameter(torch.zeros(self.dimension))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x_std = torch.sqrt(torch.mean(x ** 2, -1, keepdim=True))
+        x_norm = x / (x_std + self.epsilon)
+        if self.is_bias:
+            return self.scale * x_norm + self.bias
+        return self.scale * x_norm
 
 
 class MultiHeadAttention(nn.Module):
@@ -21,7 +69,7 @@ class MultiHeadAttention(nn.Module):
 
         self.attention = ScaledDotProductAttention(
             temperature=np.power(d_k, 0.5))
-        self.layer_norm = nn.LayerNorm(d_model)
+        self.layer_norm = RMSNorm(d_model)
 
         self.fc = nn.Linear(n_head * d_v, d_model)
 
@@ -83,13 +131,13 @@ class PositionwiseFeedForward(nn.Module):
             padding=(kernel_size[1] - 1) // 2,
         )
 
-        self.layer_norm = nn.LayerNorm(d_in)
+        self.layer_norm = RMSNorm(d_in)
         self.dropout = nn.Dropout(dropout)
 
     def forward(self, x):
         residual = x
         output = x.transpose(1, 2)
-        output = self.w_2(F.relu(self.w_1(output)))
+        output = self.w_2(swiglu_fn(self.w_1(output)))
         output = output.transpose(1, 2)
         output = self.dropout(output)
         output = self.layer_norm(output + residual)

@@ -12,6 +12,33 @@ import torch.nn.functional as F
 from fs_two.utils.tools import get_mask_from_lengths, pad
 
 
+class RMSNorm(nn.Module):
+
+    def __init__(self, dimension: int, epsilon: float = 1e-8, is_bias: bool = False):
+        """
+        Args:
+            dimension (int): the dimension of the layer output to normalize
+            epsilon (float): an epsilon to prevent dividing by zero
+                in case the layer has zero variance. (default = 1e-8)
+            is_bias (bool): a boolean value whether to include bias term
+                while normalization
+        """
+        super().__init__()
+        self.dimension = dimension
+        self.epsilon = epsilon
+        self.is_bias = is_bias
+        self.scale = nn.Parameter(torch.ones(self.dimension))
+        if self.is_bias:
+            self.bias = nn.Parameter(torch.zeros(self.dimension))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x_std = torch.sqrt(torch.mean(x ** 2, -1, keepdim=True))
+        x_norm = x / (x_std + self.epsilon)
+        if self.is_bias:
+            return self.scale * x_norm + self.bias
+        return self.scale * x_norm
+
+
 class VarianceAdaptor(nn.Module):
     """ Variance Adaptor """
 
@@ -79,10 +106,10 @@ class VarianceAdaptor(nn.Module):
             )
 
         self.pitch_embedding = nn.Embedding(
-            n_bins, model_config["transformer"]["encoder_hidden"]
+            n_bins, model_config["transformer"]["variance_hidden"]
         )
         self.energy_embedding = nn.Embedding(
-            n_bins, model_config["transformer"]["encoder_hidden"]
+            n_bins, model_config["transformer"]["variance_hidden"]
         )
 
     def get_pitch_embedding(self, x, target, mask, control):
@@ -216,7 +243,7 @@ class VariancePredictor(nn.Module):
     def __init__(self, model_config):
         super(VariancePredictor, self).__init__()
 
-        self.input_size = model_config["transformer"]["encoder_hidden"]
+        self.input_size = model_config["transformer"]["variance_hidden"]
         self.filter_size = model_config["variance_predictor"]["filter_size"]
         self.kernel = model_config["variance_predictor"]["kernel_size"]
         self.conv_output_size = model_config["variance_predictor"][
@@ -237,7 +264,7 @@ class VariancePredictor(nn.Module):
                         ),
                     ),
                     ("relu_1", nn.ReLU()),
-                    ("layer_norm_1", nn.LayerNorm(self.filter_size)),
+                    ("layer_norm_1", RMSNorm(self.filter_size)),
                     ("dropout_1", nn.Dropout(self.dropout)),
                     (
                         "conv1d_2",
@@ -249,7 +276,7 @@ class VariancePredictor(nn.Module):
                         ),
                     ),
                     ("relu_2", nn.ReLU()),
-                    ("layer_norm_2", nn.LayerNorm(self.filter_size)),
+                    ("layer_norm_2", RMSNorm(self.filter_size)),
                     ("dropout_2", nn.Dropout(self.dropout)),
                 ]
             )

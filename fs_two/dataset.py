@@ -70,6 +70,13 @@ class Dataset(Dataset):
         )
         duration = np.load(duration_path)
 
+        embedding_path = os.path.join(
+            self.preprocessed_path,
+            "speaker_emb",
+            "{}-speaker-{}.npy".format(speaker, basename),
+        )
+        speaker_embedding = np.load(embedding_path)
+
         sample = {
             "id": basename,
             "speaker": speaker_id,
@@ -79,6 +86,7 @@ class Dataset(Dataset):
             "pitch": pitch,
             "energy": energy,
             "duration": duration,
+            'speaker_embedding': speaker_embedding
         }
 
         return sample
@@ -110,6 +118,7 @@ class Dataset(Dataset):
         pitches = [data[idx]["pitch"] for idx in idxs]
         energies = [data[idx]["energy"] for idx in idxs]
         durations = [data[idx]["duration"] for idx in idxs]
+        speaker_embeddings = [data[idx]["speaker_embedding"] for idx in idxs]
 
         text_lens = np.array([text.shape[0] for text in texts])
         mel_lens = np.array([mel.shape[0] for mel in mels])
@@ -134,6 +143,7 @@ class Dataset(Dataset):
             pitches,
             energies,
             durations,
+            speaker_embeddings
         )
 
     def collate_fn(self, data):
@@ -145,7 +155,7 @@ class Dataset(Dataset):
         else:
             idx_arr = np.arange(data_size)
 
-        tail = idx_arr[len(idx_arr) - (len(idx_arr) % self.batch_size) :]
+        tail = idx_arr[len(idx_arr) - (len(idx_arr) % self.batch_size):]
         idx_arr = idx_arr[: len(idx_arr) - (len(idx_arr) % self.batch_size)]
         idx_arr = idx_arr.reshape((-1, self.batch_size)).tolist()
         if not self.drop_last and len(tail) > 0:
