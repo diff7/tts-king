@@ -1,9 +1,0 @@
-Training:   0%|          | 0/900000 [00:00<?, ?it/s]
-Epoch 1:   0%|          | 0/319 [00:00<?, ?it/s][ATraceback (most recent call last):
-  File "train.py", line 214, in <module>
-    main(cfg, configs)
-  File "train.py", line 88, in main
-    batch = to_device(batch, device)
-  File "/home/dev/other/fsp/tts-king/fs_two/utils/tools.py", line 46, in to_device
-    speakers_emb = torch.from_numpy(speakers_emb).to(device)
-TypeError: expected np.ndarray (got list)

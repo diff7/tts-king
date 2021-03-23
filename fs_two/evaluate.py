@@ -14,7 +14,7 @@ from fs_two.dataset import Dataset
 
 # TODO SET device via config
 # torch.cuda.set_device(1)
-device = 0
+device = 1
 # torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 

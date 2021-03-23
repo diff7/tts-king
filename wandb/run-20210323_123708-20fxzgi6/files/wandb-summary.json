@@ -1,1 +1,0 @@
-{"Loss/total_loss TRAIN": 26.508257031440735, "Loss/mel_loss TRAIN": 11.861793518066406, "Loss/mel_loss mae TRAIN": 2.5682709217071533, "Loss/mel_postnet_loss TRAIN": 9.091155052185059, "Loss/pitch_loss TRAIN": 1.147362232208252, "Loss/energy_loss TRAIN": 1.3058509826660156, "Loss/duration_loss TRAIN": 0.5338243246078491, "_runtime": 413, "_timestamp": 1616514241, "_step": 300}

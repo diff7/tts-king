@@ -1,19 +1,0 @@
-Training:   0%|          | 0/900000 [00:00<?, ?it/s]
-Epoch 1:   0%|          | 0/319 [00:00<?, ?it/s][ATraceback (most recent call last):
-  File "train.py", line 214, in <module>
-    main(cfg, configs)
-  File "train.py", line 86, in main
-    for batchs in loader:
-  File "/opt/conda/lib/python3.7/site-packages/torch/utils/data/dataloader.py", line 435, in __next__
-    data = self._next_data()
-  File "/opt/conda/lib/python3.7/site-packages/torch/utils/data/dataloader.py", line 475, in _next_data
-    data = self._dataset_fetcher.fetch(index)  # may raise StopIteration
-  File "/opt/conda/lib/python3.7/site-packages/torch/utils/data/_utils/fetch.py", line 44, in fetch
-    data = [self.dataset[idx] for idx in possibly_batched_index]
-  File "/opt/conda/lib/python3.7/site-packages/torch/utils/data/_utils/fetch.py", line 44, in <listcomp>
-    data = [self.dataset[idx] for idx in possibly_batched_index]
-  File "/home/dev/other/fsp/tts-king/fs_two/dataset.py", line 78, in __getitem__
-    speaker_embedding = np.load(embedding_path)
-  File "/opt/conda/lib/python3.7/site-packages/numpy/lib/npyio.py", line 416, in load
-    fid = stack.enter_context(open(os_fspath(file), "rb"))
-FileNotFoundError: [Errno 2] No such file or directory: '/home/dev/other/fsp/data/shaman_processed/speaker_emb/minaev-speaker-oblomov_s001634.npy'
