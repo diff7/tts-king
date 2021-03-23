@@ -1,24 +1,0 @@
-Training:   0%|          | 0/900000 [00:00<?, ?it/s]
-Epoch 1:   0%|          | 0/638 [00:00<?, ?it/s][ATraining:   0%|          | 2/900000 [00:02<301:46:04,  1.21s/it]Training:   0%|          | 3/900000 [00:03<285:25:33,  1.14s/it]Training:   0%|          | 4/900000 [00:04<256:35:08,  1.03s/it]Training:   0%|          | 5/900000 [00:04<225:31:48,  1.11it/s]
-Epoch 1:   0%|          | 1/638 [00:04<52:42,  4.97s/it][ATraining:   0%|          | 6/900000 [00:06<304:39:47,  1.22s/it]Training:   0%|          | 7/900000 [00:07<290:50:49,  1.16s/it]Training:   0%|          | 8/900000 [00:08<258:30:05,  1.03s/it]Training:   0%|          | 9/900000 [00:09<222:51:51,  1.12it/s]
-Epoch 1:   0%|          | 2/638 [00:09<48:02,  4.53s/it][ATraining:   0%|          | 10/900000 [00:11<297:45:56,  1.19s/it]Training:   0%|          | 11/900000 [00:12<285:54:03,  1.14s/it]Training:   0%|          | 12/900000 [00:12<260:29:51,  1.04s/it]Training:   0%|          | 13/900000 [00:13<227:02:56,  1.10it/s]
-Epoch 1:   0%|          | 3/638 [00:13<46:53,  4.43s/it][ATraining:   0%|          | 14/900000 [00:15<297:14:57,  1.19s/it]Training:   0%|          | 15/900000 [00:16<288:35:42,  1.15s/it]Training:   0%|          | 16/900000 [00:17<266:31:11,  1.07s/it]Training:   0%|          | 17/900000 [00:17<232:04:04,  1.08it/s]
-Epoch 1:   1%|          | 4/638 [00:17<46:37,  4.41s/it][ATraining:   0%|          | 18/900000 [00:19<309:37:56,  1.24s/it]Training:   0%|          | 19/900000 [00:20<294:34:17,  1.18s/it]Training:   0%|          | 20/900000 [00:21<267:50:59,  1.07s/it]Training:   0%|          | 21/900000 [00:22<231:14:35,  1.08it/s]
-Epoch 1:   1%|          | 5/638 [00:22<46:31,  4.41s/it][ATraining:   0%|          | 22/900000 [00:24<305:03:39,  1.22s/it]Training:   0%|          | 23/900000 [00:25<291:55:51,  1.17s/it]Training:   0%|          | 24/900000 [00:26<274:32:42,  1.10s/it]Training:   0%|          | 25/900000 [00:26<236:09:00,  1.06it/s]
-Epoch 1:   1%|          | 6/638 [00:26<46:41,  4.43s/it][ATraining:   0%|          | 26/900000 [00:28<310:48:04,  1.24s/it]Training:   0%|          | 27/900000 [00:29<295:40:13,  1.18s/it]Training:   0%|          | 28/900000 [00:30<281:35:01,  1.13s/it]Training:   0%|          | 29/900000 [00:31<247:55:20,  1.01it/s]
-Epoch 1:   1%|          | 7/638 [00:31<47:22,  4.50s/it][ATraining:   0%|          | 30/900000 [00:33<317:24:11,  1.27s/it]Training:   0%|          | 31/900000 [00:34<296:22:12,  1.19s/it]Training:   0%|          | 32/900000 [00:34<256:47:22,  1.03s/it]Training:   0%|          | 33/900000 [00:35<221:33:44,  1.13it/s]
-Epoch 1:   1%|▏         | 8/638 [00:35<46:01,  4.38s/it][ATraining:   0%|          | 34/900000 [00:37<301:07:49,  1.20s/it]Training:   0%|          | 35/900000 [00:38<287:39:53,  1.15s/it]Training:   0%|          | 36/900000 [00:39<258:31:27,  1.03s/it]Training:   0%|          | 37/900000 [00:39<227:12:34,  1.10it/s]
-Epoch 1:   1%|▏         | 9/638 [00:39<45:50,  4.37s/it][ATraining:   0%|          | 38/900000 [00:41<300:47:09,  1.20s/it]Training:   0%|          | 39/900000 [00:42<289:30:06,  1.16s/it]Training:   0%|          | 40/900000 [00:43<277:32:37,  1.11s/it]Training:   0%|          | 41/900000 [00:44<239:44:23,  1.04it/s]
-Epoch 1:   2%|▏         | 10/638 [00:44<46:20,  4.43s/it][ATraining:   0%|          | 42/900000 [00:46<305:35:02,  1.22s/it]Training:   0%|          | 43/900000 [00:47<294:13:23,  1.18s/it]Training:   0%|          | 44/900000 [00:48<278:24:18,  1.11s/it]Training:   0%|          | 45/900000 [00:49<248:55:20,  1.00it/s]
-Epoch 1:   2%|▏         | 11/638 [00:49<46:47,  4.48s/it][ATraining:   0%|          | 46/900000 [00:50<312:45:21,  1.25s/it]Traceback (most recent call last):
-  File "train.py", line 214, in <module>
-    main(cfg, configs)
-  File "train.py", line 107, in main
-    optimizer.step_and_update_lr(losses)
-  File "/home/dev/other/fsp/tts-king/fs_two/model/optimizer.py", line 336, in step_and_update_lr
-    self._optimizer.pc_backward(losses)
-  File "/home/dev/other/fsp/tts-king/fs_two/model/optimizer.py", line 41, in pc_backward
-    pc_grad = self._project_conflicting(grads, has_grads)
-  File "/home/dev/other/fsp/tts-king/fs_two/model/optimizer.py", line 59, in _project_conflicting
-    for g in pc_grad]).sum(dim=0)
-RuntimeError: CUDA out of memory. Tried to allocate 1.01 GiB (GPU 1; 23.65 GiB total capacity; 8.49 GiB already allocated; 808.06 MiB free; 12.42 GiB reserved in total by PyTorch)
