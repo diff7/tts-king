@@ -73,7 +73,7 @@ class Dataset(Dataset):
         embedding_path = os.path.join(
             self.preprocessed_path,
             "speaker_emb",
-            "{}-speaker-{}.npy".format(speaker, basename),
+            "{}/{}.npy".format(speaker, basename),
         )
         speaker_embedding = np.load(embedding_path)
 
@@ -86,7 +86,7 @@ class Dataset(Dataset):
             "pitch": pitch,
             "energy": energy,
             "duration": duration,
-            'speaker_embedding': speaker_embedding
+            "speaker_embedding": speaker_embedding,
         }
 
         return sample
@@ -143,7 +143,7 @@ class Dataset(Dataset):
             pitches,
             energies,
             durations,
-            speaker_embeddings
+            np.array(speaker_embeddings),
         )
 
     def collate_fn(self, data):
@@ -155,7 +155,7 @@ class Dataset(Dataset):
         else:
             idx_arr = np.arange(data_size)
 
-        tail = idx_arr[len(idx_arr) - (len(idx_arr) % self.batch_size):]
+        tail = idx_arr[len(idx_arr) - (len(idx_arr) % self.batch_size) :]
         idx_arr = idx_arr[: len(idx_arr) - (len(idx_arr) % self.batch_size)]
         idx_arr = idx_arr.reshape((-1, self.batch_size)).tolist()
         if not self.drop_last and len(tail) > 0:
@@ -232,8 +232,8 @@ if __name__ == "__main__":
     from torch.utils.data import DataLoader
     from utils.utils import to_device
 
-    torch.cuda.set_device(1)
-    device = 1
+    #torch.cuda.set_device(1)
+    device = 0
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     preprocess_config = yaml.load(
         open("./config/LJSpeech/preprocess.yaml", "r"), Loader=yaml.FullLoader

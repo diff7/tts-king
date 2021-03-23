@@ -1,5 +1,6 @@
 import os
 import json
+import random
 
 import torch
 import torch.nn.functional as F
@@ -31,7 +32,7 @@ def to_device(data, device):
             pitches,
             energies,
             durations,
-            speakers_emb
+            speakers_emb,
         ) = data
 
         speakers = torch.from_numpy(speakers).long().to(device)
@@ -56,11 +57,19 @@ def to_device(data, device):
             max_mel_len,
             pitches,
             energies,
-            durations
+            durations,
         )
 
     if len(data) == 7:
-        (ids, raw_texts, speakers, texts, src_lens, max_src_len, speakers_emb) = data
+        (
+            ids,
+            raw_texts,
+            speakers,
+            texts,
+            src_lens,
+            max_src_len,
+            speakers_emb,
+        ) = data
 
         speakers = torch.from_numpy(speakers).long().to(device)
         texts = torch.from_numpy(texts).long().to(device)
@@ -84,10 +93,10 @@ def log(
         logger.log(
             {f"Loss/total_loss {train_val.upper()}": losses[0]}, step=step
         )
+        logger.log({f"Loss/mel_loss {train_val.upper()}": losses[1]}, step=step)
         logger.log(
-            {f"Loss/mel_loss {train_val.upper()}": losses[1]}, step=step)
-        logger.log(
-            {f"Loss/mel_loss mae {train_val.upper()}": losses[2]}, step=step)
+            {f"Loss/mel_loss mae {train_val.upper()}": losses[2]}, step=step
+        )
         logger.log(
             {f"Loss/mel_postnet_loss {train_val.upper()}": losses[3]}, step=step
         )
@@ -132,29 +141,30 @@ def expand(values, durations):
 def synth_one_sample(
     targets, predictions, vocoder, model_config, preprocess_config
 ):
-
-    basename = targets[0][0]
-    src_len = predictions[8][0].item()
-    mel_len = predictions[9][0].item()
-    mel_target = targets[6][0, :mel_len].detach().transpose(0, 1)
-    mel_prediction = predictions[1][0, :mel_len].detach().transpose(0, 1)
-    duration = targets[11][0, :src_len].detach().cpu().numpy()
+    b_size = len(targets[0])
+    rand_id = random.randint(0, b_size)
+    basename = targets[0][rand_id]
+    src_len = predictions[8][rand_id].item()
+    mel_len = predictions[9][rand_id].item()
+    mel_target = targets[6][rand_id, :mel_len].detach().transpose(0, 1)
+    mel_prediction = predictions[1][rand_id, :mel_len].detach().transpose(0, 1)
+    duration = targets[11][rand_id, :src_len].detach().cpu().numpy()
     if (
         preprocess_config["preprocessing"]["pitch"]["feature"]
         == "phoneme_level"
     ):
-        pitch = targets[9][0, :src_len].detach().cpu().numpy()
+        pitch = targets[9][rand_id, :src_len].detach().cpu().numpy()
         pitch = expand(pitch, duration)
     else:
-        pitch = targets[9][0, :mel_len].detach().cpu().numpy()
+        pitch = targets[9][rand_id, :mel_len].detach().cpu().numpy()
     if (
         preprocess_config["preprocessing"]["energy"]["feature"]
         == "phoneme_level"
     ):
-        energy = targets[10][0, :src_len].detach().cpu().numpy()
+        energy = targets[10][rand_id, :src_len].detach().cpu().numpy()
         energy = expand(energy, duration)
     else:
-        energy = targets[10][0, :mel_len].detach().cpu().numpy()
+        energy = targets[10][rand_id, :mel_len].detach().cpu().numpy()
 
     with open(
         os.path.join(
@@ -282,8 +292,7 @@ def plot_mel(data, stats, titles):
         axes[i][0].set_aspect(2.5, adjustable="box")
         axes[i][0].set_ylim(0, mel.shape[0])
         axes[i][0].set_title(titles[i], fontsize="medium")
-        axes[i][0].tick_params(labelsize="x-small",
-                               left=False, labelleft=False)
+        axes[i][0].tick_params(labelsize="x-small", left=False, labelleft=False)
         axes[i][0].set_anchor("W")
 
         ax1 = add_axis(fig, axes[i][0])

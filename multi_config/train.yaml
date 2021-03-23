@@ -3,7 +3,7 @@ path:
   log_path: "../output/log/ailabs"
   result_path: "../output/result/ailabs"
 optimizer:
-  batch_size: 16
+  batch_size: 8
   betas: [0.95, 0.999]
   eps: 0.00001
   weight_decay: 0.0
