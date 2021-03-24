@@ -69,9 +69,9 @@ def get_vocoder(config, device):
                 "/home/dev/other/fsp/weights/trained_original/hifi/generator_v1.pth"
             )
         vocoder.load_state_dict(ckpt["generator"])
-        vocoder = nn.DataParallel(vocoder)
         vocoder.eval()
         vocoder.remove_weight_norm()
+        vocoder = nn.DataParallel(vocoder)
         vocoder.to(device)
 
     return vocoder
