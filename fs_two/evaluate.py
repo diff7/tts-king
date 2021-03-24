@@ -13,9 +13,9 @@ from fs_two.model import FastSpeech2Loss
 from fs_two.dataset import Dataset
 
 # TODO SET device via config
-# torch.cuda.set_device(1)
-device = 1
-# torch.device("cuda" if torch.cuda.is_available() else "cpu")
+torch.cuda.set_device(1)
+device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+# t
 
 
 def evaluate(model, step, configs, logger=None, train_val="val", vocoder=None):
