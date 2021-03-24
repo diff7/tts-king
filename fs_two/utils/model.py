@@ -22,7 +22,7 @@ def get_model(args, configs, device, train=False):
         model.load_state_dict(ckpt["model"])
 
     if train:
-        model = nn.DataParallel(model)
+        #model = nn.DataParallel(model)
         model.to(device)
         model.train()
         scheduled_optim = ScheduledOptim(
@@ -71,7 +71,7 @@ def get_vocoder(config, device):
         vocoder.load_state_dict(ckpt["generator"])
         vocoder.eval()
         vocoder.remove_weight_norm()
-        vocoder = nn.DataParallel(vocoder)
+        #vocoder = nn.DataParallel(vocoder)
         vocoder.to(device)
 
     return vocoder
