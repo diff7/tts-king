@@ -2,6 +2,7 @@ import os
 import json
 
 import torch
+import torch.nn as nn
 import numpy as np
 
 import fs_two.hifigan as hifigan
@@ -11,24 +12,26 @@ from fs_two.model import FastSpeech2, ScheduledOptim
 def get_model(args, configs, device, train=False):
     (preprocess_config, model_config, train_config) = configs
 
-    model = FastSpeech2(preprocess_config, model_config).to(device)
+    model = FastSpeech2(preprocess_config, model_config)  # .to(device)
     if args.restore_step:
         ckpt_path = os.path.join(
             train_config["path"]["ckpt_path"],
             "{}.pth.tar".format(args.restore_step),
         )
-        ckpt = torch.load(ckpt_path)
+        ckpt = torch.load(ckpt_path, map_location=torch.device('cpu'))
         model.load_state_dict(ckpt["model"])
 
     if train:
+        model = nn.DataParallel(model)
+        model.to(device)
+        model.train()
         scheduled_optim = ScheduledOptim(
             model, train_config, model_config, args.tts.restore_step
         )
         if args.restore_step:
             scheduled_optim.load_state_dict(ckpt["optimizer"])
-        model.train()
         return model, scheduled_optim
-
+    model.to(device)
     model.eval()
     model.requires_grad_ = False
     return model
@@ -66,6 +69,7 @@ def get_vocoder(config, device):
                 "/home/dev/other/fsp/weights/trained_original/hifi/generator_v1.pth"
             )
         vocoder.load_state_dict(ckpt["generator"])
+        vocoder = nn.DataParallel(vocoder)
         vocoder.eval()
         vocoder.remove_weight_norm()
         vocoder.to(device)

@@ -67,11 +67,16 @@ class MultiHeadAttention(nn.Module):
         self.w_ks = nn.Linear(d_model, n_head * d_k)
         self.w_vs = nn.Linear(d_model, n_head * d_v)
 
+        nn.init.xavier_normal_(self.w_qs.weight)
+        nn.init.xavier_normal_(self.w_ks.weight)
+        nn.init.xavier_normal_(self.w_vs.weight)
+
         self.attention = ScaledDotProductAttention(
             temperature=np.power(d_k, 0.5))
         self.layer_norm = RMSNorm(d_model)
 
         self.fc = nn.Linear(n_head * d_v, d_model)
+        nn.init.xavier_normal_(self.fc.weight)
 
         self.dropout = nn.Dropout(dropout)
 
@@ -123,6 +128,7 @@ class PositionwiseFeedForward(nn.Module):
             kernel_size=kernel_size[0],
             padding=(kernel_size[0] - 1) // 2,
         )
+        nn.init.kaiming_normal_(self.w_1.weight)
         # position-wise
         self.w_2 = nn.Conv1d(
             d_hid,

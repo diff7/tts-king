@@ -34,7 +34,7 @@ def evaluate(model, step, configs, logger=None, train_val="val", vocoder=None):
     )
 
     # Get loss function
-    Loss = FastSpeech2Loss(preprocess_config, model_config).to(device)
+    Loss = FastSpeech2Loss(preprocess_config, model_config)
 
     # Evaluation
     loss_sums = [0 for _ in range(6)]

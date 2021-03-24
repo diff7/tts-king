@@ -19,34 +19,35 @@ from fs_two.dataset import Dataset
 
 from fs_two.evaluate import evaluate
 
-#torch.cuda.set_device(1)
+# torch.cuda.set_device(1)
 
 
 def main(cfg, configs):
     print("Prepare training ...")
 
     preprocess_config, model_config, train_config = configs
-    device = 1
-    # torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # Get dataset
     dataset = Dataset(
         "train.txt", preprocess_config, train_config, sort=True, drop_last=True
     )
     batch_size = train_config["optimizer"]["batch_size"]
-    group_size = 4  # Set this larger than 1 to enable sorting in Dataset
+    group_size = 1  # Set this larger than 1 to enable sorting in Dataset
     assert batch_size * group_size < len(dataset)
     loader = DataLoader(
         dataset,
         batch_size=batch_size * group_size,
         shuffle=True,
         collate_fn=dataset.collate_fn,
+        num_workers=4,
     )
 
     # Prepare model
     model, optimizer = get_model(cfg, configs, device, train=True)
-    # model = nn.DataParallel(model)
+    #model = nn.DataParallel(model)
     num_param = get_param_num(model)
-    Loss = FastSpeech2Loss(preprocess_config, model_config).to(device)
+    Loss = FastSpeech2Loss(preprocess_config, model_config)
     print("Number of FastSpeech2 Parameters:", num_param)
 
     # Load vocoder

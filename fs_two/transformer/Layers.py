@@ -58,6 +58,8 @@ class ConvNorm(torch.nn.Module):
             dilation=dilation,
             bias=bias,
         )
+        if w_init_gain == "tanh":
+            nn.init.xavier_normal_(self.conv.weight)
 
     def forward(self, signal):
         conv_signal = self.conv(signal)
