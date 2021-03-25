@@ -53,8 +53,6 @@ class FastSpeech2(nn.Module):
 
         output = self.encoder(texts, src_masks)
 
-        speakers_emb = speakers_emb.unsqueeze(
-            1).repeat(1, output.size(1), 1)
         (
             output,
             p_predictions,
@@ -75,6 +73,8 @@ class FastSpeech2(nn.Module):
             e_control,
             d_control,
         )
+        speakers_emb = speakers_emb.unsqueeze(
+            1).repeat(1, output.size(1), 1)
         output = torch.cat([output, speakers_emb], 2)
         output, mel_masks = self.decoder(output, mel_masks)
         output = self.mel_linear(output)
