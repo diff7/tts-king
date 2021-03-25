@@ -153,18 +153,6 @@ class VarianceAdaptor(nn.Module):
     ):
 
         log_duration_prediction = self.duration_predictor(x, src_mask)
-        if self.pitch_feature_level == "phoneme_level":
-            pitch_prediction, pitch_embedding = self.get_pitch_embedding(
-                x, pitch_target, src_mask, p_control
-            )
-
-            x = x + pitch_embedding
-        if self.energy_feature_level == "phoneme_level":
-            energy_prediction, energy_embedding = self.get_energy_embedding(
-                x, energy_target, src_mask, p_control
-            )
-            x = x + energy_embedding
-
         if duration_target is not None:
             x, mel_len = self.length_regulator(x, duration_target, max_len)
             duration_rounded = duration_target
@@ -179,16 +167,25 @@ class VarianceAdaptor(nn.Module):
             x, mel_len = self.length_regulator(x, duration_rounded, max_len)
             mel_mask = get_mask_from_lengths(mel_len, device=x.device)
 
-        if self.pitch_feature_level == "frame_level":
+        if self.pitch_feature_level == "phoneme_level":
+            pitch_prediction, pitch_embedding = self.get_pitch_embedding(
+                x, pitch_target, src_mask, p_control
+            )
+        elif self.pitch_feature_level == "frame_level":
             pitch_prediction, pitch_embedding = self.get_pitch_embedding(
                 x, pitch_target, mel_mask, p_control
             )
-            x = x + pitch_embedding
-        if self.energy_feature_level == "frame_level":
+        #x = x + pitch_embedding
+
+        if self.energy_feature_level == "phoneme_level":
+            energy_prediction, energy_embedding = self.get_energy_embedding(
+                x, energy_target, src_mask, p_control
+            )
+        elif self.energy_feature_level == "frame_level":
             energy_prediction, energy_embedding = self.get_energy_embedding(
                 x, energy_target, mel_mask, p_control
             )
-            x = x + energy_embedding
+        x = x + pitch_embedding + energy_embedding
 
         return (
             x,

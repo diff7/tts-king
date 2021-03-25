@@ -2,7 +2,7 @@ transformer:
   encoder_layer: 4
   encoder_head: 2
   encoder_hidden: 256
-  variance_hidden: 512
+  variance_hidden: 256
   decoder_layer: 4
   decoder_head: 2
   decoder_hidden: 512
