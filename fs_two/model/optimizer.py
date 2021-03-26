@@ -334,6 +334,8 @@ class ScheduledOptim:
     def step_and_update_lr(self, losses):
         self._update_learning_rate()
         self._optimizer.pc_backward(losses)
+
+    def real_step(self):
         self._optimizer.step()
 
     def zero_grad(self):

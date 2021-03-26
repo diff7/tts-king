@@ -100,12 +100,13 @@ def main(cfg, configs):
                 # total_loss.backward()
                 if step % grad_acc_step == 0:
                     # Clipping gradients to avoid gradient explosion
-                    # nn.utils.clip_grad_norm_(
-                    #     model.parameters(), grad_clip_thresh
-                    # )
 
                     # Update weights
                     optimizer.step_and_update_lr(losses)
+                    nn.utils.clip_grad_norm_(
+                        model.parameters(), grad_clip_thresh
+                    )
+                    optimizer.real_step()
                     optimizer.zero_grad()
 
                 if step % log_step == 0:
