@@ -93,21 +93,17 @@ def log(
         logger.log(
             {f"Loss/total_loss {train_val.upper()}": losses[0]}, step=step
         )
-        logger.log({f"Loss/mel_loss {train_val.upper()}": losses[1]}, step=step)
         logger.log(
-            {f"Loss/mel_loss mae {train_val.upper()}": losses[2]}, step=step
+            {f"Loss/mel_loss {train_val.upper()}": losses[1]}, step=step)
+
+        logger.log(
+            {f"Loss/pitch_loss {train_val.upper()}": losses[2]}, step=step
         )
         logger.log(
-            {f"Loss/mel_postnet_loss {train_val.upper()}": losses[3]}, step=step
+            {f"Loss/energy_loss {train_val.upper()}": losses[3]}, step=step
         )
         logger.log(
-            {f"Loss/pitch_loss {train_val.upper()}": losses[4]}, step=step
-        )
-        logger.log(
-            {f"Loss/energy_loss {train_val.upper()}": losses[5]}, step=step
-        )
-        logger.log(
-            {f"Loss/duration_loss {train_val.upper()}": losses[6]}, step=step
+            {f"Loss/duration_loss {train_val.upper()}": losses[4]}, step=step
         )
 
     if fig is not None:
@@ -147,7 +143,7 @@ def synth_one_sample(
     src_len = predictions[8][rand_id].item()
     mel_len = predictions[9][rand_id].item()
     mel_target = targets[6][rand_id, :mel_len].detach().transpose(0, 1)
-    mel_prediction = predictions[1][rand_id, :mel_len].detach().transpose(0, 1)
+    mel_prediction = predictions[0][rand_id, :mel_len].detach().transpose(0, 1)
     duration = targets[11][rand_id, :src_len].detach().cpu().numpy()
     if (
         preprocess_config["preprocessing"]["pitch"]["feature"]
@@ -213,7 +209,7 @@ def synth_samples(
         basename = basenames[i]
         src_len = predictions[8][i].item()
         mel_len = predictions[9][i].item()
-        mel_prediction = predictions[1][i, :mel_len].detach().transpose(0, 1)
+        mel_prediction = predictions[0][i, :mel_len].detach().transpose(0, 1)
         duration = predictions[5][i, :src_len].detach().cpu().numpy()
         if (
             preprocess_config["preprocessing"]["pitch"]["feature"]
@@ -252,7 +248,7 @@ def synth_samples(
 
     from .model import vocoder_infer
 
-    mel_predictions = predictions[1].transpose(1, 2)
+    mel_predictions = predictions[0].transpose(1, 2)
     lengths = (
         predictions[9]
         * preprocess_config["preprocessing"]["stft"]["hop_length"]
@@ -292,7 +288,8 @@ def plot_mel(data, stats, titles):
         axes[i][0].set_aspect(2.5, adjustable="box")
         axes[i][0].set_ylim(0, mel.shape[0])
         axes[i][0].set_title(titles[i], fontsize="medium")
-        axes[i][0].tick_params(labelsize="x-small", left=False, labelleft=False)
+        axes[i][0].tick_params(labelsize="x-small",
+                               left=False, labelleft=False)
         axes[i][0].set_anchor("W")
 
         ax1 = add_axis(fig, axes[i][0])

@@ -15,7 +15,6 @@ from fs_two.dataset import Dataset
 # TODO SET device via config
 torch.cuda.set_device(1)
 device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
-# t
 
 
 def evaluate(model, step, configs, logger=None, train_val="val", vocoder=None):
@@ -37,7 +36,7 @@ def evaluate(model, step, configs, logger=None, train_val="val", vocoder=None):
     Loss = FastSpeech2Loss(preprocess_config, model_config)
 
     # Evaluation
-    loss_sums = [0 for _ in range(6)]
+    loss_sums = [0 for _ in range(4)]
     for batchs in loader:
         for batch in batchs:
             batch = to_device(batch, device)
@@ -55,7 +54,7 @@ def evaluate(model, step, configs, logger=None, train_val="val", vocoder=None):
     loss_means = [sum(loss_means)] + loss_means
     loss_means = [step] + loss_means
 
-    message = "Validation Step {}, Total Loss: {:.4f}, Mel Loss: {:.4f}, Mel Loss MAE: {:.4f}, Mel PostNet Loss: {:.4f}, Pitch Loss: {:.4f}, Energy Loss: {:.4f}, Duration Loss: {:.4f}".format(
+    message = "Validation Step {}, Total Loss: {:.4f}, Mel Loss: {:.4f}, Pitch Loss: {:.4f}, Energy Loss: {:.4f}, Duration Loss: {:.4f}".format(
         *loss_means
     )
 
