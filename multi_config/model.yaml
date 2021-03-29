@@ -3,7 +3,7 @@ transformer:
   encoder_head: 2
   encoder_hidden: 256
   variance_hidden: 256
-  decoder_layer: 4
+  decoder_layer: 6
   decoder_head: 2
   decoder_hidden: 512
   conv_filter_size: 1024

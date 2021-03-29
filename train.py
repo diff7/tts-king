@@ -98,11 +98,13 @@ def main(cfg, configs):
                 # Backward
                 # total_loss = total_loss / grad_acc_step
                 # total_loss.backward()
+                losses = [l / grad_acc_step for l in losses]
+                optimizer.pc_backward(losses)
                 if step % grad_acc_step == 0:
                     # Clipping gradients to avoid gradient explosion
 
                     # Update weights
-                    optimizer.step_and_update_lr(losses)
+                    optimizer.update_lr()
                     nn.utils.clip_grad_norm_(
                         model.parameters(), grad_clip_thresh
                     )

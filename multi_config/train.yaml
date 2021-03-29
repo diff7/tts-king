@@ -3,12 +3,12 @@ path:
   log_path: "../output/log/ailabs"
   result_path: "../output/result/ailabs"
 optimizer:
-  batch_size: 8
+  batch_size: 2
   betas: [0.95, 0.999]
   eps: 0.00001
   weight_decay: 0.0
   grad_clip_thresh: 1.0
-  grad_acc_step: 1
+  grad_acc_step: 8
   warm_up_step: 4000
   anneal_steps: [300000, 400000, 500000]
   anneal_rate: 0.3

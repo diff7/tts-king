@@ -331,8 +331,10 @@ class ScheduledOptim:
         self.init_lr = np.power(
             model_config["transformer"]["encoder_hidden"], -0.5)
 
-    def step_and_update_lr(self, losses):
+    def update_lr(self):
         self._update_learning_rate()
+
+    def pc_backward(self, losses):
         self._optimizer.pc_backward(losses)
 
     def real_step(self):
