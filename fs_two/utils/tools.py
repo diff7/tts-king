@@ -48,7 +48,7 @@ def to_device(data, device):
         return (
             ids,
             raw_texts,
-            speakers_emb,
+            speakers,
             texts,
             src_lens,
             max_src_len,
@@ -76,7 +76,7 @@ def to_device(data, device):
         src_lens = torch.from_numpy(src_lens).to(device)
         speakers_emb = torch.from_numpy(speakers_emb).to(device)
 
-        return (ids, raw_texts, speakers_emb, texts, src_lens, max_src_len)
+        return (ids, raw_texts, speakers, texts, src_lens, max_src_len)
 
 
 def log(
