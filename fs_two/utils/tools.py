@@ -140,8 +140,8 @@ def synth_one_sample(
     b_size = len(targets[0])
     rand_id = random.randint(0, b_size)
     basename = targets[0][rand_id]
-    src_len = predictions[8][rand_id].item()
-    mel_len = predictions[9][rand_id].item()
+    src_len = predictions[7][rand_id].item()
+    mel_len = predictions[8][rand_id].item()
     mel_target = targets[6][rand_id, :mel_len].detach().transpose(0, 1)
     mel_prediction = predictions[0][rand_id, :mel_len].detach().transpose(0, 1)
     duration = targets[11][rand_id, :src_len].detach().cpu().numpy()
@@ -207,26 +207,26 @@ def synth_samples(
     basenames = targets[0]
     for i in range(len(predictions[0])):
         basename = basenames[i]
-        src_len = predictions[8][i].item()
-        mel_len = predictions[9][i].item()
+        src_len = predictions[7][i].item()
+        mel_len = predictions[8][i].item()
         mel_prediction = predictions[0][i, :mel_len].detach().transpose(0, 1)
-        duration = predictions[5][i, :src_len].detach().cpu().numpy()
+        duration = predictions[4][i, :src_len].detach().cpu().numpy()
         if (
             preprocess_config["preprocessing"]["pitch"]["feature"]
             == "phoneme_level"
         ):
-            pitch = predictions[2][i, :src_len].detach().cpu().numpy()
+            pitch = predictions[1][i, :src_len].detach().cpu().numpy()
             pitch = expand(pitch, duration)
         else:
-            pitch = predictions[2][i, :mel_len].detach().cpu().numpy()
+            pitch = predictions[1][i, :mel_len].detach().cpu().numpy()
         if (
             preprocess_config["preprocessing"]["energy"]["feature"]
             == "phoneme_level"
         ):
-            energy = predictions[3][i, :src_len].detach().cpu().numpy()
+            energy = predictions[2][i, :src_len].detach().cpu().numpy()
             energy = expand(energy, duration)
         else:
-            energy = predictions[3][i, :mel_len].detach().cpu().numpy()
+            energy = predictions[2][i, :mel_len].detach().cpu().numpy()
 
         with open(
             os.path.join(
@@ -250,7 +250,7 @@ def synth_samples(
 
     mel_predictions = predictions[0].transpose(1, 2)
     lengths = (
-        predictions[9]
+        predictions[8]
         * preprocess_config["preprocessing"]["stft"]["hop_length"]
     )
     wav_predictions = vocoder_infer(
