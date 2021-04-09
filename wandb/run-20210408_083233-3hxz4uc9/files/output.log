@@ -1,0 +1,16 @@
+Training:   0%|          | 0/900000 [00:00<?, ?it/s]
+Epoch 1:   0%|          | 0/1276 [00:00<?, ?it/s][ATraining:   0%|          | 2/900000 [00:03<389:32:39,  1.56s/it]Training:   0%|          | 3/900000 [00:03<276:18:58,  1.11s/it]Training:   0%|          | 4/900000 [00:04<215:33:25,  1.16it/s]Training:   0%|          | 5/900000 [00:04<176:34:30,  1.42it/s]
+Epoch 1:   0%|          | 1/1276 [00:04<1:34:40,  4.46s/it][ATraining:   0%|          | 6/900000 [00:04<154:43:09,  1.62it/s]Training:   0%|          | 7/900000 [00:05<137:38:56,  1.82it/s]Training:   0%|          | 8/900000 [00:05<124:18:19,  2.01it/s]Training:   0%|          | 9/900000 [00:06<129:58:10,  1.92it/s]
+Epoch 1:   0%|          | 2/1276 [00:06<1:01:26,  2.89s/it][ATraining:   0%|          | 10/900000 [00:06<125:23:36,  1.99it/s]Training:   0%|          | 11/900000 [00:07<119:04:51,  2.10it/s]Training:   0%|          | 12/900000 [00:07<115:27:49,  2.17it/s]Training:   0%|          | 13/900000 [00:07<109:16:48,  2.29it/s]
+Epoch 1:   0%|          | 3/1276 [00:07<49:42,  2.34s/it]  [ATraining:   0%|          | 14/900000 [00:08<117:03:52,  2.14it/s]Traceback (most recent call last):
+  File "train.py", line 217, in <module>
+    main(cfg, configs)
+  File "train.py", line 102, in main
+    optimizer.pc_backward(losses)
+  File "/home/dev/other/fsp/tts-king/fs_two/model/optimizer.py", line 338, in pc_backward
+    self._optimizer.pc_backward(losses)
+  File "/home/dev/other/fsp/tts-king/fs_two/model/optimizer.py", line 41, in pc_backward
+    pc_grad = self._project_conflicting(grads, has_grads)
+  File "/home/dev/other/fsp/tts-king/fs_two/model/optimizer.py", line 59, in _project_conflicting
+    for g in pc_grad]).sum(dim=0)
+RuntimeError: CUDA out of memory. Tried to allocate 294.00 MiB (GPU 1; 23.65 GiB total capacity; 3.23 GiB already allocated; 120.06 MiB free; 4.34 GiB reserved in total by PyTorch)

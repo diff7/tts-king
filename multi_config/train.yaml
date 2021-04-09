@@ -1,9 +1,9 @@
 path:
-  ckpt_path: "../output/ckpt/ailabs"
-  log_path: "../output/log/ailabs"
-  result_path: "../output/result/ailabs"
+  ckpt_path: "../output/ckpt/ailabs_learned_embeds"
+  log_path: "../output/log/ailabs_learned_embeds"
+  result_path: "../output/result/ailabs_learned_embeds"
 optimizer:
-  batch_size: 2
+  batch_size: 4
   betas: [0.95, 0.999]
   eps: 0.00001
   weight_decay: 0.0

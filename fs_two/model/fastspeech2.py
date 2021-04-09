@@ -18,8 +18,7 @@ class FastSpeech2(nn.Module):
         self.model_config = model_config
 
         self.encoder = Encoder(model_config)
-        self.variance_adaptor = VarianceAdaptor(
-            preprocess_config, model_config)
+        self.variance_adaptor = VarianceAdaptor(preprocess_config, model_config)
         self.decoder = Decoder(model_config)
         self.mel_linear = nn.Linear(
             model_config["transformer"]["decoder_hidden"],
@@ -39,7 +38,7 @@ class FastSpeech2(nn.Module):
                 n_speaker,
                 model_config["transformer"]["encoder_hidden"],
             )
-        #self.postnet = PostNet()
+        # self.postnet = PostNet()
 
     def forward(
         self,
@@ -58,7 +57,8 @@ class FastSpeech2(nn.Module):
         d_control=1.0,
     ):
         src_masks = get_mask_from_lengths(
-            src_lens, max_src_len, device=texts.device)
+            src_lens, max_src_len, device=texts.device
+        )
         mel_masks = (
             get_mask_from_lengths(mel_lens, max_mel_len, device=texts.device)
             if mel_lens is not None
@@ -91,12 +91,14 @@ class FastSpeech2(nn.Module):
             e_control,
             d_control,
         )
-        speakers_emb = speakers_emb.unsqueeze(
-            1).repeat(1, output.size(1), 1)
+
+        # TODO remove
+        # speakers_emb = speakers_emb.unsqueeze(
+        #     1).repeat(1, output.size(1), 1)
         output, mel_masks = self.decoder(output, mel_masks)
         output = self.mel_linear(output)
 
-        #postnet_output = self.postnet(output) + output
+        # postnet_output = self.postnet(output) + output
 
         return (
             output,

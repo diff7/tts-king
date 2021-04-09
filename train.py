@@ -45,7 +45,7 @@ def main(cfg, configs):
 
     # Prepare model
     model, optimizer = get_model(cfg, configs, device, train=True)
-    #model = nn.DataParallel(model)
+    # model = nn.DataParallel(model)
     num_param = get_param_num(model)
     Loss = FastSpeech2Loss(preprocess_config, model_config)
     print("Number of FastSpeech2 Parameters:", num_param)
@@ -63,7 +63,7 @@ def main(cfg, configs):
 
     os.environ["WANDB_API_KEY"] = cfg.wandb_key
 
-    logger.init(name="FS2", project="TEST", reinit=True)
+    logger.init(name=cfg.exp_name, project="FS2", reinit=True)
 
     # Training
     step = cfg.tts.restore_step + 1
@@ -164,8 +164,7 @@ def main(cfg, configs):
                         "train",
                         audio=wav_prediction,
                         sampling_rate=sampling_rate,
-                        tag="Training/step_{}_{}_synthesized".format(
-                            step, tag),
+                        tag="Training/step_{}_{}_synthesized".format(step, tag),
                     )
 
                 if step % val_step == 0:

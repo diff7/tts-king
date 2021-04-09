@@ -5,6 +5,7 @@ device: 1
 tts_weights_path: '/home/dev/other/fsp/output/ckpt/ailabs/70000.pth.tar'
 hifi_weights_path:  '/home/dev/other/fsp/weights/trained_original/hifi/generator_v1.pth'
 
+exp_name: ailabs_learned_embeds
 
 wandb_key: "beca9453c7ef6a20e21d5705275a0ff72842cbf3"
 gpu: 1

@@ -1,0 +1,68 @@
+Training:   0%|          | 0/900000 [00:00<?, ?it/s]
+Epoch 1:   0%|          | 0/2552 [00:00<?, ?it/s][ATraining:   0%|          | 2/900000 [00:02<291:40:16,  1.17s/it]Training:   0%|          | 3/900000 [00:02<194:17:07,  1.29it/s]Training:   0%|          | 4/900000 [00:02<144:04:36,  1.74it/s]Training:   0%|          | 5/900000 [00:03<118:14:13,  2.11it/s]
+Epoch 1:   0%|          | 1/2552 [00:03<2:11:03,  3.08s/it][ATraining:   0%|          | 6/900000 [00:03<100:13:03,  2.49it/s]Training:   0%|          | 7/900000 [00:03<86:20:57,  2.90it/s] Training:   0%|          | 8/900000 [00:03<77:35:37,  3.22it/s]Training:   0%|          | 9/900000 [00:04<85:22:08,  2.93it/s]
+Epoch 1:   0%|          | 2/2552 [00:04<1:22:10,  1.93s/it][ATraining:   0%|          | 10/900000 [00:04<77:18:48,  3.23it/s]Training:   0%|          | 11/900000 [00:04<75:46:29,  3.30it/s]Training:   0%|          | 12/900000 [00:05<74:34:57,  3.35it/s]Training:   0%|          | 13/900000 [00:05<70:56:43,  3.52it/s]
+Epoch 1:   0%|          | 3/2552 [00:05<1:05:15,  1.54s/it][ATraining:   0%|          | 14/900000 [00:05<70:17:33,  3.56it/s]Training:   0%|          | 15/900000 [00:05<75:17:11,  3.32it/s]Training:   0%|          | 16/900000 [00:06<74:11:54,  3.37it/s]Training:   0%|          | 17/900000 [00:06<82:48:30,  3.02it/s]
+Epoch 1:   0%|          | 4/2552 [00:06<1:01:37,  1.45s/it][AException ignored in: Process Process-5:
+Process Process-3:
+<function _MultiProcessingDataLoaderIter.__del__ at 0x7f0d0bffd440>
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.7/site-packages/torch/utils/data/dataloader.py", line 1203, in __del__
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.7/multiprocessing/process.py", line 300, in _bootstrap
+    util._exit_function()
+  File "/opt/conda/lib/python3.7/multiprocessing/util.py", line 337, in _exit_function
+    _run_finalizers()
+  File "/opt/conda/lib/python3.7/multiprocessing/util.py", line 277, in _run_finalizers
+    finalizer()
+  File "/opt/conda/lib/python3.7/multiprocessing/util.py", line 201, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/opt/conda/lib/python3.7/multiprocessing/queues.py", line 192, in _finalize_join
+    thread.join()
+  File "/opt/conda/lib/python3.7/threading.py", line 1044, in join
+    self._wait_for_tstate_lock()
+  File "/opt/conda/lib/python3.7/threading.py", line 1060, in _wait_for_tstate_lock
+    elif lock.acquire(block, timeout):
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "/opt/conda/lib/python3.7/multiprocessing/process.py", line 300, in _bootstrap
+    util._exit_function()
+  File "/opt/conda/lib/python3.7/multiprocessing/util.py", line 337, in _exit_function
+    _run_finalizers()
+  File "/opt/conda/lib/python3.7/multiprocessing/util.py", line 277, in _run_finalizers
+    finalizer()
+  File "/opt/conda/lib/python3.7/multiprocessing/util.py", line 201, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/opt/conda/lib/python3.7/multiprocessing/queues.py", line 192, in _finalize_join
+    thread.join()
+  File "/opt/conda/lib/python3.7/threading.py", line 1044, in join
+    self._wait_for_tstate_lock()
+  File "/opt/conda/lib/python3.7/threading.py", line 1060, in _wait_for_tstate_lock
+    elif lock.acquire(block, timeout):
+KeyboardInterrupt
+    self._shutdown_workers()
+  File "/opt/conda/lib/python3.7/site-packages/torch/utils/data/dataloader.py", line 1177, in _shutdown_workers
+    w.join(timeout=_utils.MP_STATUS_CHECK_INTERVAL)
+  File "/opt/conda/lib/python3.7/multiprocessing/process.py", line 140, in join
+    res = self._popen.wait(timeout)
+  File "/opt/conda/lib/python3.7/multiprocessing/popen_fork.py", line 45, in wait
+    if not wait([self.sentinel], timeout):
+  File "/opt/conda/lib/python3.7/multiprocessing/connection.py", line 920, in wait
+    ready = selector.select(timeout)
+  File "/opt/conda/lib/python3.7/selectors.py", line 415, in select
+    fd_event_list = self._selector.poll(timeout)
+KeyboardInterrupt: 
+Traceback (most recent call last):
+  File "train.py", line 217, in <module>
+    main(cfg, configs)
+  File "train.py", line 102, in main
+    optimizer.pc_backward(losses)
+  File "/home/dev/other/fsp/tts-king/fs_two/model/optimizer.py", line 338, in pc_backward
+    self._optimizer.pc_backward(losses)
+  File "/home/dev/other/fsp/tts-king/fs_two/model/optimizer.py", line 40, in pc_backward
+    grads, shapes, has_grads = self._pack_grad(objectives)
+  File "/home/dev/other/fsp/tts-king/fs_two/model/optimizer.py", line 89, in _pack_grad
+    grad, shape, has_grad = self._retrieve_grad()
+  File "/home/dev/other/fsp/tts-king/fs_two/model/optimizer.py", line 125, in _retrieve_grad
+    grad.append(torch.zeros_like(p).to(p.device))
+KeyboardInterrupt

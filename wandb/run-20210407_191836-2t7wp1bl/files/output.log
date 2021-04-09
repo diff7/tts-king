@@ -1,0 +1,19 @@
+Training:   0%|          | 0/900000 [00:00<?, ?it/s]
+Epoch 1:   0%|          | 0/2552 [00:00<?, ?it/s][ATraining:   0%|          | 2/900000 [00:02<251:24:33,  1.01s/it]Training:   0%|          | 3/900000 [00:02<173:26:05,  1.44it/s]Training:   0%|          | 4/900000 [00:02<134:41:01,  1.86it/s]Training:   0%|          | 5/900000 [00:02<106:44:35,  2.34it/s]
+Epoch 1:   0%|          | 1/2552 [00:02<1:57:30,  2.76s/it][ATraining:   0%|          | 6/900000 [00:03<91:35:27,  2.73it/s] Training:   0%|          | 7/900000 [00:03<88:53:14,  2.81it/s]Training:   0%|          | 8/900000 [00:03<78:02:55,  3.20it/s]Training:   0%|          | 9/900000 [00:03<78:51:45,  3.17it/s]
+Epoch 1:   0%|          | 2/2552 [00:03<1:16:18,  1.80s/it][ATraining:   0%|          | 10/900000 [00:04<73:52:20,  3.38it/s]Training:   0%|          | 11/900000 [00:04<75:26:30,  3.31it/s]Training:   0%|          | 12/900000 [00:04<69:01:04,  3.62it/s]Training:   0%|          | 13/900000 [00:04<64:30:17,  3.88it/s]
+Epoch 1:   0%|          | 3/2552 [00:04<1:00:50,  1.43s/it][ATraining:   0%|          | 14/900000 [00:05<68:23:51,  3.66it/s]Training:   0%|          | 15/900000 [00:05<75:03:44,  3.33it/s]Training:   0%|          | 16/900000 [00:05<77:46:09,  3.21it/s]Training:   0%|          | 17/900000 [00:06<96:27:39,  2.59it/s]
+Epoch 1:   0%|          | 4/2552 [00:06<1:03:05,  1.49s/it][ATraining:   0%|          | 18/900000 [00:06<83:49:24,  2.98it/s]Training:   0%|          | 19/900000 [00:06<75:49:06,  3.30it/s]Training:   0%|          | 20/900000 [00:07<76:36:27,  3.26it/s]Training:   0%|          | 21/900000 [00:07<76:19:22,  3.28it/s]
+Epoch 1:   0%|          | 5/2552 [00:07<56:35,  1.33s/it]  [ATraining:   0%|          | 22/900000 [00:07<70:09:55,  3.56it/s]Training:   0%|          | 23/900000 [00:07<66:20:49,  3.77it/s]Training:   0%|          | 24/900000 [00:08<73:35:59,  3.40it/s]Training:   0%|          | 25/900000 [00:08<75:03:39,  3.33it/s]
+Epoch 1:   0%|          | 6/2552 [00:08<53:37,  1.26s/it][ATraining:   0%|          | 26/900000 [00:08<71:31:38,  3.50it/s]Traceback (most recent call last):
+  File "train.py", line 217, in <module>
+    main(cfg, configs)
+  File "train.py", line 102, in main
+    optimizer.pc_backward(losses)
+  File "/home/dev/other/fsp/tts-king/fs_two/model/optimizer.py", line 338, in pc_backward
+    self._optimizer.pc_backward(losses)
+  File "/home/dev/other/fsp/tts-king/fs_two/model/optimizer.py", line 41, in pc_backward
+    pc_grad = self._project_conflicting(grads, has_grads)
+  File "/home/dev/other/fsp/tts-king/fs_two/model/optimizer.py", line 59, in _project_conflicting
+    for g in pc_grad]).sum(dim=0)
+RuntimeError: CUDA out of memory. Tried to allocate 294.00 MiB (GPU 1; 23.65 GiB total capacity; 2.83 GiB already allocated; 282.06 MiB free; 3.66 GiB reserved in total by PyTorch)
