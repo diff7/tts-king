@@ -1,11 +1,0 @@
-Training:   0%|          | 0/900000 [00:00<?, ?it/s]
-Epoch 1:   0%|          | 0/2552 [00:00<?, ?it/s][ATraceback (most recent call last):
-  File "train.py", line 217, in <module>
-    main(cfg, configs)
-  File "train.py", line 92, in main
-    output = model(*(batch[2:]))
-  File "/opt/conda/lib/python3.7/site-packages/torch/nn/modules/module.py", line 727, in _call_impl
-    result = self.forward(*input, **kwargs)
-  File "/home/dev/other/fsp/tts-king/fs_two/model/fastspeech2.py", line 94, in forward
-    speakers_emb = speakers_emb.unsqueeze(
-UnboundLocalError: local variable 'speakers_emb' referenced before assignment
