@@ -19,8 +19,8 @@ from fs_two.dataset import Dataset
 
 from fs_two.evaluate import evaluate
 
-torch.cuda.set_device(1)
-device = 1
+torch.cuda.set_device(0)
+device = 0
 
 # torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -160,8 +160,7 @@ def main(configs):
                         "train",
                         audio=wav_prediction,
                         sampling_rate=sampling_rate,
-                        tag="Training/step_{}_{}_synthesized".format(
-                            step, tag),
+                        tag="Training/step_{}_{}_synthesized".format(step, tag),
                     )
 
                 if step % val_step == 0:

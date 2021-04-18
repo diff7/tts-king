@@ -19,15 +19,13 @@ from fs_two.dataset import Dataset
 
 from fs_two.evaluate import evaluate
 
-torch.cuda.set_device(1)
-
 
 def main(cfg, configs):
     print("Prepare training ...")
 
     preprocess_config, model_config, train_config = configs
 
-    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+    device = cfg.gpu
     # Get dataset
     dataset = Dataset(
         "train.txt", preprocess_config, train_config, sort=True, drop_last=True
@@ -170,7 +168,7 @@ def main(cfg, configs):
                 if step % val_step == 0:
                     model.eval()
                     message = evaluate(
-                        model, step, configs, logger, "val", vocoder
+                        model, step, configs, logger, "val", vocoder, cfg.gpu
                     )
                     with open(os.path.join(val_log_path, "log.txt"), "a") as f:
                         f.write(message + "\n")

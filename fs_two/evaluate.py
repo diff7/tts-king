@@ -13,11 +13,11 @@ from fs_two.model import FastSpeech2Loss
 from fs_two.dataset import Dataset
 
 # TODO SET device via config
-torch.cuda.set_device(1)
-device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 
 
-def evaluate(model, step, configs, logger=None, train_val="val", vocoder=None):
+def evaluate(
+    model, step, configs, logger=None, train_val="val", vocoder=None, device=0
+):
     preprocess_config, model_config, train_config = configs
 
     # Get dataset
@@ -96,7 +96,7 @@ def evaluate(model, step, configs, logger=None, train_val="val", vocoder=None):
 
 
 if __name__ == "__main__":
-
+    device = 0
     parser = argparse.ArgumentParser()
     parser.add_argument("--restore_step", type=int, default=30000)
     parser.add_argument(

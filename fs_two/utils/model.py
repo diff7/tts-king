@@ -12,17 +12,17 @@ from fs_two.model import FastSpeech2, ScheduledOptim
 def get_model(args, configs, device, train=False):
     (preprocess_config, model_config, train_config) = configs
 
-    model = FastSpeech2(preprocess_config, model_config)  # .to(device)
+    model = FastSpeech2(preprocess_config, model_config)
     if args.restore_step:
         ckpt_path = os.path.join(
             train_config["path"]["ckpt_path"],
             "{}.pth.tar".format(args.restore_step),
         )
-        ckpt = torch.load(ckpt_path, map_location=torch.device('cpu'))
+        ckpt = torch.load(ckpt_path, map_location=torch.device("cpu"))
         model.load_state_dict(ckpt["model"])
 
     if train:
-        #model = nn.DataParallel(model)
+        # model = nn.DataParallel(model)
         model.to(device)
         model.train()
         scheduled_optim = ScheduledOptim(
@@ -71,7 +71,7 @@ def get_vocoder(config, device):
         vocoder.load_state_dict(ckpt["generator"])
         vocoder.eval()
         vocoder.remove_weight_norm()
-        #vocoder = nn.DataParallel(vocoder)
+        # vocoder = nn.DataParallel(vocoder)
         vocoder.to(device)
 
     return vocoder
