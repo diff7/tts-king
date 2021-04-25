@@ -2,9 +2,9 @@ dataset: "AISHELL3"
 
 path:
   #corpus_path: "/home/dev/other/fsp/data/ailabs_speaker"
-  lexicon_path: "/home/dev/other/fsp/data/vocab_all.dict"
-  raw_path: "/home/dev/other/fsp/data/shamanai"
-  preprocessed_path: "/home/dev/other/fsp/data/shaman_processed"
+  lexicon_path: "/home/dev/other/fsp/data/dataset_main/vocab_all.dict"
+  raw_path: "/home/dev/other/fsp/data/dataset_main/speakers"
+  preprocessed_path: "/home/dev/other/fsp/data/dataset_main/processed"
 
 preprocessing:
   val_size: 512
