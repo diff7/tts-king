@@ -18,7 +18,7 @@ matplotlib.use("Agg")
 
 
 def to_device(data, device):
-    if len(data) == 13:
+    if len(data) == 12:
         (
             ids,
             raw_texts,
@@ -32,7 +32,7 @@ def to_device(data, device):
             pitches,
             energies,
             durations,
-            speakers_emb,
+            # speakers_emb,
         ) = data
 
         speakers = torch.from_numpy(speakers).long().to(device)
@@ -43,7 +43,7 @@ def to_device(data, device):
         pitches = torch.from_numpy(pitches).float().to(device)
         energies = torch.from_numpy(energies).to(device)
         durations = torch.from_numpy(durations).long().to(device)
-        speakers_emb = torch.from_numpy(speakers_emb).to(device)
+        # speakers_emb = torch.from_numpy(speakers_emb).to(device)
 
         return (
             ids,

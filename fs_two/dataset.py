@@ -70,13 +70,6 @@ class Dataset(Dataset):
         )
         duration = np.load(duration_path)
 
-        embedding_path = os.path.join(
-            self.preprocessed_path,
-            "speaker_emb",
-            "{}/{}.npy".format(speaker, basename),
-        )
-        speaker_embedding = np.load(embedding_path)
-
         sample = {
             "id": basename,
             "speaker": speaker_id,
@@ -86,7 +79,6 @@ class Dataset(Dataset):
             "pitch": pitch,
             "energy": energy,
             "duration": duration,
-            "speaker_embedding": speaker_embedding,
         }
 
         return sample
@@ -118,7 +110,6 @@ class Dataset(Dataset):
         pitches = [data[idx]["pitch"] for idx in idxs]
         energies = [data[idx]["energy"] for idx in idxs]
         durations = [data[idx]["duration"] for idx in idxs]
-        speaker_embeddings = [data[idx]["speaker_embedding"] for idx in idxs]
 
         text_lens = np.array([text.shape[0] for text in texts])
         mel_lens = np.array([mel.shape[0] for mel in mels])
@@ -143,7 +134,6 @@ class Dataset(Dataset):
             pitches,
             energies,
             durations,
-            np.array(speaker_embeddings),
         )
 
     def collate_fn(self, data):
@@ -232,7 +222,7 @@ if __name__ == "__main__":
     from torch.utils.data import DataLoader
     from utils.utils import to_device
 
-    device = 0
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     preprocess_config = yaml.load(
         open("./config/LJSpeech/preprocess.yaml", "r"), Loader=yaml.FullLoader
     )

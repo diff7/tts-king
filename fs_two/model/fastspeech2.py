@@ -70,7 +70,7 @@ class FastSpeech2(nn.Module):
             output = output + self.speaker_emb(speakers).unsqueeze(1).expand(
                 -1, max_src_len, -1
             )
-
+        print("SHAPE", output.shape)
         (
             output,
             p_predictions,
