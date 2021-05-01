@@ -1,8 +1,0 @@
-resemblyzer
-unidecode
-g2p-en
-omegaconf
-wandb
-tgt
-pyworld
-tqdm

@@ -5,18 +5,17 @@ import torch
 import torch.nn as nn
 import numpy as np
 
-import fs_two.hifigan as hifigan
+# import fs_two.hifigan as hifigan
 from fs_two.model import FastSpeech2, ScheduledOptim
 
 
-def get_model(args, configs, device, train=False):
-    (preprocess_config, model_config, train_config) = configs
+def get_model(cfg, device, train=False):
 
-    model = FastSpeech2(preprocess_config, model_config)
-    if args.restore_step:
+    model = FastSpeech2(cfg.preprocess_config, cfg.model_config)
+    if cfg.restore_step:
         ckpt_path = os.path.join(
             train_config["path"]["ckpt_path"],
-            "{}.pth.tar".format(args.restore_step),
+            "{}.pth.tar".format(cfg.restore_step),
         )
         ckpt = torch.load(ckpt_path, map_location=torch.device("cpu"))
         model.load_state_dict(ckpt["model"])
@@ -26,9 +25,9 @@ def get_model(args, configs, device, train=False):
         model.to(device)
         model.train()
         scheduled_optim = ScheduledOptim(
-            model, train_config, model_config, args.tts.restore_step
+            model, cfg.train_config, cfg.model_config, cfg.tts.restore_step
         )
-        if args.restore_step:
+        if cfg.restore_step:
             scheduled_optim.load_state_dict(ckpt["optimizer"])
         return model, scheduled_optim
     model.to(device)
@@ -42,7 +41,9 @@ def get_param_num(model):
     return num_param
 
 
-def get_vocoder(config, device):
+def get_vocoder(hifigan, config, device):
+    if config["vocoder"]["use_cpu"]:
+        device = "cpu"
     name = config["vocoder"]["model"]
     speaker = config["vocoder"]["speaker"]
 
@@ -66,7 +67,8 @@ def get_vocoder(config, device):
             ckpt = torch.load("hifigan/generator_LJSpeech.pth.tar")
         elif speaker == "universal":
             ckpt = torch.load(
-                "/home/dev/other/fsp/weights/trained_original/hifi/generator_v1.pth"
+                "/home/dev/other/fsp/weights/trained_original/hifi/generator_v1.pth",
+                map_location="cpu",
             )
         vocoder.load_state_dict(ckpt["generator"])
         vocoder.eval()

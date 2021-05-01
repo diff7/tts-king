@@ -32,7 +32,6 @@ def to_device(data, device):
             pitches,
             energies,
             durations,
-            # speakers_emb,
         ) = data
 
         speakers = torch.from_numpy(speakers).long().to(device)
@@ -43,7 +42,6 @@ def to_device(data, device):
         pitches = torch.from_numpy(pitches).float().to(device)
         energies = torch.from_numpy(energies).to(device)
         durations = torch.from_numpy(durations).long().to(device)
-        # speakers_emb = torch.from_numpy(speakers_emb).to(device)
 
         return (
             ids,
@@ -60,7 +58,7 @@ def to_device(data, device):
             durations,
         )
 
-    if len(data) == 7:
+    if len(data) == 6:
         (
             ids,
             raw_texts,
@@ -68,13 +66,12 @@ def to_device(data, device):
             texts,
             src_lens,
             max_src_len,
-            speakers_emb,
+            # speakers_emb,
         ) = data
 
         speakers = torch.from_numpy(speakers).long().to(device)
         texts = torch.from_numpy(texts).long().to(device)
         src_lens = torch.from_numpy(src_lens).to(device)
-        speakers_emb = torch.from_numpy(speakers_emb).to(device)
 
         return (ids, raw_texts, speakers, texts, src_lens, max_src_len)
 
@@ -181,6 +178,8 @@ def synth_one_sample(
     if vocoder is not None:
         from .model import vocoder_infer
 
+        if model_config["vocoder"]["use_cpu"]:
+            mel_target = mel_target.to("cpu")
         wav_reconstruction = vocoder_infer(
             mel_target.unsqueeze(0),
             vocoder,

@@ -9,15 +9,17 @@ class AttrDict(dict):
 
 
 class HIFIapi:
-    def __init__(self, config, weights_path=None, device="gpu"):
+    def __init__(self, config, device="gpu"):
+        if config.model_config["vocoder"]["use_cpu"]:
+            device = "cpu"
 
         # Load checkpoint if exists
-        self.weights_path = weights_path
+        weights_path = config.hifi.weights_path
 
         if weights_path is not None:
-            checkpoint = torch.load(weights_path)
+            checkpoint = torch.load(weights_path, map_location="cpu")
 
-        self.model = Generator(config).to(device)
+        self.model = Generator(config.hifi).to(device)
         self.model.load_state_dict(checkpoint["generator"])
 
         self.cfg = config
@@ -32,7 +34,10 @@ class HIFIapi:
     def train(self):
         raise NotImplemented(" Train for HiFi was not implemented yet")
 
-    # TODO:
+    def __call__(x):
+        # use call for compatablity with other vocoders or functions
+        return self.model(x)
+
     def generate(self, mel_specs):
         """
         Converts mel spectrogramma into an audio file.

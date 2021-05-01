@@ -11,6 +11,8 @@ from fs_two.audio.audio_processing import (
     window_sumsquare,
 )
 
+DEVICE = 3
+
 
 class STFT(torch.nn.Module):
     """adapted from Prem Seetharaman's https://github.com/pseeth/pytorch-stft"""
@@ -27,7 +29,10 @@ class STFT(torch.nn.Module):
 
         cutoff = int((self.filter_length / 2 + 1))
         fourier_basis = np.vstack(
-            [np.real(fourier_basis[:cutoff, :]), np.imag(fourier_basis[:cutoff, :])]
+            [
+                np.real(fourier_basis[:cutoff, :]),
+                np.imag(fourier_basis[:cutoff, :]),
+            ]
         )
 
         forward_basis = torch.FloatTensor(fourier_basis[:, None, :])
@@ -65,8 +70,10 @@ class STFT(torch.nn.Module):
         input_data = input_data.squeeze(1)
 
         forward_transform = F.conv1d(
-            input_data.cuda(),
-            torch.autograd.Variable(self.forward_basis, requires_grad=False).cuda(),
+            input_data.cuda(DEVICE),
+            torch.autograd.Variable(
+                self.forward_basis, requires_grad=False
+            ).cuda(DEVICE),
             stride=self.hop_length,
             padding=0,
         ).cpu()
@@ -76,7 +83,9 @@ class STFT(torch.nn.Module):
         imag_part = forward_transform[:, cutoff:, :]
 
         magnitude = torch.sqrt(real_part ** 2 + imag_part ** 2)
-        phase = torch.autograd.Variable(torch.atan2(imag_part.data, real_part.data))
+        phase = torch.autograd.Variable(
+            torch.atan2(imag_part.data, real_part.data)
+        )
 
         return magnitude, phase
 
@@ -108,7 +117,9 @@ class STFT(torch.nn.Module):
             window_sum = torch.autograd.Variable(
                 torch.from_numpy(window_sum), requires_grad=False
             )
-            window_sum = window_sum.cuda() if magnitude.is_cuda else window_sum
+            window_sum = (
+                window_sum.cuda(DEVICE) if magnitude.is_cuda else window_sum
+            )
             inverse_transform[:, :, approx_nonzero_indices] /= window_sum[
                 approx_nonzero_indices
             ]
@@ -116,8 +127,12 @@ class STFT(torch.nn.Module):
             # scale by hop ratio
             inverse_transform *= float(self.filter_length) / self.hop_length
 
-        inverse_transform = inverse_transform[:, :, int(self.filter_length / 2) :]
-        inverse_transform = inverse_transform[:, :, : -int(self.filter_length / 2) :]
+        inverse_transform = inverse_transform[
+            :, :, int(self.filter_length / 2) :
+        ]
+        inverse_transform = inverse_transform[
+            :, :, : -int(self.filter_length / 2) :
+        ]
 
         return inverse_transform
 

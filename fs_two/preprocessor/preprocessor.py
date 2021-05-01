@@ -11,11 +11,12 @@ from scipy.io import wavfile
 from scipy.interpolate import interp1d
 from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
-from resemblyzer import VoiceEncoder, preprocess_wav
+
+# from resemblyzer import VoiceEncoder, preprocess_wav
 
 import fs_two.audio as Audio
 
-encoder = VoiceEncoder()
+# encoder = VoiceEncoder()
 
 
 def wav_rescale(wav_path, sampling_rate, max_wav_value):
@@ -30,7 +31,7 @@ class Preprocessor:
         self.in_dir = config["path"]["raw_path"]
         self.out_dir = config["path"]["preprocessed_path"]
         self.val_size = config["preprocessing"]["val_size"]
-        self.sampling_rate = config["preprocessing"]["audio"]["sampling_rate"]
+
         self.hop_length = config["preprocessing"]["stft"]["hop_length"]
         self.sampling_rate = config["preprocessing"]["audio"]["sampling_rate"]
         self.max_wav_value = config["preprocessing"]["audio"]["max_wav_value"]
@@ -171,7 +172,7 @@ class Preprocessor:
         with open(
             os.path.join(self.out_dir, "train.txt"), "w", encoding="utf-8"
         ) as f:
-            for m in out[self.val_size:]:
+            for m in out[self.val_size :]:
                 f.write(m + "\n")
         with open(
             os.path.join(self.out_dir, "val.txt"), "w", encoding="utf-8"
@@ -182,8 +183,7 @@ class Preprocessor:
         return out
 
     def process_utterance(self, speaker, basename):
-        wav_path = os.path.join(self.in_dir, speaker,
-                                "{}.wav".format(basename))
+        wav_path = os.path.join(self.in_dir, speaker, "{}.wav".format(basename))
         text_path = os.path.join(
             self.in_dir, speaker, "{}.lab".format(basename)
         )
@@ -203,7 +203,7 @@ class Preprocessor:
         # Read and trim wav files
         wav, _ = librosa.load(wav_path)
         wav = wav[
-            int(self.sampling_rate * start): int(self.sampling_rate * end)
+            int(self.sampling_rate * start) : int(self.sampling_rate * end)
         ].astype(np.float32)
 
         # Read raw text
@@ -244,7 +244,7 @@ class Preprocessor:
             pos = 0
             for i, d in enumerate(duration):
                 if d > 0:
-                    pitch[i] = np.mean(pitch[pos: pos + d])
+                    pitch[i] = np.mean(pitch[pos : pos + d])
                 else:
                     pitch[i] = 0
                 pos += d
@@ -255,15 +255,15 @@ class Preprocessor:
             pos = 0
             for i, d in enumerate(duration):
                 if d > 0:
-                    energy[i] = np.mean(energy[pos: pos + d])
+                    energy[i] = np.mean(energy[pos : pos + d])
                 else:
                     energy[i] = 0
                 pos += d
             energy = energy[: len(duration)]
 
         # Resemble
-        res_wav = preprocess_wav(wav_path)
-        embed = encoder.embed_utterance(wav)
+        # res_wav = preprocess_wav(wav_path)
+        # embed = encoder.embed_utterance(wav)
 
         # Save files
         dur_filename = "{}-duration-{}.npy".format(speaker, basename)
@@ -281,11 +281,11 @@ class Preprocessor:
             mel_spectrogram.T,
         )
 
-        speaker_filename = "{}-speaker-{}.npy".format(speaker, basename)
-        np.save(
-            os.path.join(self.out_dir, 'speaker_emb', speaker_filename),
-            embed,
-        )
+        # speaker_filename = "{}-speaker-{}.npy".format(speaker, basename)
+        # np.save(
+        #     os.path.join(self.out_dir, "speaker_emb", speaker_filename),
+        #     embed,
+        # )
 
         return (
             "|".join([basename, speaker, text, raw_text]),

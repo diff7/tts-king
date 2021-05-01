@@ -1,8 +1,6 @@
-import argparse
 import os
 
 import torch
-import yaml
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
@@ -12,25 +10,28 @@ import wandb as logger
 from tqdm import tqdm
 from omegaconf import OmegaConf
 
+from hifiapi import HIFIapi
+
 from fs_two.utils.model import get_model, get_vocoder, get_param_num
 from fs_two.utils.tools import to_device, log, synth_one_sample
 from fs_two.model import FastSpeech2Loss
 from fs_two.dataset import Dataset
-
 from fs_two.evaluate import evaluate
 
 
-def main(cfg, configs):
+def main(cfg):
     print("Prepare training ...")
-
-    preprocess_config, model_config, train_config = configs
 
     device = cfg.gpu
     # Get dataset
     dataset = Dataset(
-        "train.txt", preprocess_config, train_config, sort=True, drop_last=True
+        "train.txt",
+        cfg.preprocess_config,
+        cfg.train_config,
+        sort=True,
+        drop_last=True,
     )
-    batch_size = train_config["optimizer"]["batch_size"]
+    batch_size = cfg.train_config["optimizer"]["batch_size"]
     group_size = 4  # Set this larger than 1 to enable sorting in Dataset
     assert batch_size * group_size < len(dataset)
     loader = DataLoader(
@@ -42,37 +43,40 @@ def main(cfg, configs):
     )
 
     # Prepare model
-    model, optimizer = get_model(cfg, configs, device, train=True)
+    model, optimizer = get_model(cfg, device, train=True)
     # model = nn.DataParallel(model)
     num_param = get_param_num(model)
-    Loss = FastSpeech2Loss(preprocess_config, model_config)
+    Loss = FastSpeech2Loss(cfg.preprocess_config, cfg.model_config)
     print("Number of FastSpeech2 Parameters:", num_param)
 
     # Load vocoder
-    vocoder = get_vocoder(model_config, device)
+    vocoder = HIFIapi(cfg, cfg.device)
+    # vocoder = get_vocoder(cfg.model_config, device)
 
     # Init logger
-    for p in train_config["path"].values():
+    for p in cfg.train_config["path"].values():
         os.makedirs(p, exist_ok=True)
-    train_log_path = os.path.join(train_config["path"]["log_path"], "train")
-    val_log_path = os.path.join(train_config["path"]["log_path"], "val")
+    train_log_path = os.path.join(cfg.train_config["path"]["log_path"], "train")
+    val_log_path = os.path.join(cfg.train_config["path"]["log_path"], "val")
     os.makedirs(train_log_path, exist_ok=True)
     os.makedirs(val_log_path, exist_ok=True)
 
-    os.environ["WANDB_API_KEY"] = cfg.wandb_key
+    os.environ["WANDB_API_KEY"] = cfg.logger.wandb_key
+    if cfg.logger.offline:
+        os.environ["WANDB_MODE"] = "offline"
 
     logger.init(name=cfg.exp_name, project="FS2", reinit=True)
 
     # Training
     step = cfg.tts.restore_step + 1
     epoch = 1
-    grad_acc_step = train_config["optimizer"]["grad_acc_step"]
-    grad_clip_thresh = train_config["optimizer"]["grad_clip_thresh"]
-    total_step = train_config["step"]["total_step"]
-    log_step = train_config["step"]["log_step"]
-    save_step = train_config["step"]["save_step"]
-    synth_step = train_config["step"]["synth_step"]
-    val_step = train_config["step"]["val_step"]
+    grad_acc_step = cfg.train_config["optimizer"]["grad_acc_step"]
+    grad_clip_thresh = cfg.train_config["optimizer"]["grad_clip_thresh"]
+    total_step = cfg.train_config["step"]["total_step"]
+    log_step = cfg.train_config["step"]["log_step"]
+    save_step = cfg.train_config["step"]["save_step"]
+    synth_step = cfg.train_config["step"]["synth_step"]
+    val_step = cfg.train_config["step"]["val_step"]
 
     outer_bar = tqdm(total=total_step, desc="Training", position=0)
     outer_bar.n = cfg.tts.restore_step
@@ -136,8 +140,8 @@ def main(cfg, configs):
                         batch,
                         output,
                         vocoder,
-                        model_config,
-                        preprocess_config,
+                        cfg.model_config,
+                        cfg.preprocess_config,
                     )
                     log(
                         logger,
@@ -145,9 +149,9 @@ def main(cfg, configs):
                         fig=fig,
                         tag="Training/step_{}_{}".format(step, tag),
                     )
-                    sampling_rate = preprocess_config["preprocessing"]["audio"][
-                        "sampling_rate"
-                    ]
+                    sampling_rate = cfg.preprocess_config["preprocessing"][
+                        "audio"
+                    ]["sampling_rate"]
                     log(
                         logger,
                         "train",
@@ -183,7 +187,7 @@ def main(cfg, configs):
                             "optimizer": optimizer._optimizer.optimizer.state_dict(),
                         },
                         os.path.join(
-                            train_config["path"]["ckpt_path"],
+                            cfg.train_config["path"]["ckpt_path"],
                             "{}.pth.tar".format(step),
                         ),
                     )
@@ -199,17 +203,5 @@ def main(cfg, configs):
 
 if __name__ == "__main__":
 
-    def get_fsp_configs(
-        config_folder,
-        config_names=["preprocess.yaml", "model.yaml", "train.yaml"],
-    ):
-        configs = []
-        for name in config_names:
-            full_path = os.path.join(config_folder, name)
-            configs.append(OmegaConf.load(full_path))
-        return configs
-
-    configs = get_fsp_configs("./multi_config/")
-    cfg = OmegaConf.load("./config.yaml")
-
-    main(cfg, configs)
+    configs = OmegaConf.load("./config.yaml")
+    main(configs)
