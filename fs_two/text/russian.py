@@ -1,4 +1,4 @@
-temp_valid_symbols = [
+valid_symbols = [
     "A",
     "A0",
     "B",
@@ -52,7 +52,7 @@ temp_valid_symbols = [
     "ZH",
 ]
 
-valid_symbols = [
+old_valid_symbols = [
     "S",
     "Sj",
     "StS",

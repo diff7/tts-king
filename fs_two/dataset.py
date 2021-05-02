@@ -15,8 +15,8 @@ class Dataset(Dataset):
         filename,
         preprocess_config,
         train_config,
-        sort=True,
-        drop_last=False,
+        sort=False,
+        drop_last=True,
     ):
         self.dataset_name = preprocess_config["dataset"]
         self.preprocessed_path = preprocess_config["path"]["preprocessed_path"]
@@ -69,6 +69,10 @@ class Dataset(Dataset):
             "{}-duration-{}.npy".format(speaker, basename),
         )
         duration = np.load(duration_path)
+        if len(phone) != len(pitch):
+            pitch = pitch[: len(phone)]
+            energy = energy[: len(phone)]
+            duration = duration[: len(phone)]
 
         sample = {
             "id": basename,
@@ -81,6 +85,10 @@ class Dataset(Dataset):
             "duration": duration,
         }
 
+        if len(phone) != len(duration):
+            print(phone.shape, duration.shape, basename)
+            # with open(f"error_{basename}_.txt", "w") as f:
+            #     f.write(raw_text)
         return sample
 
     def process_meta(self, filename):
