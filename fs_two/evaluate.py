@@ -16,15 +16,17 @@ from fs_two.dataset import Dataset
 
 
 def evaluate(
-    model, step, configs, logger=None, train_val="val", vocoder=None, device=0
+    model, step, cfg, logger=None, train_val="val", vocoder=None, device=0
 ):
-    preprocess_config, model_config, train_config = configs
-
     # Get dataset
     dataset = Dataset(
-        "val.txt", preprocess_config, train_config, sort=False, drop_last=False
+        "val.txt",
+        cfg.preprocess_config,
+        cfg.train_config,
+        sort=False,
+        drop_last=False,
     )
-    batch_size = train_config["optimizer"]["batch_size"]
+    batch_size = cfg.train_config["optimizer"]["batch_size"]
     loader = DataLoader(
         dataset,
         batch_size=batch_size,
@@ -33,7 +35,7 @@ def evaluate(
     )
 
     # Get loss function
-    Loss = FastSpeech2Loss(preprocess_config, model_config)
+    Loss = FastSpeech2Loss(cfg.preprocess_config, cfg.model_config)
 
     # Evaluation
     loss_sums = [0 for _ in range(4)]
@@ -63,8 +65,8 @@ def evaluate(
             batch,
             output,
             vocoder,
-            model_config,
-            preprocess_config,
+            cfg.model_config,
+            cfg.preprocess_config,
         )
 
         log(logger, "val", step, losses=loss_means)
@@ -74,7 +76,7 @@ def evaluate(
             fig=fig,
             tag="Validation/step_{}_{}".format(step, tag),
         )
-        sampling_rate = preprocess_config["preprocessing"]["audio"][
+        sampling_rate = cfg.preprocess_config["preprocessing"]["audio"][
             "sampling_rate"
         ]
         log(
