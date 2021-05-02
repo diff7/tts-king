@@ -69,10 +69,13 @@ class Dataset(Dataset):
             "{}-duration-{}.npy".format(speaker, basename),
         )
         duration = np.load(duration_path)
-        if len(phone) != len(pitch):
-            pitch = pitch[: len(phone)]
-            energy = energy[: len(phone)]
-            duration = duration[: len(phone)]
+
+        # kostyl part can be removed
+
+        # if len(phone) != len(pitch):
+        #     pitch = pitch[: len(phone)]
+        #     energy = energy[: len(phone)]
+        #     duration = duration[: len(phone)]
 
         sample = {
             "id": basename,
@@ -85,6 +88,7 @@ class Dataset(Dataset):
             "duration": duration,
         }
 
+        # debug part can be removed
         if len(phone) != len(duration):
             print(phone.shape, duration.shape, basename)
             # with open(f"error_{basename}_.txt", "w") as f:
