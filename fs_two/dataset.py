@@ -72,7 +72,7 @@ class Dataset(Dataset):
         embedding_path = os.path.join(
             self.preprocessed_path,
             "speaker_emb",
-            "{}/{}.npy".format(speaker, basename),
+            "{}-speaker-{}.npy".format(speaker, basename),
         )
         speaker_embedding = np.load(embedding_path)
 
