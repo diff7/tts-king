@@ -12,8 +12,6 @@ from fs_two.utils.tools import to_device, log, synth_one_sample
 from fs_two.model import FastSpeech2Loss
 from fs_two.dataset import Dataset
 
-# TODO SET device via config
-
 
 def evaluate(
     model, step, cfg, logger=None, train_val="val", vocoder=None, device=0
@@ -38,13 +36,13 @@ def evaluate(
     Loss = FastSpeech2Loss(cfg.preprocess_config, cfg.model_config)
 
     # Evaluation
-    loss_sums = [0 for _ in range(4)]
+    loss_sums = [0 for _ in range(5)]
     for batchs in loader:
         for batch in batchs:
             batch = to_device(batch, device)
             with torch.no_grad():
                 # Forward
-                output = model(*(batch[2:]))
+                output = model(*(batch[3:]))
 
                 # Cal Loss
                 losses = Loss(batch, output)
@@ -56,7 +54,7 @@ def evaluate(
     loss_means = [sum(loss_means)] + loss_means
     loss_means = [step] + loss_means
 
-    message = "Validation Step {}, Total Loss: {:.4f}, Mel Loss: {:.4f}, Pitch Loss: {:.4f}, Energy Loss: {:.4f}, Duration Loss: {:.4f}".format(
+    message = "Validation Step {}, Total Loss: {:.4f}, Mel Loss: {:.4f}, Pitch Loss: {:.4f}, Energy Loss: {:.4f}, Duration Loss: {:.4f}, Class Loss: {:.4f}".format(
         *loss_means
     )
 

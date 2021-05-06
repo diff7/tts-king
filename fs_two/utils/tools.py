@@ -18,7 +18,7 @@ matplotlib.use("Agg")
 
 
 def to_device(data, device):
-    if len(data) == 12:
+    if len(data) == 13:
         (
             ids,
             raw_texts,
@@ -32,6 +32,7 @@ def to_device(data, device):
             pitches,
             energies,
             durations,
+            speakers_emb
         ) = data
 
         speakers = torch.from_numpy(speakers).long().to(device)
@@ -42,11 +43,13 @@ def to_device(data, device):
         pitches = torch.from_numpy(pitches).float().to(device)
         energies = torch.from_numpy(energies).to(device)
         durations = torch.from_numpy(durations).long().to(device)
+        speakers_emb = torch.from_numpy(speakers_emb).to(device)
 
         return (
             ids,
             raw_texts,
             speakers,
+            speakers_emb,
             texts,
             src_lens,
             max_src_len,
@@ -58,7 +61,7 @@ def to_device(data, device):
             durations,
         )
 
-    if len(data) == 6:
+    if len(data) == 7:
         (
             ids,
             raw_texts,
@@ -66,14 +69,15 @@ def to_device(data, device):
             texts,
             src_lens,
             max_src_len,
-            # speakers_emb,
+            speakers_emb,
         ) = data
 
         speakers = torch.from_numpy(speakers).long().to(device)
         texts = torch.from_numpy(texts).long().to(device)
         src_lens = torch.from_numpy(src_lens).to(device)
+        speakers_emb = torch.from_numpy(speakers_emb).to(device)
 
-        return (ids, raw_texts, speakers, texts, src_lens, max_src_len)
+        return (ids, raw_texts, speakers, speakers_emb, texts, src_lens, max_src_len)
 
 
 def log(
@@ -90,7 +94,8 @@ def log(
         logger.log(
             {f"Loss/total_loss {train_val.upper()}": losses[0]}, step=step
         )
-        logger.log({f"Loss/mel_loss {train_val.upper()}": losses[1]}, step=step)
+        logger.log(
+            {f"Loss/mel_loss {train_val.upper()}": losses[1]}, step=step)
 
         logger.log(
             {f"Loss/pitch_loss {train_val.upper()}": losses[2]}, step=step
@@ -100,6 +105,9 @@ def log(
         )
         logger.log(
             {f"Loss/duration_loss {train_val.upper()}": losses[4]}, step=step
+        )
+        logger.log(
+            {f"Loss/class_loss {train_val.upper()}": losses[5]}, step=step
         )
 
     if fig is not None:
@@ -138,25 +146,25 @@ def synth_one_sample(
     basename = targets[0][rand_id]
     src_len = predictions[7][rand_id].item()
     mel_len = predictions[8][rand_id].item()
-    mel_target = targets[6][rand_id, :mel_len].detach().transpose(0, 1)
+    mel_target = targets[7][rand_id, :mel_len].detach().transpose(0, 1)
     mel_prediction = predictions[0][rand_id, :mel_len].detach().transpose(0, 1)
-    duration = targets[11][rand_id, :src_len].detach().cpu().numpy()
+    duration = targets[12][rand_id, :src_len].detach().cpu().numpy()
     if (
         preprocess_config["preprocessing"]["pitch"]["feature"]
         == "phoneme_level"
     ):
-        pitch = targets[9][rand_id, :src_len].detach().cpu().numpy()
+        pitch = targets[10][rand_id, :src_len].detach().cpu().numpy()
         pitch = expand(pitch, duration)
     else:
-        pitch = targets[9][rand_id, :mel_len].detach().cpu().numpy()
+        pitch = targets[10][rand_id, :mel_len].detach().cpu().numpy()
     if (
         preprocess_config["preprocessing"]["energy"]["feature"]
         == "phoneme_level"
     ):
-        energy = targets[10][rand_id, :src_len].detach().cpu().numpy()
+        energy = targets[11][rand_id, :src_len].detach().cpu().numpy()
         energy = expand(energy, duration)
     else:
-        energy = targets[10][rand_id, :mel_len].detach().cpu().numpy()
+        energy = targets[11][rand_id, :mel_len].detach().cpu().numpy()
 
     with open(
         os.path.join(
@@ -286,7 +294,8 @@ def plot_mel(data, stats, titles):
         axes[i][0].set_aspect(2.5, adjustable="box")
         axes[i][0].set_ylim(0, mel.shape[0])
         axes[i][0].set_title(titles[i], fontsize="medium")
-        axes[i][0].tick_params(labelsize="x-small", left=False, labelleft=False)
+        axes[i][0].tick_params(labelsize="x-small",
+                               left=False, labelleft=False)
         axes[i][0].set_anchor("W")
 
         ax1 = add_axis(fig, axes[i][0])

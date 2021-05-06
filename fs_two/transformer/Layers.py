@@ -74,6 +74,7 @@ class PostNet(nn.Module):
 
     def __init__(
         self,
+        n_in_channels=80,
         n_mel_channels=80,
         postnet_embedding_dim=512,
         postnet_kernel_size=5,
@@ -86,7 +87,7 @@ class PostNet(nn.Module):
         self.convolutions.append(
             nn.Sequential(
                 ConvNorm(
-                    n_mel_channels,
+                    n_in_channels,
                     postnet_embedding_dim,
                     kernel_size=postnet_kernel_size,
                     stride=1,

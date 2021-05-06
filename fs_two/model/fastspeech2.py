@@ -6,7 +6,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from fs_two.transformer import Encoder, Decoder, PostNet
-from .modules import VarianceAdaptor
+from .modules import VarianceAdaptor, RevGrad
 from fs_two.utils.tools import get_mask_from_lengths
 
 
@@ -18,31 +18,27 @@ class FastSpeech2(nn.Module):
         self.model_config = model_config
 
         self.encoder = Encoder(model_config)
-        self.variance_adaptor = VarianceAdaptor(preprocess_config, model_config)
+        self.variance_adaptor = VarianceAdaptor(
+            preprocess_config, model_config)
+        n_speaker = 0
+        with open(
+            os.path.join(
+                preprocess_config["path"]["preprocessed_path"],
+                "speakers.json",
+            ),
+            "r",
+        ) as f:
+            n_speaker = len(json.load(f))
+        self.classifier = nn.Sequential(RevGrad(),
+                                        nn.Linear(
+            model_config["transformer"]["encoder_hidden"], n_speaker))
         self.decoder = Decoder(model_config)
-        self.mel_linear = nn.Linear(
-            model_config["transformer"]["decoder_hidden"],
-            preprocess_config["preprocessing"]["mel"]["n_mel_channels"],
-        )
-        self.speaker_emb = None
-        if model_config["multi_speaker"]:
-            with open(
-                os.path.join(
-                    preprocess_config["path"]["preprocessed_path"],
-                    "speakers.json",
-                ),
-                "r",
-            ) as f:
-                n_speaker = len(json.load(f))
-            self.speaker_emb = nn.Embedding(
-                n_speaker,
-                model_config["transformer"]["encoder_hidden"],
-            )
-        # self.postnet = PostNet()
+        self.postnet = PostNet(
+            n_in_channels=model_config["transformer"]["decoder_hidden"])
 
     def forward(
         self,
-        speakers,
+        speakers_emb,
         texts,
         src_lens,
         max_src_len,
@@ -66,11 +62,6 @@ class FastSpeech2(nn.Module):
         )
 
         output = self.encoder(texts, src_masks)
-        if self.speaker_emb is not None:
-            output = output + self.speaker_emb(speakers).unsqueeze(1).expand(
-                -1, max_src_len, -1
-            )
-        # print("SHAPE", output.shape)
         (
             output,
             p_predictions,
@@ -91,18 +82,16 @@ class FastSpeech2(nn.Module):
             e_control,
             d_control,
         )
-
-        # TODO remove
-        # speakers_emb = speakers_emb.unsqueeze(
-        #     1).repeat(1, output.size(1), 1)
+        class_pred = self.classifier(output)
+        speakers_emb = speakers_emb.unsqueeze(
+            1).repeat(1, output.size(1), 1)
+        output = torch.cat([output, speakers_emb], 2)
         output, mel_masks = self.decoder(output, mel_masks)
-        output = self.mel_linear(output)
 
-        # postnet_output = self.postnet(output) + output
+        output = self.postnet(output)
 
         return (
             output,
-            # postnet_output,
             p_predictions,
             e_predictions,
             log_d_predictions,
@@ -111,4 +100,5 @@ class FastSpeech2(nn.Module):
             mel_masks,
             src_lens,
             mel_lens,
+            class_pred
         )

@@ -58,7 +58,7 @@ train_config:
     log_path: "../output/log/big_set_learned_embeds"
     result_path: "../output/result/big_set_learned_embeds"
   optimizer:
-    batch_size: 16
+    batch_size: 4
     betas: [0.95, 0.999]
     eps: 0.00001
     weight_decay: 0.0
@@ -117,7 +117,7 @@ model_config:
     variance_hidden: 256
     decoder_layer: 6
     decoder_head: 2
-    decoder_hidden: 256
+    decoder_hidden: 512
     conv_filter_size: 1024
     conv_kernel_size: [9, 1]
     encoder_dropout: 0.2
@@ -134,6 +134,7 @@ model_config:
     n_bins: 256
 
   multi_speaker: True
+  speaker_num: 248
 
   max_seq_len: 1000
 

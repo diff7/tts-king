@@ -56,7 +56,8 @@ def main(cfg):
     # Init logger
     for p in cfg.train_config["path"].values():
         os.makedirs(p, exist_ok=True)
-    train_log_path = os.path.join(cfg.train_config["path"]["log_path"], "train")
+    train_log_path = os.path.join(
+        cfg.train_config["path"]["log_path"], "train")
     val_log_path = os.path.join(cfg.train_config["path"]["log_path"], "val")
     os.makedirs(train_log_path, exist_ok=True)
     os.makedirs(val_log_path, exist_ok=True)
@@ -88,18 +89,25 @@ def main(cfg):
         )
         for batchs in loader:
             for batch in batchs:
+                if step % val_step == 0:
+                    model.eval()
+                    message = evaluate(
+                        model, step, configs, logger, "val", vocoder, cfg.gpu
+                    )
+                    with open(os.path.join(val_log_path, "log.txt"), "a") as f:
+                        f.write(message + "\n")
+                    outer_bar.write(message)
+
+                    model.train()
+
                 batch = to_device(batch, device)
 
                 # Forward
-                output = model(*(batch[2:]))
+                output = model(*(batch[3:]))
 
                 # Cal Loss
                 losses = Loss(batch, output)
-                # total_loss = losses[0]
 
-                # Backward
-                # total_loss = total_loss / grad_acc_step
-                # total_loss.backward()
                 losses = [l / grad_acc_step for l in losses]
                 optimizer.pc_backward(losses)
                 if step % grad_acc_step == 0:
@@ -117,7 +125,7 @@ def main(cfg):
                     losses = [l.item() for l in losses]
                     losses = [sum(losses)] + losses
                     message1 = "Step {}/{}, ".format(step, total_step)
-                    message2 = "Total Loss: {:.4f}, Mel Loss: {:.4f}, Pitch Loss: {:.4f}, Energy Loss: {:.4f}, Duration Loss: {:.4f}".format(
+                    message2 = "Total Loss: {:.4f}, Mel Loss: {:.4f}, Pitch Loss: {:.4f}, Energy Loss: {:.4f}, Duration Loss: {:.4f}, Class Loss: {:.4f}".format(
                         *losses
                     )
 
@@ -166,19 +174,9 @@ def main(cfg):
                         "train",
                         audio=wav_prediction,
                         sampling_rate=sampling_rate,
-                        tag="Training/step_{}_{}_synthesized".format(step, tag),
+                        tag="Training/step_{}_{}_synthesized".format(
+                            step, tag),
                     )
-
-                if step % val_step == 0:
-                    model.eval()
-                    message = evaluate(
-                        model, step, configs, logger, "val", vocoder, cfg.gpu
-                    )
-                    with open(os.path.join(val_log_path, "log.txt"), "a") as f:
-                        f.write(message + "\n")
-                    outer_bar.write(message)
-
-                    model.train()
 
                 if step % save_step == 0:
                     torch.save(
