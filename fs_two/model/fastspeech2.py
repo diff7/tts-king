@@ -33,8 +33,12 @@ class FastSpeech2(nn.Module):
                                         nn.Linear(
             model_config["transformer"]["encoder_hidden"], n_speaker))
         self.decoder = Decoder(model_config)
-        self.postnet = PostNet(
-            n_in_channels=model_config["transformer"]["decoder_hidden"])
+        self.mel_linear = nn.Linear(
+            model_config["transformer"]["decoder_hidden"],
+            preprocess_config["preprocessing"]["mel"]["n_mel_channels"],
+        )
+        # self.postnet = PostNet(
+        #     n_in_channels=model_config["transformer"]["decoder_hidden"])
 
     def forward(
         self,
@@ -88,7 +92,7 @@ class FastSpeech2(nn.Module):
         output = torch.cat([output, speakers_emb], 2)
         output, mel_masks = self.decoder(output, mel_masks)
 
-        output = self.postnet(output)
+        output = self.mel_linear(output)
 
         return (
             output,
