@@ -56,8 +56,7 @@ def main(cfg):
     # Init logger
     for p in cfg.train_config["path"].values():
         os.makedirs(p, exist_ok=True)
-    train_log_path = os.path.join(
-        cfg.train_config["path"]["log_path"], "train")
+    train_log_path = os.path.join(cfg.train_config["path"]["log_path"], "train")
     val_log_path = os.path.join(cfg.train_config["path"]["log_path"], "val")
     os.makedirs(train_log_path, exist_ok=True)
     os.makedirs(val_log_path, exist_ok=True)
@@ -100,6 +99,7 @@ def main(cfg):
 
                     model.train()
 
+                # TO DEVICE FILTERS SEPAKER EMBEDDINS !!!
                 batch = to_device(batch, device)
 
                 # Forward
@@ -174,8 +174,7 @@ def main(cfg):
                         "train",
                         audio=wav_prediction,
                         sampling_rate=sampling_rate,
-                        tag="Training/step_{}_{}_synthesized".format(
-                            step, tag),
+                        tag="Training/step_{}_{}_synthesized".format(step, tag),
                     )
 
                 if step % save_step == 0:

@@ -34,7 +34,7 @@ class HIFIapi:
     def train(self):
         raise NotImplemented(" Train for HiFi was not implemented yet")
 
-    def __call__(x):
+    def __call__(self, x):
         # use call for compatablity with other vocoders or functions
         return self.model(x)
 

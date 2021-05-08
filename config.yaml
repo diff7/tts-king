@@ -1,17 +1,13 @@
-data_path:  '/home/dev/other/fsp/data/aligned/' #'../ljspeech_dataset'
-processed_data_path: /home/dev/other/fsp/data/ailabs_speaker' #'../ljspeech_dataset_processed'
-#device: 3
 
-
-exp_name: ailabs_learned_embeds
+exp_name: resemb_big_set
 
 logger:
   offline: false
   wandb_key: "beca9453c7ef6a20e21d5705275a0ff72842cbf3"
-  gpu: 2
+  gpu: 3
 
 tts:
-  weights_path: '/home/dev/other/fsp/output/ckpt/ailabs/70000.pth.tar'
+  weights_path: #'/home/dev/other/fsp/output/ckpt/ailabs/70000.pth.tar'
   betas:
   eps:
   weight_decay:
@@ -54,23 +50,23 @@ hifi:
 
 train_config:
   path:
-    ckpt_path: "../output/ckpt/big_set_learned_embeds"
-    log_path: "../output/log/big_set_learned_embeds"
-    result_path: "../output/result/big_set_learned_embeds"
+    ckpt_path: "../output/ckpt/resemb_big_set"
+    log_path: "../output/log/resemb_big_set"
+    result_path: "../output/result/resemb_big_set"
   optimizer:
-    batch_size: 4
+    batch_size: 16
     betas: [0.95, 0.999]
     eps: 0.00001
     weight_decay: 0.0
     grad_clip_thresh: 1.0
-    grad_acc_step: 8
+    grad_acc_step: 2
     warm_up_step: 4000
     anneal_steps: [300000, 400000, 500000]
     anneal_rate: 0.3
   step:
     total_step: 900000
     log_step: 100
-    synth_step: 10
+    synth_step: 1000
     val_step: 1000
     save_step: 5000
 
@@ -78,13 +74,13 @@ preprocess_config:
   dataset: "MAIN"
 
   path:
-    # lexicon_path: "/home/dev/other/fsp/data/dataset_main/rus_all.dict" 
-    # raw_path: "/home/dev/other/fsp/data/dataset_main/speakers"
-    # preprocessed_path: "/home/dev/other/fsp/data/dataset_main/processed"
+    lexicon_path: "/home/dev/other/fsp/data/dataset_main/rus_all.dict" 
+    raw_path: "/home/dev/other/fsp/data/dataset_main/speakers"
+    preprocessed_path: "/home/dev/other/fsp/data/dataset_main/processed"
 
-    lexicon_path: "/home/dev/other/fsp/data/dataset_old/vocab_all.dict" 
-    raw_path: "/home/dev/other/fsp/data/dataset_old/shamanai"
-    preprocessed_path: "/home/dev/other/fsp/data/dataset_old/shaman_processed"
+    # lexicon_path: "/home/dev/other/fsp/data/dataset_old/vocab_all.dict" 
+    # raw_path: "/home/dev/other/fsp/data/dataset_old/shamanai"
+    # preprocessed_path: "/home/dev/other/fsp/data/dataset_old/shaman_processed"
 
   preprocessing:
     val_size: 512
@@ -141,4 +137,4 @@ model_config:
   vocoder:
     model: "HiFi-GAN" # support 'HiFi-GAN', 'MelGAN'
     speaker: "universal" # support  'LJSpeech', 'universal'
-    use_cpu: true
+    use_cpu: false

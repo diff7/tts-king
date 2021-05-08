@@ -18,8 +18,7 @@ class FastSpeech2(nn.Module):
         self.model_config = model_config
 
         self.encoder = Encoder(model_config)
-        self.variance_adaptor = VarianceAdaptor(
-            preprocess_config, model_config)
+        self.variance_adaptor = VarianceAdaptor(preprocess_config, model_config)
         n_speaker = 0
         with open(
             os.path.join(
@@ -29,9 +28,7 @@ class FastSpeech2(nn.Module):
             "r",
         ) as f:
             n_speaker = len(json.load(f))
-        self.classifier = nn.Sequential(RevGrad(),
-                                        nn.Linear(
-            model_config["transformer"]["encoder_hidden"], n_speaker))
+
         self.decoder = Decoder(model_config)
         self.mel_linear = nn.Linear(
             model_config["transformer"]["decoder_hidden"],
@@ -86,9 +83,7 @@ class FastSpeech2(nn.Module):
             e_control,
             d_control,
         )
-        class_pred = self.classifier(output)
-        speakers_emb = speakers_emb.unsqueeze(
-            1).repeat(1, output.size(1), 1)
+        speakers_emb = speakers_emb.unsqueeze(1).repeat(1, output.size(1), 1)
         output = torch.cat([output, speakers_emb], 2)
         output, mel_masks = self.decoder(output, mel_masks)
 
@@ -104,5 +99,4 @@ class FastSpeech2(nn.Module):
             mel_masks,
             src_lens,
             mel_lens,
-            class_pred
         )
