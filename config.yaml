@@ -1,14 +1,9 @@
-data_path:  '/home/dev/other/fsp/data/aligned/' #'../ljspeech_dataset'
-processed_data_path: /home/dev/other/fsp/data/ailabs_speaker' #'../ljspeech_dataset_processed'
-#device: 3
 
-
-exp_name: ailabs_learned_embeds
-
+exp_name: big_dataset
+gpu: 3
 logger:
   offline: false
   wandb_key: "beca9453c7ef6a20e21d5705275a0ff72842cbf3"
-  gpu: 2
 
 tts:
   weights_path: '/home/dev/other/fsp/output/ckpt/ailabs/70000.pth.tar'
@@ -19,7 +14,7 @@ tts:
   save_weights_dir:
   num_audio_exampls:
   epochs: 100
-  validation_interval: 2
+  validation_interval: 10
   restore_step: 0
   wandb_key:
   
@@ -63,14 +58,14 @@ train_config:
     eps: 0.00001
     weight_decay: 0.0
     grad_clip_thresh: 1.0
-    grad_acc_step: 8
+    grad_acc_step: 2
     warm_up_step: 4000
     anneal_steps: [300000, 400000, 500000]
     anneal_rate: 0.3
   step:
     total_step: 900000
     log_step: 100
-    synth_step: 10
+    synth_step: 1000
     val_step: 1000
     save_step: 5000
 
@@ -78,13 +73,13 @@ preprocess_config:
   dataset: "MAIN"
 
   path:
-    # lexicon_path: "/home/dev/other/fsp/data/dataset_main/rus_all.dict" 
-    # raw_path: "/home/dev/other/fsp/data/dataset_main/speakers"
-    # preprocessed_path: "/home/dev/other/fsp/data/dataset_main/processed"
+    lexicon_path: "/home/dev/other/fsp/data/dataset_main/rus_all.dict" 
+    raw_path: "/home/dev/other/fsp/data/dataset_main/speakers"
+    preprocessed_path: "/home/dev/other/fsp/data/dataset_main/processed"
 
-    lexicon_path: "/home/dev/other/fsp/data/dataset_old/vocab_all.dict" 
-    raw_path: "/home/dev/other/fsp/data/dataset_old/shamanai"
-    preprocessed_path: "/home/dev/other/fsp/data/dataset_old/shaman_processed"
+    #lexicon_path: "/home/dev/other/fsp/data/dataset_old/vocab_all.dict" 
+    #raw_path: "/home/dev/other/fsp/data/dataset_old/shamanai"
+    #preprocessed_path: "/home/dev/other/fsp/data/dataset_old/shaman_processed"
 
   preprocessing:
     val_size: 512

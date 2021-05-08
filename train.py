@@ -50,7 +50,7 @@ def main(cfg):
     print("Number of FastSpeech2 Parameters:", num_param)
 
     # Load vocoder
-    vocoder = HIFIapi(cfg, cfg.device)
+    vocoder = HIFIapi(cfg, cfg.gpu)
     # vocoder = get_vocoder(cfg.model_config, device)
 
     # Init logger
@@ -172,7 +172,7 @@ def main(cfg):
                 if step % val_step == 0:
                     model.eval()
                     message = evaluate(
-                        model, step, configs, logger, "val", vocoder, cfg.gpu
+                        model, step, cfg, logger, "val", vocoder, cfg.gpu
                     )
                     with open(os.path.join(val_log_path, "log.txt"), "a") as f:
                         f.write(message + "\n")

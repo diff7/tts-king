@@ -16,25 +16,24 @@ class HIFIapi:
         # Load checkpoint if exists
         weights_path = config.hifi.weights_path
 
+        self.model = Generator(config.hifi)
         if weights_path is not None:
             checkpoint = torch.load(weights_path, map_location="cpu")
-
-        self.model = Generator(config.hifi).to(device)
-        self.model.load_state_dict(checkpoint["generator"])
+            self.model.load_state_dict(checkpoint["generator"])
 
         self.cfg = config
         self.device = device
 
-        # TODO get the righ restore step
-        self.restore_step = 0
-
+        self.model.to(device)
         self.model.remove_weight_norm()
+        self.model.eval()
 
     # TODO:
     def train(self):
         raise NotImplemented(" Train for HiFi was not implemented yet")
 
-    def __call__(x):
+    def __call__(self, x):
+        x = x.to(self.device)
         # use call for compatablity with other vocoders or functions
         return self.model(x)
 
