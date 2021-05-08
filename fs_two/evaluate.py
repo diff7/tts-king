@@ -36,7 +36,7 @@ def evaluate(
     Loss = FastSpeech2Loss(cfg.preprocess_config, cfg.model_config)
 
     # Evaluation
-    loss_sums = [0 for _ in range(5)]
+    loss_sums = [0 for _ in range(4)]
     for batchs in loader:
         for batch in batchs:
             batch = to_device(batch, device)
@@ -54,7 +54,7 @@ def evaluate(
     loss_means = [sum(loss_means)] + loss_means
     loss_means = [step] + loss_means
 
-    message = "Validation Step {}, Total Loss: {:.4f}, Mel Loss: {:.4f}, Pitch Loss: {:.4f}, Energy Loss: {:.4f}, Duration Loss: {:.4f}, Class Loss: {:.4f}".format(
+    message = "Validation Step {}, Total Loss: {:.4f}, Mel Loss: {:.4f}, Pitch Loss: {:.4f}, Energy Loss: {:.4f}, Duration Loss: {:.4f}".format(
         *loss_means
     )
 

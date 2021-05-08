@@ -66,7 +66,8 @@ class FastSpeech2Loss(nn.Module):
         )
         log_duration_targets = log_duration_targets.masked_select(src_masks)
 
-        mel_predictions = mel_predictions.masked_select(mel_masks.unsqueeze(-1))
+        mel_predictions = mel_predictions.masked_select(
+            mel_masks.unsqueeze(-1))
         # postnet_mel_predictions = postnet_mel_predictions.masked_select(
         #     mel_masks.unsqueeze(-1)
         # )
