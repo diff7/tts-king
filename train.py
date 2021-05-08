@@ -56,7 +56,8 @@ def main(cfg):
     # Init logger
     for p in cfg.train_config["path"].values():
         os.makedirs(p, exist_ok=True)
-    train_log_path = os.path.join(cfg.train_config["path"]["log_path"], "train")
+    train_log_path = os.path.join(
+        cfg.train_config["path"]["log_path"], "train")
     val_log_path = os.path.join(cfg.train_config["path"]["log_path"], "val")
     os.makedirs(train_log_path, exist_ok=True)
     os.makedirs(val_log_path, exist_ok=True)
@@ -125,7 +126,7 @@ def main(cfg):
                     losses = [l.item() for l in losses]
                     losses = [sum(losses)] + losses
                     message1 = "Step {}/{}, ".format(step, total_step)
-                    message2 = "Total Loss: {:.4f}, Mel Loss: {:.4f}, Pitch Loss: {:.4f}, Energy Loss: {:.4f}, Duration Loss: {:.4f}, Class Loss: {:.4f}".format(
+                    message2 = "Total Loss: {:.4f}, Mel Loss: {:.4f}, Pitch Loss: {:.4f}, Energy Loss: {:.4f}, Duration Loss: {:.4f}".format(
                         *losses
                     )
 
@@ -174,7 +175,8 @@ def main(cfg):
                         "train",
                         audio=wav_prediction,
                         sampling_rate=sampling_rate,
-                        tag="Training/step_{}_{}_synthesized".format(step, tag),
+                        tag="Training/step_{}_{}_synthesized".format(
+                            step, tag),
                     )
 
                 if step % save_step == 0:

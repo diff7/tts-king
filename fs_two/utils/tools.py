@@ -106,9 +106,9 @@ def log(
         logger.log(
             {f"Loss/duration_loss {train_val.upper()}": losses[4]}, step=step
         )
-        logger.log(
-            {f"Loss/class_loss {train_val.upper()}": losses[5]}, step=step
-        )
+        # logger.log(
+        #     {f"Loss/class_loss {train_val.upper()}": losses[5]}, step=step
+        # )
 
     if fig is not None:
         logger.log({f"Spec {train_val.upper()}": fig})
