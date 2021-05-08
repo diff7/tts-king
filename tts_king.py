@@ -16,7 +16,7 @@ from input_process import preprocess_lang, preprocess_eng
 
 
 class TTSKing:
-    def __init__(self, config_path, config_path="./config.yaml"):
+    def __init__(self, config_path="./config.yaml"):
         self.cfg = OmegaConf.load(config_path)
         cfg = OmegaConf.load(config_path)
 
