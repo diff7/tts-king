@@ -1,10 +1,11 @@
 
 exp_name: resemb_big_set
+gpu: 2
 
 logger:
   offline: false
   wandb_key: "beca9453c7ef6a20e21d5705275a0ff72842cbf3"
-  gpu: 2
+  
 
 tts:
   weights_path: #'/home/dev/other/fsp/output/ckpt/ailabs/70000.pth.tar'
@@ -54,12 +55,12 @@ train_config:
     log_path: "../output/log/resemb_big_set"
     result_path: "../output/result/resemb_big_set"
   optimizer:
-    batch_size: 16
+    batch_size: 8
     betas: [0.95, 0.999]
     eps: 0.00001
     weight_decay: 0.0
     grad_clip_thresh: 1.0
-    grad_acc_step: 2
+    grad_acc_step: 4
     warm_up_step: 4000
     anneal_steps: [300000, 400000, 500000]
     anneal_rate: 0.3
