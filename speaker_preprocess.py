@@ -14,10 +14,9 @@ def preprocess_speaker(folder, speaker_name, target_dir):
         fpath = str(fpath)
         wav = preprocess_wav(fpath)
         basename = fpath.split(".wav")[0]
-        speaker_filename = "{}.npy".format(basename)
+        speaker_filename = "{}-speaker-{}.npy".format(speaker_name, basename)
         embed = encoder.embed_utterance(wav)
         save_path = os.path.join(target_dir, speaker_filename)
-        print("**", save_path)
         np.save(save_path, embed)
 
 
