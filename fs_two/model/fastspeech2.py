@@ -18,7 +18,8 @@ class FastSpeech2(nn.Module):
         self.model_config = model_config
 
         self.encoder = Encoder(model_config)
-        self.variance_adaptor = VarianceAdaptor(preprocess_config, model_config)
+        self.variance_adaptor = VarianceAdaptor(
+            preprocess_config, model_config)
         n_speaker = 0
         with open(
             os.path.join(
@@ -83,8 +84,14 @@ class FastSpeech2(nn.Module):
             e_control,
             d_control,
         )
-        speakers_emb = speakers_emb.unsqueeze(1).repeat(1, output.size(1), 1)
-        output = torch.cat([output, speakers_emb], 2)
+        if self.model_config['concat_speaker']:
+            speakers_emb = speakers_emb.unsqueeze(
+                1).repeat(1, output.size(1), 1)
+            output = torch.cat([output, speakers_emb], 2)
+        else:
+            output = output + speakers_emb.unsqueeze(1).expand(
+                -1, max_src_len, -1
+            )
         output, mel_masks = self.decoder(output, mel_masks)
 
         output = self.mel_linear(output)
