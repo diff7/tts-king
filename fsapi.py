@@ -31,6 +31,7 @@ class FSTWOapi:
 
         self.cfg = config
         self.device = device
+        self.model.to(device)
 
         # TODO get the righ restore step
         self.restore_step = 0
@@ -60,7 +61,6 @@ class FSTWOapi:
 
         (
             output,
-            postnet_output,
             p_predictions,
             e_predictions,
             log_d_predictions,
@@ -71,4 +71,4 @@ class FSTWOapi:
             mel_lens,
         ) = result
 
-        return postnet_output
+        return output
