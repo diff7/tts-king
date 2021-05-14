@@ -26,7 +26,7 @@ class FSTWOapi:
         # Load checkpoint if exists
         self.weights_path = weights_path
         if weights_path is not None:
-            checkpoint = torch.load(weights_path)
+            checkpoint = torch.load(weights_path, map_location="cpu")
             self.model.load_state_dict(checkpoint["model"])
 
         self.cfg = config
