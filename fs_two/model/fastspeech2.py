@@ -13,7 +13,7 @@ from fs_two.utils.tools import get_mask_from_lengths
 class FastSpeech2(nn.Module):
     """ FastSpeech2 """
 
-    def __init__(self, preprocess_config, model_config):
+    def __init__(self, preprocess_config, model_config, n_speakers=None):
         super(FastSpeech2, self).__init__()
         self.model_config = model_config
 
@@ -25,17 +25,12 @@ class FastSpeech2(nn.Module):
             preprocess_config["preprocessing"]["mel"]["n_mel_channels"],
         )
         self.speaker_emb = None
+
         if model_config["multi_speaker"]:
-            with open(
-                os.path.join(
-                    preprocess_config["path"]["preprocessed_path"],
-                    "speakers.json",
-                ),
-                "r",
-            ) as f:
-                n_speaker = len(json.load(f))
+            if n_speakers is None:
+                n_speakers = get_speakers_number(preprocess_config)
             self.speaker_emb = nn.Embedding(
-                n_speaker,
+                n_speakers,
                 model_config["transformer"]["encoder_hidden"],
             )
         # self.postnet = PostNet()
@@ -112,3 +107,21 @@ class FastSpeech2(nn.Module):
             src_lens,
             mel_lens,
         )
+
+
+def get_speakers_number(preprocess_config):
+    speaker_json = os.path.join(
+        preprocess_config["path"]["preprocessed_path"],
+        "speakers.json",
+    )
+    if os.path.exists(speaker_json):
+        with open(
+            speaker_json,
+            "r",
+        ) as f:
+            n_speakers = len(json.load(f))
+    else:
+        raise Exception(
+            "Model is multispeaker but number of speakers was not provided explicitly"
+        )
+    return n_speakers

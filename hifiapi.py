@@ -47,6 +47,6 @@ class HIFIapi:
         self.model.eval()
         with torch.no_grad():
             audio = self.model(mel_specs)
-            audio = audio * self.cfg.MAX_WAV_VALUE
+            audio = audio * self.cfg.hifi.MAX_WAV_VALUE
             audio = audio.cpu().numpy().astype("int16")
         return audio

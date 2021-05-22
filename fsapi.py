@@ -1,27 +1,25 @@
+import os
+import json
 import torch
 import numpy as np
-import torch.nn as nn
 
 from fs_two.model import FastSpeech2
-from fs_two.model.loss import FastSpeech2Loss
-
-# from train_fs_lighting import train_fs
-
-"""
-
- python3 prepare_align.py config/LJSpeech/preprocess.yaml
- python3 preprocess.py config/LJSpeech/preprocess.yaml
- python3 train.py -p config/LJSpeech/preprocess.yaml -m config/LJSpeech/model.yaml -t config/LJSpeech/train.yaml
-
-
-"""
 
 
 class FSTWOapi:
     def __init__(self, config, device=0):
         weights_path = config.tts.weights_path
+        model_folder = "/".join(weights_path.split("/")[:-1])
+        config.preprocess_config.path.preprocessed_path = model_folder
+
+        self.speakers_dict, self.speaker_names = load_speakers_json(
+            config.preprocess_config.path.preprocessed_path
+        )
+
         self.model = FastSpeech2(
-            config.preprocess_config, config.model_config
+            config.preprocess_config,
+            config.model_config,
+            len(self.speaker_names),
         ).to(device)
         # Load checkpoint if exists
         self.weights_path = weights_path
@@ -41,10 +39,16 @@ class FSTWOapi:
         duration_control=1.0,
         pitch_control=1.0,
         energy_control=1.0,
-        speaker=None,
+        speaker_name=None,
     ):
-        if speaker is not None:
-            speaker = torch.tensor(speaker).long().unsqueeze(0)
+
+        if speaker_name is not None:
+            if not speaker_name in self.speakers_dict:
+                raise Exception(
+                    f"Speaker {speaker_name} was not found in speakers.json"
+                )
+            speaker_id = self.speakers_dict[speaker_name]
+            speaker = torch.tensor(speaker_id).long().unsqueeze(0)
             speaker = speaker.to(self.device)
         self.model.eval()
         src_len = np.array([len(phonemes[0])])
@@ -60,7 +64,7 @@ class FSTWOapi:
 
         (
             output,
-            postnet_output,
+            # postnet_output,
             p_predictions,
             e_predictions,
             log_d_predictions,
@@ -71,4 +75,16 @@ class FSTWOapi:
             mel_lens,
         ) = result
 
-        return postnet_output
+        return output
+
+
+def load_speakers_json(dir_path):
+    json_paht = os.path.join(dir_path, "speakers.json")
+    if os.path.exists(json_paht):
+        with open(
+            json_paht,
+            "r",
+        ) as f:
+            speakers = json.load(f)
+
+    return speakers, list(speakers.keys())

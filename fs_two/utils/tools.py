@@ -9,15 +9,12 @@ import matplotlib
 from scipy.io import wavfile
 from matplotlib import pyplot as plt
 
-import wandb
-
-
 matplotlib.use("Agg")
 
 # TODO SET  device from congig
 
 
-def to_device(data, device):
+def to_device(data, device="cpu"):
     if len(data) == 12:
         (
             ids,
@@ -106,11 +103,11 @@ def log(
         logger.log({f"Spec {train_val.upper()}": fig})
 
     if audio is not None:
-        a = [wandb.Audio(audio / max(abs(audio)), sample_rate=sampling_rate)]
+        a = [logger.Audio(audio / max(abs(audio)), sample_rate=sampling_rate)]
         logger.log({f"Audio {train_val.upper()}": a})
 
 
-def get_mask_from_lengths(lengths, max_len=None, device=1):
+def get_mask_from_lengths(lengths, max_len=None, device="cpu"):
     batch_size = lengths.shape[0]
     if max_len is None:
         max_len = torch.max(lengths).item()
