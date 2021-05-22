@@ -1,37 +1,52 @@
-import importlib
-from omegaconf import DictConfig, OmegaConf
+# IMPORTS FOR PREPROCESS
+import os
+import torch
+import numpy as np
+from string import punctuation
+from fs_two.text import text_to_sequence
+
+# OTHER IMPORTS
+from omegaconf import OmegaConf
 from fsapi import FSTWOapi
+
+# from fs_two.preprocess import prepare_dataset_lj_speech
 from hifiapi import HIFIapi
+
+from input_process import preprocess_lang, preprocess_eng
 
 
 class TTSKing:
-    def __init__(self, config_path="config.yaml"):
-
+    def __init__(self, config_path="./config.yaml"):
+        self.cfg = OmegaConf.load(config_path)
         cfg = OmegaConf.load(config_path)
 
-        self.tts = FSTWOapi(cfg.tts, cfg.tts_weights_path, cfg.device)
-        self.vocoder = HIFIapi(cfg.higi, cfg.hifi_weights_path, cfg.device)
-        self.logger = None
+        self.tts = FSTWOapi(self.cfg, self.cfg.device)
+        self.vocoder = HIFIapi(self.cfg, self.cfg.device)
 
     def generate_mel(
-        self, text, duration_control=1.0, pitch_control=1.0, energy_control=1.0
+        self,
+        text,
+        duration_control=1.0,
+        pitch_control=1.0,
+        energy_control=1.0,
+        speaker=0,
     ):
 
         phonemes = self.text_preprocess(text)
+
         result = self.tts.generate(
-            self,
             phonemes,
             duration_control,
             pitch_control,
             energy_control,
-            speaker=None,
+            speaker=speaker,
         )
 
         # mel, mel_postnet, log_duration_output, f0_output, energy_output
         return result
 
     def mel_to_wav(self, mel_spec):
-        wav_cpu = self.vocoder.generate(mel_spec)
+        wav_cpu = self.vocoder.generate(mel_spec.transpose(1, 2))
         return wav_cpu
 
     def speak(
@@ -42,45 +57,11 @@ class TTSKing:
         )
         return self.vocoder(mel_specs_batch)
 
-    # TODO :
-    def train_tts(self, data_loader):
-
-        # get val train data loader
-
-        self.tts.train(train_data_loader, val_data_loader, self.vocoder)
-
-    # TODO
-    def train_vocoder(self, dataset, epochs):
-        pass
-
-    # TODO
-    def init_data_loader_tts(self, data_folder_path):
-        # return data_loader
-        pass
-
-    def prepare_dataset_tts(self, path_to_data):
-        # TODO
-        pass
-
     def text_preprocess(self, text):
-        # TODO write processing function
-        # return process_txt(text)
-        pass
+        return np.array([preprocess_lang(text, self.cfg.preprocess_config)])
 
+    def text_preprocess_eng(self, text):
+        return np.array([preprocess_eng(text, self.cfg.preprocess_config)])
 
-# def get_class(main, module):
-#     main = importlib.import_module(main)
-#     return getattr(main, module)
-
-
-# def init_from_config(main, module, params=None):
-#     """
-#     Example:
-#         main: sklearn.linear_model
-#         module: LinearRegression
-#     """
-#     class_con = get_class(main, module)
-#     if not params is None:
-#         return class_con(**params)
-#     else:
-#         return class_con()
+    def to_torch_device(self, items):
+        return [torch.tensor(t).to(self.cfg.gpu) for t in items]

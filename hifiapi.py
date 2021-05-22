@@ -2,15 +2,25 @@ import torch
 from hifi.models import Generator
 
 
-class HIFIapi:
-    def __init__(self, config, weights_path=None, device="gpu"):
+class AttrDict(dict):
+    def __init__(self, *args, **kwargs):
+        super(AttrDict, self).__init__(*args, **kwargs)
+        self.__dict__ = self
 
-        self.model = Generator(config).to(device)
+
+class HIFIapi:
+    def __init__(self, config, device="gpu"):
+        if config.model_config["vocoder"]["use_cpu"]:
+            device = "cpu"
+
         # Load checkpoint if exists
-        self.weights_path = weights_path
+        weights_path = config.hifi.weights_path
+
         if weights_path is not None:
-            checkpoint = torch.load(weights_path)
-            self.model.load_state_dict(checkpoint)
+            checkpoint = torch.load(weights_path, map_location="cpu")
+
+        self.model = Generator(config.hifi).to(device)
+        self.model.load_state_dict(checkpoint["generator"])
 
         self.cfg = config
         self.device = device
@@ -18,11 +28,16 @@ class HIFIapi:
         # TODO get the righ restore step
         self.restore_step = 0
 
+        self.model.remove_weight_norm()
+
     # TODO:
     def train(self):
         raise NotImplemented(" Train for HiFi was not implemented yet")
 
-    # TODO:
+    def __call__(self, x):
+        # use call for compatablity with other vocoders or functions
+        return self.model(x)
+
     def generate(self, mel_specs):
         """
         Converts mel spectrogramma into an audio file.
@@ -31,7 +46,6 @@ class HIFIapi:
         """
 
         self.model.eval()
-        self.model.remove_weight_norm()
         with torch.no_grad():
             audio = self.model(mel_specs)
             audio = audio * self.cfg.MAX_WAV_VALUE
