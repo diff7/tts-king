@@ -43,7 +43,7 @@ class FSTWOapi:
             logger,
             voocoder,
             self.device,
-            sefl.cfg.weights_dir
+            self.cfg.weights_dir
         )
 
         return self.model
