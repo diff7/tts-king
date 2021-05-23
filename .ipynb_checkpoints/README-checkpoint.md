@@ -18,13 +18,3 @@ To use the project you will need to isntall russian graphem to phoneme:
 
 
 If all is set check the notebook "examples.ipynb"
-
-
-## Dataset review
-
-- total speakers 249
-- numer of speakers with more than 100 sentences: 39
-
-<img src='./dataset_review/hist.png' >
-<img src='./dataset_review/least20.png'>
-<img src='./dataset_review/top20.png'>
