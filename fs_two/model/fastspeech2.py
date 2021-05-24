@@ -90,7 +90,7 @@ class FastSpeech2(nn.Module):
             d_control,
         )
         print("output", output.shape)
-        adv_class = self.classifier(output)
+        adv_class = self.classifier(output).transpose(1,2)
         if self.speaker_emb is not None:
             output = output + self.speaker_emb(speakers).unsqueeze(1).expand(
                 -1, 1, -1
