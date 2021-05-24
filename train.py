@@ -56,7 +56,8 @@ def main(cfg):
     # Init logger
     for p in cfg.train_config["path"].values():
         os.makedirs(p, exist_ok=True)
-    train_log_path = os.path.join(cfg.train_config["path"]["log_path"], "train")
+    train_log_path = os.path.join(
+        cfg.train_config["path"]["log_path"], "train")
     val_log_path = os.path.join(cfg.train_config["path"]["log_path"], "val")
     os.makedirs(train_log_path, exist_ok=True)
     os.makedirs(val_log_path, exist_ok=True)
@@ -95,13 +96,13 @@ def main(cfg):
 
                 # Cal Loss
                 losses = Loss(batch, output)
-                # total_loss = losses[0]
+                total_loss = losses[0]
 
                 # Backward
-                # total_loss = total_loss / grad_acc_step
-                # total_loss.backward()
-                losses = [l / grad_acc_step for l in losses]
-                optimizer.pc_backward(losses)
+                total_loss = total_loss / grad_acc_step
+                total_loss.backward()
+                losses = [l / grad_acc_step for l in losses[1:]]
+                # optimizer.pc_backward(losses)
                 if step % grad_acc_step == 0:
                     # Clipping gradients to avoid gradient explosion
 
@@ -166,7 +167,8 @@ def main(cfg):
                         "train",
                         audio=wav_prediction,
                         sampling_rate=sampling_rate,
-                        tag="Training/step_{}_{}_synthesized".format(step, tag),
+                        tag="Training/step_{}_{}_synthesized".format(
+                            step, tag),
                     )
 
                 if step % val_step == 0:

@@ -49,15 +49,15 @@ def evaluate(
                 # Cal Loss
                 losses = Loss(batch, output)
 
-                for i in range(len(losses)):
+                for i in range(1, len(losses)):
                     loss_sums[i] += losses[i].item() * len(batch[0])
 
     loss_means = [loss_sum / len(dataset) for loss_sum in loss_sums]
     loss_means = [sum(loss_means)] + loss_means
-    loss_means = [step] + loss_means
+    loss_logs = [step] + loss_means
 
     message = "Validation Step {}, Total Loss: {:.4f}, Mel Loss: {:.4f}, Pitch Loss: {:.4f}, Energy Loss: {:.4f}, Duration Loss: {:.4f}".format(
-        *loss_means
+        *loss_logs
     )
 
     if logger is not None:

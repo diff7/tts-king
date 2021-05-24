@@ -9,7 +9,7 @@ from russian_g2p.Transcription import Transcription
 
 # NO CLEANERS FOR RUSSIAN DATASET
 CLEANERS = []
-
+transcriptor = Transcription()
 
 def read_lexicon(lex_path):
     lexicon = {}
@@ -69,7 +69,6 @@ def preprocess_lang(text, preprocess_config):
 
 
 def preprocess_rus(text):
-    transcriptor = Transcription()
 
     text = text.rstrip(punctuation)
     phones = []

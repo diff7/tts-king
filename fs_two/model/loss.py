@@ -15,8 +15,10 @@ class FastSpeech2Loss(nn.Module):
         ]
         self.mse_loss = nn.MSELoss()
         self.mae_loss = nn.L1Loss()
+        self.criterion = torch.nn.CrossEntropyLoss()
 
     def forward(self, inputs, predictions):
+        speaker_targets = inputs[2]
         (
             mel_targets,
             _,
@@ -35,6 +37,8 @@ class FastSpeech2Loss(nn.Module):
             mel_masks,
             _,
             _,
+            postnet_mel_predictions,
+            adv_class
         ) = predictions
         src_masks = ~src_masks
         mel_masks = ~mel_masks
@@ -67,26 +71,27 @@ class FastSpeech2Loss(nn.Module):
 
         mel_predictions = mel_predictions.masked_select(
             mel_masks.unsqueeze(-1))
-        # postnet_mel_predictions = postnet_mel_predictions.masked_select(
-        #     mel_masks.unsqueeze(-1)
-        # )
+        postnet_mel_predictions = postnet_mel_predictions.masked_select(
+            mel_masks.unsqueeze(-1)
+        )
         mel_targets = mel_targets.masked_select(mel_masks.unsqueeze(-1))
 
         mel_loss = self.mse_loss(mel_predictions, mel_targets)
         mel_loss_mae = self.mae_loss(mel_predictions, mel_targets)
-        total_mel_loss = mel_loss + mel_loss_mae
-        #postnet_mel_loss = self.mse_loss(postnet_mel_predictions, mel_targets)
+        postnet_mel_loss = self.mse_loss(postnet_mel_predictions, mel_targets)
+        total_mel_loss = mel_loss + mel_loss_mae + postnet_mel_loss
 
         pitch_loss = self.mse_loss(pitch_predictions, pitch_targets)
         energy_loss = self.mse_loss(energy_predictions, energy_targets)
         duration_loss = self.mse_loss(
             log_duration_predictions, log_duration_targets)
+        class_loss = self.criterion(adv_class, speaker_targets)
 
-        # total_loss = (
-        #     mel_loss + postnet_mel_loss + duration_loss + pitch_loss + energy_loss
-        # )
+        total_loss = total_mel_loss + duration_loss + \
+            pitch_loss + energy_loss + class_loss
 
         return (
+            total_loss,
             total_mel_loss,
             pitch_loss,
             energy_loss,
