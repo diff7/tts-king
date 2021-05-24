@@ -89,7 +89,7 @@ class FastSpeech2Loss(nn.Module):
 
         print("adv_class", adv_class.shape)
         print("speaker_targets", speaker_targets.shape)
-        class_loss = self.criterion(adv_class, speaker_targets)
+        class_loss = self.criterion(adv_class, speaker_targets.unsqueeze(1).expand(-1, adv_class.size(2)))
 
         total_loss = (
             total_mel_loss
