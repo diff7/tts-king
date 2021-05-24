@@ -37,7 +37,7 @@ class FastSpeech2(nn.Module):
             self.classifier = nn.Sequential(
                 RevGrad(),
                 nn.Linear(
-                    model_config["transformer"]["encoder_hidden"], n_speaker
+                    model_config["transformer"]["encoder_hidden"], n_speakers
                 ),
             )
         self.postnet = PostNet()
@@ -89,6 +89,7 @@ class FastSpeech2(nn.Module):
             e_control,
             d_control,
         )
+        print("output", output.shape)
         adv_class = self.classifier(output)
         if self.speaker_emb is not None:
             output = output + self.speaker_emb(speakers).unsqueeze(1).expand(

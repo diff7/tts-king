@@ -10,9 +10,9 @@ class FastSpeech2Loss(nn.Module):
         self.pitch_feature_level = preprocess_config["preprocessing"]["pitch"][
             "feature"
         ]
-        self.energy_feature_level = preprocess_config["preprocessing"]["energy"][
-            "feature"
-        ]
+        self.energy_feature_level = preprocess_config["preprocessing"][
+            "energy"
+        ]["feature"]
         self.mse_loss = nn.MSELoss()
         self.mae_loss = nn.L1Loss()
         self.criterion = torch.nn.CrossEntropyLoss()
@@ -38,13 +38,13 @@ class FastSpeech2Loss(nn.Module):
             _,
             _,
             postnet_mel_predictions,
-            adv_class
+            adv_class,
         ) = predictions
         src_masks = ~src_masks
         mel_masks = ~mel_masks
         log_duration_targets = torch.log(duration_targets.float() + 1)
         mel_targets = mel_targets[:, : mel_masks.shape[1], :]
-        mel_masks = mel_masks[:, :mel_masks.shape[1]]
+        mel_masks = mel_masks[:, : mel_masks.shape[1]]
 
         log_duration_targets.requires_grad = False
         pitch_targets.requires_grad = False
@@ -66,11 +66,11 @@ class FastSpeech2Loss(nn.Module):
             energy_targets = energy_targets.masked_select(mel_masks)
 
         log_duration_predictions = log_duration_predictions.masked_select(
-            src_masks)
+            src_masks
+        )
         log_duration_targets = log_duration_targets.masked_select(src_masks)
 
-        mel_predictions = mel_predictions.masked_select(
-            mel_masks.unsqueeze(-1))
+        mel_predictions = mel_predictions.masked_select(mel_masks.unsqueeze(-1))
         postnet_mel_predictions = postnet_mel_predictions.masked_select(
             mel_masks.unsqueeze(-1)
         )
@@ -84,11 +84,20 @@ class FastSpeech2Loss(nn.Module):
         pitch_loss = self.mse_loss(pitch_predictions, pitch_targets)
         energy_loss = self.mse_loss(energy_predictions, energy_targets)
         duration_loss = self.mse_loss(
-            log_duration_predictions, log_duration_targets)
+            log_duration_predictions, log_duration_targets
+        )
+
+        print("adv_class", adv_class.shape)
+        print("speaker_targets", speaker_targets.shape)
         class_loss = self.criterion(adv_class, speaker_targets)
 
-        total_loss = total_mel_loss + duration_loss + \
-            pitch_loss + energy_loss + class_loss
+        total_loss = (
+            total_mel_loss
+            + duration_loss
+            + pitch_loss
+            + energy_loss
+            + class_loss
+        )
 
         return (
             total_loss,

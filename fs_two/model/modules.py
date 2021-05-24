@@ -7,7 +7,7 @@ from collections import OrderedDict
 import torch
 import torch.nn as nn
 import numpy as np
-import torch.nn.functional as F
+from torch.autograd import Function
 
 from fs_two.utils.tools import get_mask_from_lengths, pad
 
@@ -342,7 +342,7 @@ class Conv(nn.Module):
         return x
 
 
-class RevGrad(Function):
+class RevGradFunction(Function):
     @staticmethod
     def forward(ctx, input_, alpha_):
         ctx.save_for_backward(input_, alpha_)
@@ -358,11 +358,11 @@ class RevGrad(Function):
         return grad_input, None
 
 
-revgrad = RevGrad.apply
+revgrad = RevGradFunction.apply
 
 
 class RevGrad(nn.Module):
-    def __init__(self, alpha=1., *args, **kwargs):
+    def __init__(self, alpha=1.0, *args, **kwargs):
         """
         A gradient reversal layer.
         This layer has no parameters, and simply reverses the gradient
