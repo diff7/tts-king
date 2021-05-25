@@ -50,7 +50,7 @@ def evaluate(
                 losses = Loss(batch, output)
 
                 for i in range(1, len(losses)):
-                    loss_sums[i] += losses[i].item() * len(batch[0])
+                    loss_sums[i - 1] += losses[i].item() * len(batch[0])
 
     loss_means = [loss_sum / len(dataset) for loss_sum in loss_sums]
     loss_means = [sum(loss_means)] + loss_means

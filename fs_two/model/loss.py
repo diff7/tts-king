@@ -86,10 +86,10 @@ class FastSpeech2Loss(nn.Module):
         duration_loss = self.mse_loss(
             log_duration_predictions, log_duration_targets
         )
-
-        print("adv_class", adv_class.shape)
-        print("speaker_targets", speaker_targets.shape)
-        class_loss = self.criterion(adv_class, speaker_targets.unsqueeze(1).expand(-1, adv_class.size(2)))
+        class_loss = self.criterion(
+            adv_class,
+            speaker_targets.unsqueeze(1).expand(-1, adv_class.size(2)),
+        )
 
         total_loss = (
             total_mel_loss

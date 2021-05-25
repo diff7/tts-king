@@ -68,7 +68,6 @@ class FastSpeech2(nn.Module):
         )
 
         output = self.encoder(texts, src_masks)
-        # print("SHAPE", output.shape)
         (
             output,
             p_predictions,
@@ -89,8 +88,8 @@ class FastSpeech2(nn.Module):
             e_control,
             d_control,
         )
-        print("output", output.shape)
-        adv_class = self.classifier(output).transpose(1,2)
+
+        adv_class = self.classifier(output).transpose(1, 2)
         if self.speaker_emb is not None:
             output = output + self.speaker_emb(speakers).unsqueeze(1).expand(
                 -1, 1, -1

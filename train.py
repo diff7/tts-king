@@ -12,7 +12,7 @@ from omegaconf import OmegaConf
 
 from hifiapi import HIFIapi
 
-from fs_two.utils.model import get_model, get_vocoder, get_param_num
+from fs_two.utils.model import get_model, get_param_num
 from fs_two.utils.tools import to_device, log, synth_one_sample
 from fs_two.model import FastSpeech2Loss
 from fs_two.dataset import Dataset
@@ -51,13 +51,11 @@ def main(cfg):
 
     # Load vocoder
     vocoder = HIFIapi(cfg, cfg.gpu)
-    # vocoder = get_vocoder(cfg.model_config, device)
 
     # Init logger
     for p in cfg.train_config["path"].values():
         os.makedirs(p, exist_ok=True)
-    train_log_path = os.path.join(
-        cfg.train_config["path"]["log_path"], "train")
+    train_log_path = os.path.join(cfg.train_config["path"]["log_path"], "train")
     val_log_path = os.path.join(cfg.train_config["path"]["log_path"], "val")
     os.makedirs(train_log_path, exist_ok=True)
     os.makedirs(val_log_path, exist_ok=True)
@@ -82,6 +80,9 @@ def main(cfg):
     outer_bar = tqdm(total=total_step, desc="Training", position=0)
     outer_bar.n = cfg.tts.restore_step
     outer_bar.update()
+
+    print("RUN SANITY CHECK EVAL:")
+    message = evaluate(model, 0, cfg, logger, "val", vocoder, cfg.gpu)
 
     while True:
         inner_bar = tqdm(
@@ -167,8 +168,7 @@ def main(cfg):
                         "train",
                         audio=wav_prediction,
                         sampling_rate=sampling_rate,
-                        tag="Training/step_{}_{}_synthesized".format(
-                            step, tag),
+                        tag="Training/step_{}_{}_synthesized".format(step, tag),
                     )
 
                 if step % val_step == 0:
