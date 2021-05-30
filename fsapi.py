@@ -64,7 +64,6 @@ class FSTWOapi:
 
         (
             output,
-            # postnet_output,
             p_predictions,
             e_predictions,
             log_d_predictions,
@@ -73,9 +72,11 @@ class FSTWOapi:
             mel_masks,
             src_lens,
             mel_lens,
+            postnet_output,
+            adv_class,
         ) = result
 
-        return output
+        return postnet_output
 
 
 def load_speakers_json(dir_path):
