@@ -54,7 +54,7 @@ train_config:
     log_path: "../output/log/rev_grad"
     result_path: "../output/result/rev_grad"
   optimizer:
-    batch_size: 8
+    batch_size: 16
     betas: [0.95, 0.999]
     eps: 0.00001
     weight_decay: 0.0
