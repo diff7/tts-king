@@ -9,7 +9,8 @@ from fs_two.text import text_to_sequence
 from fs_two.utils.tools import pad_1D, pad_2D
 from fs_two.text.symbols import _mask
 
-#def mask_tokenes(raw_text):
+# def mask_tokenes(raw_text):
+
 
 class Dataset(Dataset):
     def __init__(
@@ -106,7 +107,7 @@ class Dataset(Dataset):
                 speaker.append(s)
                 text.append(t)
                 raw_text.append(r)
-            print('RAW TEXT': raw_text)
+            print("RAW TEXT", raw_text)
             return name, speaker, text, raw_text
 
     def reprocess(self, data, idxs):
