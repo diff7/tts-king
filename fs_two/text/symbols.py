@@ -8,7 +8,7 @@ The default is a set of ASCII characters that works well for English or text tha
 from fs_two.text import cmudict, pinyin, russian
 
 _pad = "_"
-_mask = "0"
+_mask = "?"
 _punctuation = "!'(),.:;? "
 _special = "-"
 _letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
