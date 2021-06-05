@@ -9,7 +9,7 @@ from fs_two.text import text_to_sequence
 from fs_two.utils.tools import pad_1D, pad_2D
 from fs_two.text.symbols import _mask
 
-def mask_tokenes(raw_text):
+#def mask_tokenes(raw_text):
 
 class Dataset(Dataset):
     def __init__(
