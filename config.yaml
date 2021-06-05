@@ -1,13 +1,13 @@
 
 exp_name: rev_grad
-gpu: 1
+gpu: 'cpu'
 logger:
   offline: false
   wandb_key: "beca9453c7ef6a20e21d5705275a0ff72842cbf3"
 
 
-tts:
-  weights_path: 
+tts: 
+  weights_path: '/home/egor/Desktop/projects/TTS MAIN/weights/fs2/rev_grad/250000.pth.tar'
   betas:
   eps:
   weight_decay:
@@ -21,7 +21,7 @@ tts:
   
   
 hifi:
-  weights_path:  '/home/dev/other/fsp/weights/trained_original/hifi/generator_v1.pth'
+  weights_path:  '/home/egor/Desktop/projects/TTS MAIN/weights/hifi/generator_v1.pth'
   MAX_WAV_VALUE: 32768
   resblock: "1"
   num_gpus: 0
