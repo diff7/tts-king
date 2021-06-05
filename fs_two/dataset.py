@@ -21,7 +21,7 @@ def random_mask(text, _silences, max_masks_per_sentence, _mask):
         max_len = len(text)
         max_masks = min(4, max_len)
         for i in range(max_masks):
-            ind = random.randint(1, max_len - 1)
+            ind = random.randint(1, max_len - 2)
             if not text[ind] in _silences:
                 text[ind] = _mask
     print(" ".join(text))
