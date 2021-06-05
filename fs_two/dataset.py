@@ -13,7 +13,10 @@ from fs_two.text.symbols import _mask, _silences
 
 def random_mask(text, _silences, max_masks_per_sentence, _mask):
     print(text)
-    if random.randint(0, 1):
+
+    # randonly mask some sentences
+    # we do not want to mask short sentences
+    if random.randint(0, 1) or len(text) < 2 * max_masks_per_sentence:
         return text
     else:
         text = text.split(" ")
