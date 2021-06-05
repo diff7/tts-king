@@ -105,6 +105,7 @@ preprocess_config:
 
 model_config:
   transformer:
+    masked_phonemes: true
     encoder_layer: 4
     encoder_head: 2
     encoder_hidden: 256

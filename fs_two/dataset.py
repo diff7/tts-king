@@ -7,7 +7,9 @@ from torch.utils.data import Dataset
 
 from fs_two.text import text_to_sequence
 from fs_two.utils.tools import pad_1D, pad_2D
+from fs_two.text.symbols import _mask
 
+def mask_tokenes(raw_text):
 
 class Dataset(Dataset):
     def __init__(
@@ -70,13 +72,6 @@ class Dataset(Dataset):
         )
         duration = np.load(duration_path)
 
-        # kostyl part can be removed
-
-        # if len(phone) != len(pitch):
-        #     pitch = pitch[: len(phone)]
-        #     energy = energy[: len(phone)]
-        #     duration = duration[: len(phone)]
-
         sample = {
             "id": basename,
             "speaker": speaker_id,
@@ -111,6 +106,7 @@ class Dataset(Dataset):
                 speaker.append(s)
                 text.append(t)
                 raw_text.append(r)
+            print('RAW TEXT': raw_text)
             return name, speaker, text, raw_text
 
     def reprocess(self, data, idxs):
