@@ -22,7 +22,6 @@ def random_mask(text, _silences, max_masks_per_sentence, _mask):
             ind = random.randint(1, max_len - 1)
             if not text[ind] in _silences:
                 text[ind] = _mask
-    print(text)
     return " ".join(text)
 
 
