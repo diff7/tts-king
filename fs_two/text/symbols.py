@@ -17,11 +17,11 @@ _silences = ["@sp", "@spn", "@sil"]
 # Prepend "@" to ARPAbet symbols to ensure uniqueness (some are the same as uppercase letters):
 _arpabet = ["@" + s for s in cmudict.valid_symbols]
 _pinyin = ["@" + s for s in pinyin.valid_symbols]
-_russian = ["@" + s for s in russian.valid_symbols]
+_russian = ["@" + s for s in russian.valid_symbols + [_mask]]
 
 # Export all symbols:
 symbols = (
-    [_pad, _mask]
+    [_pad]
     # + list(_special)
     # + list(_punctuation)
     # + list(_letters)
