@@ -2,14 +2,27 @@ import json
 import math
 import os
 
+import random
 import numpy as np
 from torch.utils.data import Dataset
 
 from fs_two.text import text_to_sequence
 from fs_two.utils.tools import pad_1D, pad_2D
-from fs_two.text.symbols import _mask
+from fs_two.text.symbols import _mask, _silences
 
-# def mask_tokenes(raw_text):
+
+def random_mask(text, _silences, max_masks_per_sentence, _mask):
+    if random.randint(0, 1):
+        return text
+    else:
+        text = text.split(" ")
+        max_len = len(text)
+        max_masks = min(4, max_len)
+        for i in range(max_masks):
+            ind = random.randint(1, max_len - 1)
+            if not text[ind] in _silences:
+                text[ind] = _mask
+    return " ".join(text)
 
 
 class Dataset(Dataset):
@@ -21,6 +34,8 @@ class Dataset(Dataset):
         sort=False,
         drop_last=True,
     ):
+        self._silences = [s.replace("@", "") for s in _silences]
+        self.max_masks_per_sentence = train_config.max_masks_per_sentence
         self.dataset_name = preprocess_config["dataset"]
         self.preprocessed_path = preprocess_config["path"]["preprocessed_path"]
         self.cleaners = preprocess_config["preprocessing"]["text"][
@@ -102,7 +117,10 @@ class Dataset(Dataset):
                 speaker.append(s)
                 text.append(t)
                 raw_text.append(r)
-            print("RAW TEXT", text)
+            if self.max_masks_per_sentence > 1:
+                text = random_mask(
+                    text, self._silences, self.max_masks_per_sentence, _mask
+                )
             return name, speaker, text, raw_text
 
     def reprocess(self, data, idxs):
