@@ -68,7 +68,7 @@ train_config:
     val_step: 1000
     save_step: 5000
   
-  max_masks_per_sentence: 5
+  max_masks_per_sentence: 0
 
 preprocess_config:
   dataset: "MAIN"
