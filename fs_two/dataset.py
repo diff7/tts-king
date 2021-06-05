@@ -12,6 +12,7 @@ from fs_two.text.symbols import _mask, _silences
 
 
 def random_mask(text, _silences, max_masks_per_sentence, _mask):
+    print(text)
     if random.randint(0, 1):
         return text
     else:
