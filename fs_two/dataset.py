@@ -12,7 +12,6 @@ from fs_two.text.symbols import _mask, _silences
 
 
 def random_mask(text, _silences, max_masks_per_sentence, _mask):
-    print(text)
     if random.randint(0, 1):
         return text
     else:
@@ -23,6 +22,7 @@ def random_mask(text, _silences, max_masks_per_sentence, _mask):
             ind = random.randint(1, max_len - 1)
             if not text[ind] in _silences:
                 text[ind] = _mask
+    print(text)
     return " ".join(text)
 
 
@@ -116,12 +116,13 @@ class Dataset(Dataset):
                 n, s, t, r = line.strip("\n").split("|")
                 name.append(n)
                 speaker.append(s)
+                if self.max_masks_per_sentence > 1:
+                    t = random_mask(
+                        t, self._silences, self.max_masks_per_sentence, _mask
+                    )
                 text.append(t)
                 raw_text.append(r)
-            if self.max_masks_per_sentence > 1:
-                text = random_mask(
-                    text, self._silences, self.max_masks_per_sentence, _mask
-                )
+
             return name, speaker, text, raw_text
 
     def reprocess(self, data, idxs):
