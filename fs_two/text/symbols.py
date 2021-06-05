@@ -23,9 +23,9 @@ _russian = ["@" + s for s in russian.valid_symbols]
 symbols = (
     [_pad, _mask]
     # + list(_special)
-    # + list(_punctuation)
-    # + list(_letters)
-    #  + _arpabet
+    + list(_punctuation)
+    + list(_letters)
+    + _arpabet
     # + _pinyin
     + _silences
     + _russian
