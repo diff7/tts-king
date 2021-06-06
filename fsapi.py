@@ -73,13 +73,12 @@ class FSTWOapi:
             src_lens,
             mel_lens,
             postnet_output,
-            adv_class,
         ) = result
 
         return postnet_output
 
 
-def load_speakers_json(dir_path):
+def load_speakers_json(dir_path):    
     json_paht = os.path.join(dir_path, "speakers.json")
     if os.path.exists(json_paht):
         with open(
@@ -87,5 +86,7 @@ def load_speakers_json(dir_path):
             "r",
         ) as f:
             speakers = json.load(f)
+    else:
+        print(f'Did not find speakers.josn at {dir_path}')
 
     return speakers, list(speakers.keys())
