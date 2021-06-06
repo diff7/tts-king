@@ -85,7 +85,7 @@ def log(
 ):
     if losses is not None:
         logger.log(
-            {f"Loss/total_loss {train_val.upper()}": losses[0], f"Loss/mel_loss {train_val.upper()}": losses[1], f"Loss/pitch_loss {train_val.upper()}": losses[2], f"Loss/energy_loss {train_val.upper()}": losses[3], f"Loss/duration_loss {train_val.upper()}": losses[4]}, step=step+1
+            {f"Loss/total_loss {train_val.upper()}": losses[0], f"Loss/mel_loss {train_val.upper()}": losses[1], f"Loss/pitch_loss {train_val.upper()}": losses[2], f"Loss/energy_loss {train_val.upper()}": losses[3], f"Loss/duration_loss {train_val.upper()}": losses[4]}
         )
 
 
