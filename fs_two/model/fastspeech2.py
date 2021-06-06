@@ -60,8 +60,12 @@ class FastSpeech2(nn.Module):
             if mel_lens is not None
             else None
         )
-
+        
         output = self.encoder(texts, src_masks)
+        if self.speaker_emb is not None:
+            output = output + self.speaker_emb(speakers).unsqueeze(1).expand(
+                -1, 1, -1
+            )
         (
             output,
             p_predictions,
@@ -83,10 +87,6 @@ class FastSpeech2(nn.Module):
             d_control,
         )
 
-        if self.speaker_emb is not None:
-            output = output + self.speaker_emb(speakers).unsqueeze(1).expand(
-                -1, 1, -1
-            )
         output, mel_masks = self.decoder(output, mel_masks)
         output = self.mel_linear(output)
 

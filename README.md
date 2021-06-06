@@ -1,4 +1,4 @@
-## Usage docuemntation 
+## Usage documentation 
 > Note this a draft because the project is still in development 
 
 To use the project you will need to isntall russian graphem to phoneme:
