@@ -1,4 +1,4 @@
-exp_name: rev_grad
+exp_name: masked
 gpu: 1
 logger:
   offline: false
