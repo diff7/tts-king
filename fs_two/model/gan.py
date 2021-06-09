@@ -131,13 +131,13 @@ class Generator(nn.Module):
 
 
 class NLayerDiscriminator(nn.Module):
-    def __init__(self, ndf, n_layers, downsampling_factor):
+    def __init__(self, ndf, n_layers, downsampling_factor, last=False):
         super().__init__()
         model = nn.ModuleDict()
 
         model["layer_0"] = nn.Sequential(
             nn.ReflectionPad1d(7),
-            WNConv1d(1, ndf, kernel_size=15),
+            WNConv1d(80, ndf, kernel_size=15),
             nn.LeakyReLU(0.2, True),
         )
 
@@ -164,10 +164,14 @@ class NLayerDiscriminator(nn.Module):
             WNConv1d(nf_prev, nf, kernel_size=5, stride=1, padding=2),
             nn.LeakyReLU(0.2, True),
         )
-
-        model["layer_%d" % (n_layers + 2)] = WNConv1d(
+        if last:
+            model["layer_%d" % (n_layers + 2)] = WNConv1d(
             nf, 1, kernel_size=3, stride=1, padding=1
-        )
+            )
+        else:
+            model["layer_%d" % (n_layers + 2)] = WNConv1d(
+                nf, 80, kernel_size=3, stride=1, padding=1
+            )
 
         self.model = model
 
@@ -182,18 +186,20 @@ class NLayerDiscriminator(nn.Module):
 class Discriminator(nn.Module):
     def __init__(self, num_D, ndf, n_layers, downsampling_factor):
         super().__init__()
-        self.model = nn.ModuleDict()
-        for i in range(num_D):
-            self.model[f"disc_{i}"] = NLayerDiscriminator(
+        self.model = nn.ModuleList()
+        for i in range(num_D-1):
+            self.model.append(NLayerDiscriminator(
                 ndf, n_layers, downsampling_factor
-            )
-
+            ))
+        self.model.append(NLayerDiscriminator(
+                ndf, n_layers, downsampling_factor, True
+            ))
         self.downsample = nn.AvgPool1d(4, stride=2, padding=1, count_include_pad=False)
         self.apply(weights_init)
 
     def forward(self, x):
         results = []
-        for key, disc in self.model.items():
+        for i, disc in enumerate(self.model):
             results.append(disc(x))
             x = self.downsample(x)
         return results
