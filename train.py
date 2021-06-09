@@ -1,6 +1,7 @@
 import os
 
 import torch
+import torch.nn.functional as F
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
@@ -15,6 +16,7 @@ from hifiapi import HIFIapi
 from fs_two.utils.model import get_model, get_param_num
 from fs_two.utils.tools import to_device, log, synth_one_sample
 from fs_two.model import FastSpeech2Loss
+from fs_two.gan import Discriminator
 from fs_two.dataset import Dataset
 from fs_two.evaluate import evaluate
 
@@ -44,6 +46,10 @@ def main(cfg):
 
     # Prepare model
     model, optimizer = get_model(cfg, device, train=True)
+    netD = Discriminator(
+        3, 16,4, 4
+    ).to(device)
+    optD = torch.optim.Adam(netD.parameters(), lr=1e-4, betas=(0.5, 0.9))
     # model = nn.DataParallel(model)
     num_param = get_param_num(model)
     Loss = FastSpeech2Loss(cfg.preprocess_config, cfg.model_config)
@@ -94,13 +100,42 @@ def main(cfg):
 
                 # Forward
                 output = model(*(batch[2:]))
+                
+                #Train Discriminator
+                D_fake_det = netD(output[10].detach())
+                D_real = netD(batch[6])
+                
+                loss_D = 0
+                for scale in D_fake_det:
+                    loss_D += F.relu(1 + scale[-1]).mean()
+
+                for scale in D_real:
+                    loss_D += F.relu(1 - scale[-1]).mean()
+
+                loss_D.backward()
+                
+                
+                if step % grad_acc_step == 0:
+                    # Clipping gradients to avoid gradient explosion
+
+                    # Update weights
+                    nn.utils.clip_grad_norm_(
+                        netD.parameters(), grad_clip_thresh
+                    )
+                    optD.step()
+                    optD.zero_grad()
 
                 # Cal Loss
+                D_fake = netD(output[10])
+                loss_G = 0
+                for scale in D_fake:
+                    loss_G += -scale[-1].mean()
+                    
                 losses = Loss(batch, output)
                 total_loss = losses[0]
 
                 # Backward
-                total_loss = total_loss / grad_acc_step
+                total_loss = (total_loss / grad_acc_step) + (loss_G / grad_acc_step)
                 total_loss.backward()
                 losses = [l / grad_acc_step for l in losses[1:]]
                 # optimizer.pc_backward(losses)
