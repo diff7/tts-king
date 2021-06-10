@@ -113,17 +113,12 @@ def main(cfg):
                     loss_D += F.relu(1 - scale[-1]).mean()
 
                 loss_D.backward()
-                
-                
-                if step % grad_acc_step == 0:
-                    # Clipping gradients to avoid gradient explosion
-
-                    # Update weights
-                    nn.utils.clip_grad_norm_(
+                nn.utils.clip_grad_norm_(
                         netD.parameters(), grad_clip_thresh
                     )
-                    optD.step()
-                    optD.zero_grad()
+                optD.step()
+                optD.zero_grad()
+                    
 
                 # Cal Loss
                 D_fake = netD(output[10])
