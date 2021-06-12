@@ -93,7 +93,8 @@ def main(cfg):
     outer_bar.update()
 
     print("RUN SANITY CHECK EVAL:")
-    message = evaluate(model, 0, cfg, logger, "val", vocoder, cfg.gpu)
+    if cfg.run_debug_eval:
+        message = evaluate(model, 0, cfg, logger, "val", vocoder, cfg.gpu)
 
     while True:
         inner_bar = tqdm(
