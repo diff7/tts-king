@@ -86,7 +86,6 @@ def log(
     losses_names = ["Loss/total_loss",
     "Loss/mel_loss",
     "Loss/pitch_loss",
-    "Loss/pitch_loss",
     "Loss/energy_loss",
     "Loss/duration_loss ",
     "Loss G",
