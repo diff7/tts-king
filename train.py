@@ -93,7 +93,8 @@ def main(cfg):
     outer_bar.update()
 
     print("RUN SANITY CHECK EVAL:")
-    message = evaluate(model, 0, cfg, logger, "val", vocoder, cfg.gpu)
+    if cfg.run_debug_eval:
+        message = evaluate(model, 0, cfg, logger, "val", vocoder, cfg.gpu)
 
     while True:
         inner_bar = tqdm(
@@ -109,7 +110,7 @@ def main(cfg):
                 # LET DESCRIMINATOR OUTPERFORM MODEL AT THE BEGGINING
                 if step % descriminator_step != 0:
                     #Train Discriminator
-                    D_fake_det = netD(output[10].detach())
+                    D_fake_det = netD(output[9].detach())
                     D_real = netD(batch[6])
                     
                     loss_D = 0
@@ -131,7 +132,7 @@ def main(cfg):
                     
 
                 # Cal Loss
-                D_fake = netD(output[10])
+                D_fake = netD(output[9])
                 loss_G = 0
                 for scale in D_fake:
                     loss_G += -scale[-1].mean()
