@@ -1,11 +1,6 @@
-<<<<<<< HEAD
 exp_name: 'gan'
 gpu: 0
-=======
-exp_name: rev_grad
-gpu: 'cpu'
 run_debug_eval: false
->>>>>>> d07c2f4f3adc864053a31f932bc586d3ae60f852
 logger:
   offline: true
   wandb_key: "beca9453c7ef6a20e21d5705275a0ff72842cbf3"
