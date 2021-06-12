@@ -140,9 +140,11 @@ def main(cfg):
                     total_loss = losses[0]
 
                     # Backward
-                    total_loss = (total_loss / grad_acc_step) + (loss_G / grad_acc_step)
+                    gra_div = (grad_acc_step*int(step < descriminator_leg_up),1)
+
+                    total_loss = (total_loss / gra_div) + (loss_G / gra_div)
                     total_loss.backward()
-                    losses = [l / grad_acc_step for l in losses[1:]]+[loss_G] + [loss_D]
+                    losses = [l / gra_div for l in losses[1:]]+[loss_G] + [loss_D]
                     # optimizer.pc_backward(losses)
 
                 if step % grad_acc_step == 0:
