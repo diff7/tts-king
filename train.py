@@ -16,7 +16,7 @@ from hifiapi import HIFIapi
 from fs_two.utils.model import get_model, get_param_num
 from fs_two.utils.tools import to_device, log, synth_one_sample
 from fs_two.model import FastSpeech2Loss
-from fs_two.gan import Discriminator
+from fs_two.model.gan import Discriminator
 from fs_two.dataset import Dataset
 from fs_two.evaluate import evaluate
 
