@@ -63,8 +63,8 @@ train_config:
     anneal_steps: [300000, 400000, 500000]
     anneal_rate: 0.3
   descriminator:
-    step: 4
-    leg_up: 5000
+    step: 5
+    leg_up: -1
   step:
     total_step: 900000
     log_step: 100

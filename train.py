@@ -166,7 +166,6 @@ def main(cfg):
                                 Pitch Loss: {:.4f}, 
                                 Energy Loss: {:.4f}, 
                                 Duration Loss: {:.4f}
-                                Duration Loss: {:.4f},
                                 Loss_G: {:.4f},
                                 Loss_D: {:.4f},
                                 """.format(
