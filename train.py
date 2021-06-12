@@ -129,7 +129,7 @@ def main(cfg):
                     
                 # LET DESCRIMINATOR OUTPERFORM MODEL AT THE BEGGINING #
                 # SLOW DOWN MAIN MODEL A BIT #
-                if (step % descriminator_step != 0) or (step < descriminator_leg_up):
+                if (step % descriminator_step == 0) or (step < descriminator_leg_up):
                     # Cal Loss
                     D_fake = netD(output[9])
                     loss_G = 0
@@ -144,7 +144,7 @@ def main(cfg):
                     total_loss.backward()
                     losses = [l / grad_acc_step for l in losses[1:]]+[loss_G] + [loss_D]
                     # optimizer.pc_backward(losses)
-                    
+
                 if step % grad_acc_step == 0:
                     # Clipping gradients to avoid gradient explosion
 
