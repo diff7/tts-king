@@ -83,19 +83,19 @@ def log(
     sampling_rate=22050,
     tag="",
 ):
+    losses_names = ["Loss/total_loss",
+    "Loss/mel_loss",
+    "Loss/pitch_loss",
+    "Loss/pitch_loss",
+    "Loss/energy_loss",
+    "Loss/duration_loss ",
+    "Loss G",
+    "Loss D",]
+
+
     if losses is not None:
-        logger.log(
-            {f"Loss/total_loss {train_val.upper()}": losses[0], 
-            f"Loss/mel_loss {train_val.upper()}": 
-            losses[1], 
-            f"Loss/pitch_loss {train_val.upper()}": 
-            losses[2], 
-            f"Loss/energy_loss {train_val.upper()}": losses[3], 
-            f"Loss/duration_loss {train_val.upper()}": losses[4],
-            f"Loss G {train_val.upper()}": losses[5],
-            f"Loss D {train_val.upper()}": losses[6],
-            }
-        )
+        log_message = {f'{losses_names[i] {train_val.upper()}}':losses[i] for i in range(len(losses))}
+        logger.log(log_message)
 
 
     if fig is not None:
