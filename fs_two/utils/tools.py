@@ -94,7 +94,7 @@ def log(
 
 
     if losses is not None:
-        log_message = {f'{losses_names[i]} {train_val.upper()}}':losses[i] for i in range(len(losses))}
+        log_message = {f'{losses_names[i]} {train_val.upper()}':losses[i] for i in range(len(losses))}
         logger.log(log_message)
 
 
