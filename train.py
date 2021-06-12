@@ -116,10 +116,10 @@ def main(cfg):
                     
                     loss_D = 0
                     for scale in D_fake_det:
-                        loss_D += F.relu(1 + scale[-1]).mean()
+                        loss_D += F.relu((1 + scale[-1])**2).mean()
 
                     for scale in D_real:
-                        loss_D += F.relu(1 - scale[-1]).mean()
+                        loss_D += F.relu((1 - scale[-1])**2).mean()
 
                     loss_D.backward()
                     nn.utils.clip_grad_norm_(
