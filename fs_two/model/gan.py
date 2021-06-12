@@ -88,6 +88,7 @@ class Discriminator(nn.Module):
         self.apply(weights_init)
 
     def forward(self, x):
+        print('SHAPE', x.shape)
         results = []
         for i, disc in enumerate(self.model):
             results.append(disc(x))

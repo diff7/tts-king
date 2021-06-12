@@ -92,8 +92,9 @@ def main(cfg):
     outer_bar.n = cfg.tts.restore_step
     outer_bar.update()
 
-    print("RUN SANITY CHECK EVAL:")
+    
     if cfg.run_debug_eval:
+        print("RUN SANITY CHECK EVAL:")
         message = evaluate(model, 0, cfg, logger, "val", vocoder, cfg.gpu)
 
     while True:
