@@ -1,4 +1,4 @@
-exp_name: masked_II
+exp_name: 'gan'
 gpu: 0
 logger:
   offline: false
@@ -48,9 +48,9 @@ hifi:
 
 train_config:
   path:
-    ckpt_path: "../output/ckpt/masked"
-    log_path: "../output/log/masked"
-    result_path: "../output/result/masked"
+    ckpt_path: "../output/ckpt/gan"
+    log_path: "../output/log/gan"
+    result_path: "../output/result/gan"
   optimizer:
     batch_size: 16
     betas: [0.95, 0.999]
