@@ -109,7 +109,7 @@ def main(cfg):
                 output = model(*(batch[2:]))
                 
                 # LET DESCRIMINATOR OUTPERFORM MODEL AT THE BEGGINING
-                if step % descriminator_step != 0:
+                if (step % descriminator_step != 0) or (step < descriminator_leg_up):
                     #Train Discriminator
                     D_fake_det = netD(output[9].detach())
                     D_real = netD(batch[6])
@@ -127,9 +127,6 @@ def main(cfg):
                         )
                     optD.step()
                     optD.zero_grad()
-
-                    if step < descriminator_leg_up: 
-                        continue
                     
 
                 # Cal Loss
