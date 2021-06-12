@@ -19,7 +19,7 @@ def WNConv1d(*args, **kwargs):
     return weight_norm(nn.Conv1d(*args, **kwargs))
 
 class NLayerDiscriminator(nn.Module):
-    def __init__(self, ndf, n_layers, downsampling_factor, last=False):
+    def __init__(self,inut_dim,  ndf, n_layers, downsampling_factor, last=False):
         super().__init__()
         model = nn.ModuleDict()
 
