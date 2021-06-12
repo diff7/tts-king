@@ -108,41 +108,43 @@ def main(cfg):
                 # Forward
                 output = model(*(batch[2:]))
                 
-                # LET DESCRIMINATOR OUTPERFORM MODEL AT THE BEGGINING
+              
+                #Train Discriminator
+                D_fake_det = netD(output[9].detach())
+                D_real = netD(batch[6])
+                
+                loss_D = 0
+                for scale in D_fake_det:
+                    loss_D += F.relu((1 + scale[-1])**2).mean()
+
+                for scale in D_real:
+                    loss_D += F.relu((1 - scale[-1])**2).mean()
+
+                loss_D.backward()
+                nn.utils.clip_grad_norm_(
+                        netD.parameters(), grad_clip_thresh
+                    )
+                optD.step()
+                optD.zero_grad()
+                    
+                # LET DESCRIMINATOR OUTPERFORM MODEL AT THE BEGGINING #
+                # SLOW DOWN MAIN MODEL A BIT #
                 if (step % descriminator_step != 0) or (step < descriminator_leg_up):
-                    #Train Discriminator
-                    D_fake_det = netD(output[9].detach())
-                    D_real = netD(batch[6])
+                    # Cal Loss
+                    D_fake = netD(output[9])
+                    loss_G = 0
+                    for scale in D_fake:
+                        loss_G += -scale[-1].mean()
+                        
+                    losses = Loss(batch, output)
+                    total_loss = losses[0]
+
+                    # Backward
+                    total_loss = (total_loss / grad_acc_step) + (loss_G / grad_acc_step)
+                    total_loss.backward()
+                    losses = [l / grad_acc_step for l in losses[1:]]+[loss_G] + [loss_D]
+                    # optimizer.pc_backward(losses)
                     
-                    loss_D = 0
-                    for scale in D_fake_det:
-                        loss_D += F.relu((1 + scale[-1])**2).mean()
-
-                    for scale in D_real:
-                        loss_D += F.relu((1 - scale[-1])**2).mean()
-
-                    loss_D.backward()
-                    nn.utils.clip_grad_norm_(
-                            netD.parameters(), grad_clip_thresh
-                        )
-                    optD.step()
-                    optD.zero_grad()
-                    
-
-                # Cal Loss
-                D_fake = netD(output[9])
-                loss_G = 0
-                for scale in D_fake:
-                    loss_G += -scale[-1].mean()
-                    
-                losses = Loss(batch, output)
-                total_loss = losses[0]
-
-                # Backward
-                total_loss = (total_loss / grad_acc_step) + (loss_G / grad_acc_step)
-                total_loss.backward()
-                losses = [l / grad_acc_step for l in losses[1:]]+[loss_G] + [loss_D]
-                # optimizer.pc_backward(losses)
                 if step % grad_acc_step == 0:
                     # Clipping gradients to avoid gradient explosion
 
