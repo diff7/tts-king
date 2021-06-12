@@ -1,7 +1,7 @@
 exp_name: rev_grad
 gpu: 'cpu'
 logger:
-  offline: false
+  offline: true
   wandb_key: "beca9453c7ef6a20e21d5705275a0ff72842cbf3"
 
 
