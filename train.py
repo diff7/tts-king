@@ -140,7 +140,7 @@ def main(cfg):
                     total_loss = losses[0]
 
                     # Backward
-                    gra_div = (grad_acc_step*int(step < descriminator_leg_up),1)
+                    gra_div = max(grad_acc_step*int(step < descriminator_leg_up),1)
 
                     total_loss = (total_loss / gra_div) + (loss_G / gra_div)
                     total_loss.backward()
