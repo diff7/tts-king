@@ -39,6 +39,7 @@ def to_device(data, device="cpu"):
         pitches = torch.from_numpy(pitches).float().to(device)
         energies = torch.from_numpy(energies).to(device)
         durations = torch.from_numpy(durations).long().to(device)
+        print(mels.shape)
         return (
             ids,
             raw_texts,
