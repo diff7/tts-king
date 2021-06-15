@@ -115,10 +115,10 @@ def main(cfg):
                 step_weight = abs(m.sin(step))
 
                 D_fake = netD(output[9])
-                D_fake_det = D_fake.detach()
+                D_fake_det = [D.detach() for D in D_fake]
 
                 D_real = netD(batch[6])
-                D_real_det = D_real.detach()
+                D_real_det = [D.detach() for D in D_real]
 
                 loss_D = 0
                 for out in D_fake_det:
