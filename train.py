@@ -47,8 +47,13 @@ def main(cfg):
     # Prepare model
     model, optimizer = get_model(cfg, device, train=True)
     netD = Discriminator(
-        inut_dim=80, num_D=3, ndf=16, n_layers=4, downsampling_factor=4
+        inut_dim=cfg.inut_dim,
+        num_D=cfg.num_D,
+        ndf=cfg.ndf,
+        n_layers=cfg.n_layers,
+        downsampling_factor=cfg.downsampling_factor,
     ).to(device)
+
     optD = torch.optim.Adam(netD.parameters(), lr=1e-4, betas=(0.5, 0.9))
     # model = nn.DataParallel(model)
     num_param = get_param_num(model)
@@ -106,15 +111,17 @@ def main(cfg):
                 output = model(*(batch[2:]))
 
                 # Train Discriminator
+                step_weight = torch.abs(torch.sin(torch.tensor(step)))
+
                 D_fake_det = netD(output[9].detach())
                 D_real = netD(batch[6])
 
                 loss_D = 0
-                for scale in D_fake_det:
-                    loss_D += F.relu((1 + scale[-1]) ** 2).mean()
+                for out in D_fake_det:
+                    loss_D += step_weight * (F.relu(1 + out[-1]) ** 2).mean()
 
-                for scale in D_real:
-                    loss_D += F.relu((1 - scale[-1]) ** 2).mean()
+                for out in D_real:
+                    loss_D += step_weight * (F.relu(1 - out[-1]) ** 2).mean()
 
                 loss_D.backward()
                 nn.utils.clip_grad_norm_(netD.parameters(), grad_clip_thresh)
@@ -129,10 +136,23 @@ def main(cfg):
                     # Cal Loss
                     D_fake = netD(output[9])
                     loss_G = 0
-                    for scale in D_fake:
-                        print(scale.shape)
-                        loss_G += -scale[-1].mean()
 
+                    for out in D_fake:
+                        loss_G += (
+                            step_weight * (F.relu(1 + out[-1]) ** 2).mean()
+                        )
+
+                    loss_feat = 0
+                    feat_weights = 4.0 / (cfg.gan.n_layers + 1)
+                    D_weights = 1.0 / cfg.gan.num_D
+                    wt = D_weights * feat_weights
+                    for i in range(cfg.gan.num_D):
+                        for j in range(len(D_fake[i]) - 1):
+                            loss_feat += wt * F.l1_loss(
+                                D_fake[i][j], D_real[i][j].detach()
+                            )
+
+                    loss_G = 0.1 * step_weight * loss_feat
                     losses = Loss(batch, output)
                     total_loss = losses[0]
 
@@ -144,7 +164,6 @@ def main(cfg):
                     total_loss = (total_loss / gra_div) + (loss_G / gra_div)
                     total_loss.backward()
                     losses = [l / gra_div for l in losses[1:]]
-                    # optimizer.pc_backward(losses)
 
                 if step % grad_acc_step == 0:
                     # Clipping gradients to avoid gradient explosion

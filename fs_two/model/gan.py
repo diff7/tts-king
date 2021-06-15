@@ -1,9 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
-import torch
 from librosa.filters import mel as librosa_mel_fn
 from torch.nn.utils import weight_norm
-import numpy as np
 
 
 def weights_init(m):
@@ -18,16 +16,19 @@ def weights_init(m):
 def WNConv1d(*args, **kwargs):
     return weight_norm(nn.Conv1d(*args, **kwargs))
 
+
 class NLayerDiscriminator(nn.Module):
-    def __init__(self,inut_dim,  ndf, n_layers, downsampling_factor, last=False):
+    def __init__(
+        self, inut_dim, ndf, n_layers, downsampling_factor, last=False
+    ):
         super().__init__()
         model = nn.ModuleDict()
 
         model["layer_0"] = nn.Sequential(
             nn.ReflectionPad1d(7),
-            WNConv1d(inut_dim, inut_dim//2, kernel_size=15),
+            WNConv1d(inut_dim, inut_dim // 2, kernel_size=15),
             nn.LeakyReLU(0.2, True),
-            WNConv1d(inut_dim//2, ndf, kernel_size=15),
+            WNConv1d(inut_dim // 2, ndf, kernel_size=15),
             nn.LeakyReLU(0.2, True),
         )
 
@@ -56,7 +57,7 @@ class NLayerDiscriminator(nn.Module):
         )
         if last:
             model["layer_%d" % (n_layers + 2)] = WNConv1d(
-            nf, 1, kernel_size=3, stride=1, padding=1
+                nf, 1, kernel_size=3, stride=1, padding=1
             )
         else:
             model["layer_%d" % (n_layers + 2)] = WNConv1d(
@@ -66,31 +67,37 @@ class NLayerDiscriminator(nn.Module):
         self.model = model
 
     def forward(self, x):
-        results = []
+        features = []
         for key, layer in self.model.items():
             x = layer(x)
-            results.append(x)
-        return results
+            features.append(x)
+        return x
 
 
 class Discriminator(nn.Module):
     def __init__(self, inut_dim, num_D, ndf, n_layers, downsampling_factor):
         super().__init__()
         self.model = nn.ModuleList()
-        for i in range(num_D-1):
-            self.model.append(NLayerDiscriminator(
-                inut_dim, ndf, n_layers, downsampling_factor
-            ))
-        self.model.append(NLayerDiscriminator(
+        for i in range(num_D - 1):
+            self.model.append(
+                NLayerDiscriminator(
+                    inut_dim, ndf, n_layers, downsampling_factor
+                )
+            )
+        self.model.append(
+            NLayerDiscriminator(
                 inut_dim, ndf, n_layers, downsampling_factor, True
-            ))
-        self.downsample = nn.AvgPool1d(4, stride=2, padding=1, count_include_pad=False)
+            )
+        )
+        self.downsample = nn.AvgPool1d(
+            4, stride=2, padding=1, count_include_pad=False
+        )
         self.apply(weights_init)
 
     def forward(self, x):
-        x = x.transpose(2,1)
+        x = x.transpose(2, 1)
         results = []
-        for i, disc in enumerate(self.model):
+        for disc in self.model:
             results.append(disc(x))
             x = self.downsample(x)
         return results
