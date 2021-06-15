@@ -115,17 +115,16 @@ def main(cfg):
                 step_weight = abs(m.sin(step))
 
                 D_fake = netD(output[9])
-                D_fake_det = [D.detach() for D in D_fake]
-
                 D_real = netD(batch[6])
-                D_real_det = [D.detach() for D in D_real]
 
                 loss_D = 0
-                for out in D_fake_det:
-                    loss_D += step_weight * (F.relu(1 + out[-1]) ** 2).mean()
+                for out in D_fake:
+                    out = out[-1].detach()
+                    loss_D += step_weight * (F.relu(1 + out) ** 2).mean()
 
                 for out in D_real:
-                    loss_D += step_weight * (F.relu(1 - out[-1]) ** 2).mean()
+                    out = out[-1]
+                    loss_D += step_weight * (F.relu(1 - out) ** 2).mean()
 
                 loss_D.backward()
                 nn.utils.clip_grad_norm_(netD.parameters(), grad_clip_thresh)
@@ -154,9 +153,9 @@ def main(cfg):
                     wt = D_weights * feat_weights
                     for i in range(cfg.gan.num_D):
                         for j in range(len(D_fake[i]) - 1):
-                            print(D_fake[i][j].shape, D_real_det[i][j].shape)
+                            print(D_fake[i][j].shape, D_real[i][j].shape)
                             loss_feat += wt * F.l1_loss(
-                                D_fake[i][j], D_real_det[i][j]
+                                D_fake[i][j], D_real[i][j].detach()
                             )
 
                     loss_G = 0.1 * step_weight * loss_feat
