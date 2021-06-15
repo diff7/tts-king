@@ -2,7 +2,7 @@ exp_name: 'gan'
 gpu: 0
 run_debug_eval: false
 logger:
-  offline: true
+  offline: false
   wandb_key: "beca9453c7ef6a20e21d5705275a0ff72842cbf3"
 
 
@@ -63,11 +63,11 @@ train_config:
     anneal_steps: [300000, 400000, 500000]
     anneal_rate: 0.3
   descriminator:
-    step: 5
-    leg_up: -1
+    step: 4  # SLOW DWON GENERATOR
+    leg_up: 16000
   step:
     total_step: 900000
-    log_step: 10
+    log_step: 100
     synth_step: 1000
     val_step: 1000
     save_step: 5000
