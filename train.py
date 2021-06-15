@@ -117,6 +117,7 @@ def main(cfg):
                 D_fake = netD(output[9])
                 D_real = netD(batch[6])
 
+                print(output[9].shape, output[6].shape)
                 loss_D = 0
                 for out in D_fake:
                     out = out[-1].detach()
