@@ -143,8 +143,8 @@ def main(cfg):
 
                     loss_G = 0
 
-                    D_fake = netD(output[9])
-                    D_real = netD(batch[6])
+                    # D_fake = netD(output[9])
+                    # D_real = netD(batch[6])
 
                     for out in D_fake:
                         loss_G += (
