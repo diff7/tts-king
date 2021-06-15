@@ -141,3 +141,10 @@ model_config:
     model: "HiFi-GAN" # support 'HiFi-GAN', 'MelGAN'
     speaker: "universal" # support  'LJSpeech', 'universal'
     use_cpu: true
+
+gan:
+  n_layers: 4
+  num_D: 3
+  inut_dim: 80
+  ndf: 16
+  downsampling_factor: 4
