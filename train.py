@@ -46,11 +46,9 @@ def main(cfg):
 
     # Prepare model
     model, optimizer = get_model(cfg, device, train=True)
-    netD = Discriminator(inut_dim=80,
-        num_D = 3, 
-        ndf = 16,
-        n_layers = 4, 
-        downsampling_factor = 4).to(device)
+    netD = Discriminator(
+        inut_dim=80, num_D=3, ndf=16, n_layers=4, downsampling_factor=4
+    ).to(device)
     optD = torch.optim.Adam(netD.parameters(), lr=1e-4, betas=(0.5, 0.9))
     # model = nn.DataParallel(model)
     num_param = get_param_num(model)
@@ -92,7 +90,6 @@ def main(cfg):
     outer_bar.n = cfg.tts.restore_step
     outer_bar.update()
 
-    
     if cfg.run_debug_eval:
         print("RUN SANITY CHECK EVAL:")
         message = evaluate(model, 0, cfg, logger, "val", vocoder, cfg.gpu)
@@ -107,44 +104,46 @@ def main(cfg):
 
                 # Forward
                 output = model(*(batch[2:]))
-                
-              
-                #Train Discriminator
+
+                # Train Discriminator
                 D_fake_det = netD(output[9].detach())
                 D_real = netD(batch[6])
-                
+
                 loss_D = 0
                 for scale in D_fake_det:
-                    loss_D += F.relu((1 + scale[-1])**2).mean()
+                    loss_D += F.relu((1 + scale[-1]) ** 2).mean()
 
                 for scale in D_real:
-                    loss_D += F.relu((1 - scale[-1])**2).mean()
+                    loss_D += F.relu((1 - scale[-1]) ** 2).mean()
 
                 loss_D.backward()
-                nn.utils.clip_grad_norm_(
-                        netD.parameters(), grad_clip_thresh
-                    )
+                nn.utils.clip_grad_norm_(netD.parameters(), grad_clip_thresh)
                 optD.step()
                 optD.zero_grad()
-                    
+
                 # LET DESCRIMINATOR OUTPERFORM MODEL AT THE BEGGINING #
                 # SLOW DOWN MAIN MODEL A BIT #
-                if (step % descriminator_step == 0) or (step < descriminator_leg_up):
+                if (step % descriminator_step == 0) or (
+                    step < descriminator_leg_up
+                ):
                     # Cal Loss
                     D_fake = netD(output[9])
                     loss_G = 0
                     for scale in D_fake:
+                        print(scale.shape)
                         loss_G += -scale[-1].mean()
-                        
+
                     losses = Loss(batch, output)
                     total_loss = losses[0]
 
                     # Backward
-                    gra_div = max(grad_acc_step*int(step < descriminator_leg_up),1)
+                    gra_div = max(
+                        grad_acc_step * int(step < descriminator_leg_up), 1
+                    )
 
                     total_loss = (total_loss / gra_div) + (loss_G / gra_div)
                     total_loss.backward()
-                    losses = [l / gra_div for l in losses[1:]]+[loss_G] + [loss_D]
+                    losses = [l / gra_div for l in losses[1:]]
                     # optimizer.pc_backward(losses)
 
                 if step % grad_acc_step == 0:
@@ -160,7 +159,7 @@ def main(cfg):
 
                 if step % log_step == 0:
                     losses = [l.item() for l in losses]
-                    losses = [sum(losses)] + losses
+                    losses = [sum(losses)] + losses + [loss_G] + [loss_D]
                     message1 = "Step {}/{}, ".format(step, total_step)
                     message2 = """Total Loss: {:.4f}, 
                                 Mel Loss: {:.4f}, 
