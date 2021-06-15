@@ -143,6 +143,9 @@ def main(cfg):
 
                     loss_G = 0
 
+                    D_fake = netD(output[9])
+                    D_real = netD(batch[6])
+
                     for out in D_fake:
                         loss_G += (
                             step_weight * (F.relu(1 + out[-1]) ** 2).mean()
@@ -154,7 +157,7 @@ def main(cfg):
                     wt = D_weights * feat_weights
                     for i in range(cfg.gan.num_D):
                         for j in range(len(D_fake[i]) - 1):
-                            print(D_fake[i][j].shape, D_real[i][j].shape)
+                            # print(D_fake[i][j].shape, D_real[i][j].shape)
                             loss_feat += wt * F.l1_loss(
                                 D_fake[i][j], D_real[i][j].detach()
                             )
