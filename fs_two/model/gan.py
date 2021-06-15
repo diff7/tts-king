@@ -67,11 +67,11 @@ class NLayerDiscriminator(nn.Module):
         self.model = model
 
     def forward(self, x):
-        features = []
+        results = []
         for key, layer in self.model.items():
             x = layer(x)
-            features.append(x)
-        return x
+            results.append(x)
+        return results
 
 
 class Discriminator(nn.Module):
