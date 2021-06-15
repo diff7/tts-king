@@ -39,7 +39,7 @@ def to_device(data, device="cpu"):
         pitches = torch.from_numpy(pitches).float().to(device)
         energies = torch.from_numpy(energies).to(device)
         durations = torch.from_numpy(durations).long().to(device)
-
+        print(mels.shape)
         return (
             ids,
             raw_texts,
@@ -83,19 +83,22 @@ def log(
     sampling_rate=22050,
     tag="",
 ):
-    losses_names = ["Loss/total_loss",
-    "Loss/mel_loss",
-    "Loss/pitch_loss",
-    "Loss/energy_loss",
-    "Loss/duration_loss ",
-    "Loss G",
-    "Loss D",]
-
+    losses_names = [
+        "Loss/total_loss",
+        "Loss/mel_loss",
+        "Loss/pitch_loss",
+        "Loss/energy_loss",
+        "Loss/duration_loss ",
+        "Loss G",
+        "Loss D",
+    ]
 
     if losses is not None:
-        log_message = {f'{losses_names[i]} {train_val.upper()}':losses[i] for i in range(len(losses))}
+        log_message = {
+            f"{losses_names[i]} {train_val.upper()}": losses[i]
+            for i in range(len(losses))
+        }
         logger.log(log_message)
-
 
     if fig is not None:
         logger.log({f"Spec {train_val.upper()}": fig})
@@ -281,8 +284,7 @@ def plot_mel(data, stats, titles):
         axes[i][0].set_aspect(2.5, adjustable="box")
         axes[i][0].set_ylim(0, mel.shape[0])
         axes[i][0].set_title(titles[i], fontsize="medium")
-        axes[i][0].tick_params(labelsize="x-small",
-                               left=False, labelleft=False)
+        axes[i][0].tick_params(labelsize="x-small", left=False, labelleft=False)
         axes[i][0].set_anchor("W")
 
         ax1 = add_axis(fig, axes[i][0])
