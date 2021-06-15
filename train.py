@@ -114,11 +114,14 @@ def main(cfg):
                 # Train Discriminator
                 step_weight = abs(m.sin(step))
 
-                D_fake = netD(output[9].detach())
+                D_fake = netD(output[9])
+                D_fake_det = D_fake.detach()
+
                 D_real = netD(batch[6])
+                D_real_det = D_real.detach()
 
                 loss_D = 0
-                for out in D_fake:
+                for out in D_fake_det:
                     loss_D += step_weight * (F.relu(1 + out[-1]) ** 2).mean()
 
                 for out in D_real:
@@ -135,6 +138,9 @@ def main(cfg):
                     step < descriminator_leg_up
                 ):
                     # Cal Loss
+                    # D_fake = netD(output[9])
+                    # D_real = netD(batch[6]).detach()
+
                     loss_G = 0
 
                     for out in D_fake:
@@ -148,9 +154,9 @@ def main(cfg):
                     wt = D_weights * feat_weights
                     for i in range(cfg.gan.num_D):
                         for j in range(len(D_fake[i]) - 1):
-                            # print(D_fake[i][j].shape, D_real[i][j].shape)
+                            print(D_fake[i][j].shape, D_real_det[i][j].shape)
                             loss_feat += wt * F.l1_loss(
-                                D_fake[i][j], D_real[i][j].detach()
+                                D_fake[i][j], D_real_det[i][j]
                             )
 
                     loss_G = 0.1 * step_weight * loss_feat
