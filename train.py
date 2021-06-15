@@ -47,11 +47,11 @@ def main(cfg):
     # Prepare model
     model, optimizer = get_model(cfg, device, train=True)
     netD = Discriminator(
-        inut_dim=cfg.inut_dim,
-        num_D=cfg.num_D,
-        ndf=cfg.ndf,
-        n_layers=cfg.n_layers,
-        downsampling_factor=cfg.downsampling_factor,
+        inut_dim=cfg.gan.inut_dim,
+        num_D=cfg.gan.num_D,
+        ndf=cfg.gan.ndf,
+        n_layers=cfg.gan.n_layers,
+        downsampling_factor=cfg.gan.downsampling_factor,
     ).to(device)
 
     optD = torch.optim.Adam(netD.parameters(), lr=1e-4, betas=(0.5, 0.9))
