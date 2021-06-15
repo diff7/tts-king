@@ -1,6 +1,7 @@
 import os
 
 import torch
+import math as m
 import torch.nn.functional as F
 import torch.nn as nn
 from torch.utils.data import DataLoader
@@ -111,7 +112,7 @@ def main(cfg):
                 output = model(*(batch[2:]))
 
                 # Train Discriminator
-                step_weight = torch.abs(torch.sin(torch.tensor(step)))
+                step_weight = abs(m.sin(step))
 
                 D_fake_det = netD(output[9].detach())
                 D_real = netD(batch[6])
