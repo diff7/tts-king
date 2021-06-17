@@ -155,9 +155,6 @@ def main(cfg):
                         loss_G += torch.mean((1-out[-1])**2)
 
                     loss_feat = 0
-                    feat_weights = 4.0 / (cfg.gan.n_layers + 1)
-                    D_weights = 1.0 / cfg.gan.num_D
-                    wt = D_weights * feat_weights
                     for i in range(cfg.gan.num_D):
                         for j in range(len(D_fake[i]) - 1):
                             loss_feat += torch.mean(
