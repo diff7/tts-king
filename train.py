@@ -133,12 +133,10 @@ def main(cfg):
 
                 loss_D = 0
                 for out in D_fake_det:
-                    out = out[-1]
-                    loss_D += F.relu(1 + out).mean()
+                    loss_D += torch.mean(out[-1]**2)
 
                 for out in D_real:
-                    out = out[-1]
-                    loss_D += F.relu(1 - out).mean()
+                    loss_D += torch.mean((1-out[-1])**2)
 
                 loss_D.backward()
                 nn.utils.clip_grad_norm_(netD.parameters(), grad_clip_thresh)
