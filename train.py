@@ -67,7 +67,8 @@ def main(cfg):
     # Init logger
     for p in cfg.train_config["path"].values():
         os.makedirs(p, exist_ok=True)
-    train_log_path = os.path.join(cfg.train_config["path"]["log_path"], "train")
+    train_log_path = os.path.join(
+        cfg.train_config["path"]["log_path"], "train")
     val_log_path = os.path.join(cfg.train_config["path"]["log_path"], "val")
     os.makedirs(train_log_path, exist_ok=True)
     os.makedirs(val_log_path, exist_ok=True)
@@ -111,21 +112,33 @@ def main(cfg):
                 # Forward
                 output = model(*(batch[2:]))
 
+                # misc
+                mel_targets = batch[6]
+                mel_masks = output[6]
+                mel_output = output[9]
+                mel_targets = mel_targets[:, : mel_masks.shape[1], :]
+                mel_masks = mel_masks[:, : mel_masks.shape[1]]
+                mel_targets.requires_grad = False
+                mel_output = mel_output.masked_select(
+                    mel_masks.unsqueeze(-1)
+                )
+                mel_targets = mel_targets.masked_select(
+                    mel_masks.unsqueeze(-1))
+
                 # Train Discriminator
-                step_weight = abs(m.sin(step))
+                #step_weight = abs(m.sin(step))
 
-                D_fake = netD(output[9])
-                D_real = netD(batch[6])
+                D_fake_det = netD(mel_output.detach())
+                D_real = netD(mel_targets)
 
-                print(output[9].shape, output[6].shape)
                 loss_D = 0
-                for out in D_fake:
-                    out = out[-1].detach()
-                    loss_D += step_weight * (F.relu(1 + out) ** 2).mean()
+                for out in D_fake_det:
+                    out = out[-1]
+                    loss_D += F.relu(1 + out).mean()
 
                 for out in D_real:
                     out = out[-1]
-                    loss_D += step_weight * (F.relu(1 - out) ** 2).mean()
+                    loss_D += F.relu(1 - out).mean()
 
                 loss_D.backward()
                 nn.utils.clip_grad_norm_(netD.parameters(), grad_clip_thresh)
@@ -137,19 +150,11 @@ def main(cfg):
                 if (step % descriminator_step == 0) or (
                     step < descriminator_leg_up
                 ):
-                    # Cal Loss
-                    # D_fake = netD(output[9])
-                    # D_real = netD(batch[6]).detach()
 
+                    D_fake = netD(mel_output)
                     loss_G = 0
-
-                    # D_fake = netD(output[9])
-                    # D_real = netD(batch[6])
-
                     for out in D_fake:
-                        loss_G += (
-                            step_weight * (F.relu(1 + out[-1]) ** 2).mean()
-                        )
+                        loss_G += torch.mean((1-out[-1])**2)
 
                     loss_feat = 0
                     feat_weights = 4.0 / (cfg.gan.n_layers + 1)
@@ -157,12 +162,10 @@ def main(cfg):
                     wt = D_weights * feat_weights
                     for i in range(cfg.gan.num_D):
                         for j in range(len(D_fake[i]) - 1):
-                            # print(D_fake[i][j].shape, D_real[i][j].shape)
-                            loss_feat += wt * F.l1_loss(
-                                D_fake[i][j], D_real[i][j].detach()
-                            )
+                            loss_feat += torch.mean(
+                                torch.abs(D_fake[i][j] - D_real[i][j].detach()))
 
-                    loss_G = 0.1 * step_weight * loss_feat
+                    loss_G = loss_G + 0.1 * loss_feat
                     losses = Loss(batch, output)
                     total_loss = losses[0]
 
@@ -171,9 +174,9 @@ def main(cfg):
                         grad_acc_step * int(step < descriminator_leg_up), 1
                     )
 
-                    total_loss = (total_loss / gra_div) + (loss_G / gra_div)
+                    total_loss = (total_loss + loss_G) / gra_div
                     total_loss.backward()
-                    losses = [l / gra_div for l in losses[1:]]
+                    losses = [l.item() / gra_div for l in losses[1:]]
 
                 if step % grad_acc_step == 0:
                     # Clipping gradients to avoid gradient explosion
@@ -246,7 +249,8 @@ def main(cfg):
                         "train",
                         audio=wav_prediction,
                         sampling_rate=sampling_rate,
-                        tag="Training/step_{}_{}_synthesized".format(step, tag),
+                        tag="Training/step_{}_{}_synthesized".format(
+                            step, tag),
                     )
 
                 if step % val_step == 0:
