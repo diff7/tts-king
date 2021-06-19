@@ -37,6 +37,8 @@ def train_descriminator(output, batch, optD, netD, cfg):
 
     # print(mel_targets.shape, mel_output.shape)
     mel_targets.requires_grad = False
+    mel_masks.requires_grad = False
+
     mel_output = mel_output * mel_masks
     mel_targets = mel_targets * mel_masks
 
@@ -94,7 +96,7 @@ def main_train_step(
                 torch.abs(D_fake[i][j] - D_real[i][j].detach())
             )
 
-    loss_G = loss_G + 0.1 * loss_feat
+    loss_G = 0.01 * loss_G + 0.1 * loss_feat
     losses = Loss(batch, output)
     total_loss = losses[0]
 
