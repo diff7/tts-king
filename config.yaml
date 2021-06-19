@@ -1,8 +1,8 @@
 exp_name: 'gan'
-gpu: 0
+gpu: 2
 run_debug_eval: false
 logger:
-  offline: true
+  offline: false
   wandb_key: "beca9453c7ef6a20e21d5705275a0ff72842cbf3"
 
 
@@ -50,7 +50,6 @@ hifi:
 train_config:
   path:
     ckpt_path: "../output/ckpt/gan"
-    log_path: "../output/log/gan"
     result_path: "../output/result/gan"
   optimizer:
     batch_size: 16
@@ -62,12 +61,12 @@ train_config:
     warm_up_step: 4000
     anneal_steps: [300000, 400000, 500000]
     anneal_rate: 0.3
-  descriminator:
-    step: 4  # SLOW DWON GENERATOR
-    leg_up: 16000
+  descriminator: # DEPRICATED
+    step: 4  # SLOW DWON GENERATOR # DEPRICATED
+    leg_up: 16000  # DEPRICATED
   step:
     total_step: 900000
-    log_step: 100
+    log_step: 10
     synth_step: 1000
     val_step: 1000
     save_step: 5000

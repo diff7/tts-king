@@ -69,6 +69,7 @@ class NLayerDiscriminator(nn.Module):
     def forward(self, x):
         results = []
         for key, layer in self.model.items():
+            # print(f"{key} X SHAPE: {x.shape}")
             x = layer(x)
             results.append(x)
         return results
