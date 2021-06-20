@@ -96,7 +96,7 @@ def main_train_step(
                 torch.abs(D_fake[i][j] - D_real[i][j].detach())
             )
 
-    loss_G = 0.01 * loss_G + 0.1 * loss_feat
+    loss_G = loss_G + 0.01 * loss_feat
     losses = Loss(batch, output)
     total_loss = losses[0]
 
@@ -124,10 +124,10 @@ def train_logger(
 
     losses = [sum(losses)] + losses + [loss_G] + [loss_D]
     message1 = "Step {}/{}, ".format(step, total_step)
-    message2 = """Total Loss: {:.4f}, 
-                Mel Loss: {:.4f}, 
-                Pitch Loss: {:.4f}, 
-                Energy Loss: {:.4f}, 
+    message2 = """Total Loss: {:.4f},
+                Mel Loss: {:.4f},
+                Pitch Loss: {:.4f},
+                Energy Loss: {:.4f},
                 Duration Loss: {:.4f}
                 Loss_G: {:.4f},
                 Loss_D: {:.4f},

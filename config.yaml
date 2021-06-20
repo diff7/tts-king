@@ -1,4 +1,4 @@
-exp_name: 'gan'
+exp_name: 'gan_loss_high'
 gpu: 2
 run_debug_eval: false
 logger:
