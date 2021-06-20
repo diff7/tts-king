@@ -33,14 +33,14 @@ def train_descriminator(output, batch, optD, netD, cfg):
     # reshape = lambda x: x.reshape(mel_output.shape[0], -1, mel_output.shape[-1])
 
     mel_targets = mel_targets[:, : mel_masks.shape[1], :]
-    mel_masks = mel_masks[:, : mel_masks.shape[1]].unsqueeze(-1)
+    #mel_masks = mel_masks[:, : mel_masks.shape[1]].unsqueeze(-1)
 
     # print(mel_targets.shape, mel_output.shape)
-    mel_targets.requires_grad = False
-    mel_masks.requires_grad = False
+    #mel_targets.requires_grad = False
+    #mel_masks.requires_grad = False
 
-    mel_output = mel_output * mel_masks
-    mel_targets = mel_targets * mel_masks
+    #mel_output = mel_output * mel_masks
+    #mel_targets = mel_targets * mel_masks
 
     # print("MELS: ", mel_output.shape, mel_targets.shape)
 
@@ -96,7 +96,7 @@ def main_train_step(
                 torch.abs(D_fake[i][j] - D_real[i][j].detach())
             )
 
-    loss_G = loss_G + 0.01 * loss_feat
+    loss_G = loss_G + 0.1 * loss_feat
     losses = Loss(batch, output)
     total_loss = losses[0]
 
