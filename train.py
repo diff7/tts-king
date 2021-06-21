@@ -22,7 +22,7 @@ from fs_two.dataset import Dataset
 from fs_two.evaluate import evaluate
 
 
-def train_descriminator(output, batch, optD, netD, cfg):
+def train_descriminator(output, batch, optD, netD, cfg, step):
     grad_clip_thresh = cfg.train_config["optimizer"]["grad_clip_thresh"]
     # misc
     mel_targets = batch[6]
@@ -33,14 +33,14 @@ def train_descriminator(output, batch, optD, netD, cfg):
     # reshape = lambda x: x.reshape(mel_output.shape[0], -1, mel_output.shape[-1])
 
     mel_targets = mel_targets[:, : mel_masks.shape[1], :]
-    #mel_masks = mel_masks[:, : mel_masks.shape[1]].unsqueeze(-1)
+    # mel_masks = mel_masks[:, : mel_masks.shape[1]].unsqueeze(-1)
 
     # print(mel_targets.shape, mel_output.shape)
-    #mel_targets.requires_grad = False
-    #mel_masks.requires_grad = False
+    # mel_targets.requires_grad = False
+    # mel_masks.requires_grad = False
 
-    #mel_output = mel_output * mel_masks
-    #mel_targets = mel_targets * mel_masks
+    # mel_output = mel_output * mel_masks
+    # mel_targets = mel_targets * mel_masks
 
     # print("MELS: ", mel_output.shape, mel_targets.shape)
 
@@ -52,10 +52,10 @@ def train_descriminator(output, batch, optD, netD, cfg):
 
     loss_D = 0
     for out in D_fake_det:
-        loss_D += (F.relu(1 + out[-1]) ** 2).mean()
+        loss_D += m.sin(step / 30) * (F.relu(1 + out[-1]) ** 2).mean()
 
     for out in D_real:
-        loss_D += (F.relu(1 - out[-1]) ** 2).mean()
+        loss_D += m.sin(step / 30) * (F.relu(1 - out[-1]) ** 2).mean()
 
     loss_D.backward()
     nn.utils.clip_grad_norm_(netD.parameters(), grad_clip_thresh)
@@ -80,23 +80,28 @@ def main_train_step(
 
     grad_acc_step = cfg.train_config["optimizer"]["grad_acc_step"]
     grad_clip_thresh = cfg.train_config["optimizer"]["grad_clip_thresh"]
+    desc_leg_up = cfg.train_config["descriminator"]["leg_up"]
 
     # LET DESCRIMINATOR OUTPERFORM MODEL AT THE BEGGINING #
     # SLOW DOWN MAIN MODEL A BIT #
 
-    D_fake = netD(mel_output)
-    loss_G = 0
-    for out in D_fake:
-        loss_G += torch.mean((1 - out[-1]) ** 2)
+    if step > desc_leg_up:
+        D_fake = netD(mel_output)
+        loss_G = 0
+        for out in D_fake:
+            loss_G += torch.mean((1 - out[-1]) ** 2)
 
-    loss_feat = 0
-    for i in range(cfg.gan.num_D):
-        for j in range(len(D_fake[i]) - 1):
-            loss_feat += torch.mean(
-                torch.abs(D_fake[i][j] - D_real[i][j].detach())
-            )
+        loss_feat = 0
+        for i in range(cfg.gan.num_D):
+            for j in range(len(D_fake[i]) - 1):
+                loss_feat += torch.mean(
+                    torch.abs(D_fake[i][j] - D_real[i][j].detach())
+                )
 
-    loss_G = loss_G + 0.1 * loss_feat
+        loss_G = 0.1 * m.sin(step / 30) * (loss_G + 0.1 * loss_feat)
+    else:
+        loss_G = 0
+
     losses = Loss(batch, output)
     total_loss = losses[0]
 
@@ -216,7 +221,7 @@ def main(cfg):
                 output = model(*(batch[2:]))
 
                 mel_output, D_real, loss_D = train_descriminator(
-                    output, batch, optD, netD, cfg
+                    output, batch, optD, netD, cfg, step
                 )
 
                 losses, loss_G = main_train_step(

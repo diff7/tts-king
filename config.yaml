@@ -1,4 +1,4 @@
-exp_name: 'gan_loss_high'
+exp_name: 'gan_loss_delay_and_sine'
 gpu: 2
 run_debug_eval: false
 logger:
