@@ -24,7 +24,7 @@ def random_mask(text, _silences, max_masks_per_sentence, _mask):
         for ind in mask_indexes:
             if not text[ind] in _silences:
                 text[ind] = _mask
-    return " ".join(text)
+    return "".join(text)
 
 
 class Dataset(Dataset):
