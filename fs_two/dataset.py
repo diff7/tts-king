@@ -17,14 +17,14 @@ def random_mask(text, _silences, max_masks_per_sentence, _mask):
     if random.randint(0, 1):
         return text
     else:
-        text = text.split("")
+        text = text.split(" ")
         max_len = len(text)
         masks_count = int(0.15*max_len)
         mask_indexes = random.choices(list(range(max_len)), k=masks_count)
         for ind in mask_indexes:
             if not text[ind] in _silences:
                 text[ind] = _mask
-    return "".join(text)
+    return " ".join(text)
 
 
 class Dataset(Dataset):
