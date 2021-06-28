@@ -14,18 +14,17 @@ from fs_two.text.symbols import _mask, _silences
 def random_mask(text, _silences, max_masks_per_sentence, _mask):
     # randonly mask some sentences
     # we do not want to mask short sentences
-    if random.randint(0, 1):
-        return text
-    else:
-        text = text.split(" ")
-        max_len = len(text)
-        masks_count = int(0.15*max_len)
-        mask_indexes = random.choices(list(range(max_len)), k=masks_count)
-        for ind in mask_indexes:
-            if not text[ind] in _silences:
-                text[ind] = _mask
-    return " ".join(text)
 
+    text = text.split(" ")
+    max_len = len(text)
+    masks_count = int(max_masks_per_sentence*max_len) # max_masks_per_sentence = 0.15
+    if masks_count == 0:
+        return text
+    mask_indexes = random.choices(list(range(max_len)), k=masks_count)
+    for ind in mask_indexes:
+        if not text[ind] in _silences:
+            text[ind] = _mask
+    return " ".join(text)
 
 class Dataset(Dataset):
     def __init__(

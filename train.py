@@ -47,17 +47,17 @@ def train_descriminator(output, batch, optD, netD, cfg, step):
     # Train Discriminator
     # step_weight = abs(m.sin(step))
 
-    w = 1 - m.cos(step / 30)
+    w = 1 - m.cos(step / 60)  + 1e-7
 
     D_fake_det = netD(mel_output.detach())
     D_real = netD(mel_targets)
 
     loss_D = 0
     for out in D_fake_det:
-        loss_D += w * (F.relu(1 + out[-1]) ** 2).mean()
+        loss_D += w * ((1 + out[-1]) ** 2).mean()
 
     for out in D_real:
-        loss_D += w * (F.relu(1 - out[-1]) ** 2).mean()
+        loss_D += w * ((1 - out[-1]) ** 2).mean()
 
     loss_D.backward()
     nn.utils.clip_grad_norm_(netD.parameters(), grad_clip_thresh)
@@ -86,7 +86,7 @@ def main_train_step(
 
     # LET DESCRIMINATOR OUTPERFORM MODEL AT THE BEGGINING #
     # SLOW DOWN MAIN MODEL A BIT #
-    w = 1 - m.cos(step / 30)
+    w = 1 - m.cos(step / 60) + 1e-7
     if step > desc_leg_up:
         D_fake = netD(mel_output)
         loss_G = 0

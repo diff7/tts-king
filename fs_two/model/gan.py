@@ -26,9 +26,11 @@ class NLayerDiscriminator(nn.Module):
 
         model["layer_0"] = nn.Sequential(
             nn.ReflectionPad1d(7),
-            WNConv1d(inut_dim, inut_dim // 2, kernel_size=15),
+            WNConv1d(inut_dim, inut_dim // 2, kernel_size=3),
             nn.LeakyReLU(0.2, True),
-            WNConv1d(inut_dim // 2, ndf, kernel_size=15),
+            WNConv1d(inut_dim // 2, inut_dim // 4, kernel_size=9),
+            nn.LeakyReLU(0.2, True),
+            WNConv1d(inut_dim // 4, ndf, kernel_size=15),
             nn.LeakyReLU(0.2, True),
         )
 

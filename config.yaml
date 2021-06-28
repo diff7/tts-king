@@ -1,4 +1,4 @@
-exp_name: 'gan_loss_delay_and_sine'
+exp_name: 'gan_loss_changed_smaller_set'
 gpu: 3
 run_debug_eval: false
 logger:
@@ -63,7 +63,7 @@ train_config:
     anneal_rate: 0.3
   descriminator: # DEPRICATED
     step: 4  # SLOW DWON GENERATOR # DEPRICATED
-    leg_up: 16000  # DEPRICATED
+    leg_up: 32000  # DEPRICATED
   step:
     total_step: 900000
     log_step: 200
@@ -71,7 +71,7 @@ train_config:
     val_step: 1000
     save_step: 5000
   
-  max_masks_per_sentence: 10
+  max_masks_per_sentence: 0.15
 
 preprocess_config:
   dataset: "MAIN"
