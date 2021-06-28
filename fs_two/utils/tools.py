@@ -88,8 +88,6 @@ def log(
         "Loss/pitch_loss",
         "Loss/energy_loss",
         "Loss/duration_loss ",
-        "Loss G",
-        "Loss D",
     ]
 
     if losses is not None:

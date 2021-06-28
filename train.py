@@ -17,99 +17,30 @@ from hifiapi import HIFIapi
 from fs_two.utils.model import get_model, get_param_num
 from fs_two.utils.tools import to_device, log, synth_one_sample
 from fs_two.model import FastSpeech2Loss
-from fs_two.model.gan import Discriminator
 from fs_two.dataset import Dataset
 from fs_two.evaluate import evaluate
 
 
-def train_descriminator(output, batch, optD, netD, cfg, step):
-    grad_clip_thresh = cfg.train_config["optimizer"]["grad_clip_thresh"]
-    # misc
-    mel_targets = batch[6]
-    mel_masks = ~output[6]
-    mel_output = output[9]
-
-    # print(mel_targets.shape, mel_output.shape)
-    # reshape = lambda x: x.reshape(mel_output.shape[0], -1, mel_output.shape[-1])
-
-    mel_targets = mel_targets[:, : mel_masks.shape[1], :]
-    # mel_masks = mel_masks[:, : mel_masks.shape[1]].unsqueeze(-1)
-
-    # print(mel_targets.shape, mel_output.shape)
-    # mel_targets.requires_grad = False
-    # mel_masks.requires_grad = False
-
-    # mel_output = mel_output * mel_masks
-    # mel_targets = mel_targets * mel_masks
-
-    # print("MELS: ", mel_output.shape, mel_targets.shape)
-
-    # Train Discriminator
-    # step_weight = abs(m.sin(step))
-
-    w = 1 - m.cos(step / 60)  + 1e-7
-
-    D_fake_det = netD(mel_output.detach())
-    D_real = netD(mel_targets)
-
-    loss_D = 0
-    for out in D_fake_det:
-        loss_D += w * ((1 + out[-1]) ** 2).mean()
-
-    for out in D_real:
-        loss_D += w * ((1 - out[-1]) ** 2).mean()
-
-    loss_D.backward()
-    nn.utils.clip_grad_norm_(netD.parameters(), grad_clip_thresh)
-    optD.step()
-    optD.zero_grad()
-
-    return mel_output, D_real, loss_D
-
-
 def main_train_step(
     model,
-    mel_output,
-    netD,
     batch,
-    output,
     step,
     optimizer,
     cfg,
-    D_real,
     Loss,
 ):
 
     grad_acc_step = cfg.train_config["optimizer"]["grad_acc_step"]
     grad_clip_thresh = cfg.train_config["optimizer"]["grad_clip_thresh"]
-    desc_leg_up = cfg.train_config["descriminator"]["leg_up"]
 
-    # LET DESCRIMINATOR OUTPERFORM MODEL AT THE BEGGINING #
-    # SLOW DOWN MAIN MODEL A BIT #
-    w = 1 - m.cos(step / 60) + 1e-7
-    if step > desc_leg_up:
-        D_fake = netD(mel_output)
-        loss_G = 0
-        for out in D_fake:
-            loss_G += torch.mean((1 - out[-1]) ** 2)
-
-        loss_feat = 0
-        for i in range(cfg.gan.num_D):
-            for j in range(len(D_fake[i]) - 1):
-                loss_feat += torch.mean(
-                    torch.abs(D_fake[i][j] - D_real[i][j].detach())
-                )
-
-        loss_G = 0.1 * w * (loss_G + 0.1 * loss_feat)
-    else:
-        loss_G = 0
+    output = model(*(batch[2:]))
 
     losses = Loss(batch, output)
     total_loss = losses[0]
 
     # Backward
 
-    total_loss = (total_loss + loss_G) / grad_acc_step
+    total_loss = total_loss / grad_acc_step
     total_loss.backward()
     losses = [l.item() / grad_acc_step for l in losses[1:]]
 
@@ -122,22 +53,18 @@ def main_train_step(
         optimizer.real_step()
         optimizer.zero_grad()
 
-    return losses, loss_G
+    return losses, output
 
 
-def train_logger(
-    losses, loss_G, loss_D, step, total_step, outer_bar, log, logger
-):
+def train_logger(losses, step, total_step, outer_bar, log, logger):
 
-    losses = [sum(losses)] + losses + [loss_G] + [loss_D]
+    losses = [sum(losses)] + losses
     message1 = "Step {}/{}, ".format(step, total_step)
     message2 = """Total Loss: {:.4f},
                 Mel Loss: {:.4f},
                 Pitch Loss: {:.4f},
                 Energy Loss: {:.4f},
                 Duration Loss: {:.4f}
-                Loss_G: {:.4f},
-                Loss_D: {:.4f},
                 """.format(
         *losses
     )
@@ -171,15 +98,7 @@ def main(cfg):
 
     # Prepare model
     model, optimizer = get_model(cfg, device, train=True)
-    netD = Discriminator(
-        inut_dim=cfg.gan.inut_dim,
-        num_D=cfg.gan.num_D,
-        ndf=cfg.gan.ndf,
-        n_layers=cfg.gan.n_layers,
-        downsampling_factor=cfg.gan.downsampling_factor,
-    ).to(device)
 
-    optD = torch.optim.Adam(netD.parameters(), lr=1e-4, betas=(0.5, 0.9))
     # model = nn.DataParallel(model)
     num_param = get_param_num(model)
     Loss = FastSpeech2Loss(cfg.preprocess_config, cfg.model_config)
@@ -220,30 +139,19 @@ def main(cfg):
                 batch = to_device(batch, device)
 
                 # Forward
-                output = model(*(batch[2:]))
 
-                mel_output, D_real, loss_D = train_descriminator(
-                    output, batch, optD, netD, cfg, step
-                )
-
-                losses, loss_G = main_train_step(
+                losses, output = main_train_step(
                     model,
-                    mel_output,
-                    netD,
                     batch,
-                    output,
                     step,
                     optimizer,
                     cfg,
-                    D_real,
                     Loss,
                 )
 
                 if step % cfg.train_config.step.log_step == 0:
                     train_logger(
                         losses,
-                        loss_G,
-                        loss_D,
                         step,
                         total_step,
                         outer_bar,
