@@ -60,11 +60,11 @@ class FastSpeech2(nn.Module):
             if mel_lens is not None
             else None
         )
-        
+
         output = self.encoder(texts, src_masks)
         if self.speaker_emb is not None:
-            output = output + self.speaker_emb(speakers).unsqueeze(1).expand(
-                -1, 1, -1
+            embedding = (
+                self.speaker_emb(speakers).unsqueeze(1).expand(-1, 1, -1)
             )
         (
             output,
@@ -76,6 +76,7 @@ class FastSpeech2(nn.Module):
             mel_masks,
         ) = self.variance_adaptor(
             output,
+            embedding,
             src_masks,
             mel_masks,
             max_mel_len,

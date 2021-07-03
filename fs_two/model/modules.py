@@ -46,10 +46,17 @@ class VarianceAdaptor(nn.Module):
     def __init__(self, preprocess_config, model_config):
         super(VarianceAdaptor, self).__init__()
         self.device = model_config.gpu
+
         self.duration_predictor = VariancePredictor(model_config)
         self.length_regulator = LengthRegulator()
         self.pitch_predictor = VariancePredictor(model_config)
         self.energy_predictor = VariancePredictor(model_config)
+
+        hiden_size = model_config["transformer"]["variance_hidden"]
+
+        self.pithc_projection = LinearProj(hiden_size, hiden_size)
+        self.energy_projection = LinearProj(hiden_size, hiden_size)
+        self.speaker_projection = LinearProj(hiden_size, hiden_size)
 
         self.pitch_feature_level = preprocess_config["preprocessing"]["pitch"][
             "feature"
@@ -143,6 +150,7 @@ class VarianceAdaptor(nn.Module):
     def forward(
         self,
         x,
+        embedding,
         src_mask,
         mel_mask=None,
         max_len=None,
@@ -155,17 +163,44 @@ class VarianceAdaptor(nn.Module):
     ):
 
         log_duration_prediction = self.duration_predictor(x, src_mask)
+
         if self.pitch_feature_level == "phoneme_level":
             pitch_prediction, pitch_embedding = self.get_pitch_embedding(
-                x, pitch_target, src_mask, p_control
+                x + self.pithc_projection(embedding),
+                pitch_target,
+                src_mask,
+                p_control,
             )
 
         if self.energy_feature_level == "phoneme_level":
             energy_prediction, energy_embedding = self.get_energy_embedding(
-                x, energy_target, src_mask, e_control
+                x + self.energy_projection(embedding),
+                energy_target,
+                src_mask,
+                e_control,
             )
+
         x = x + energy_embedding
         x = x + pitch_embedding
+        x = x + self.speaker_projection(embedding)
+
+        # if self.pitch_feature_level == "frame_level":
+        #     pitch_prediction, pitch_embedding = self.get_pitch_embedding(
+        #         x + self.pithc_projection(embedding),
+        #         pitch_target,
+        #         mel_mask,
+        #         p_control,
+        #     )
+        #     x = x + pitch_embedding
+        # if self.energy_feature_level == "frame_level":
+        #     energy_prediction, energy_embedding = self.get_energy_embedding(
+        #         x + self.energy_projection(embedding),
+        #         energy_target,
+        #         mel_mask,
+        #         p_control,
+        #     )
+        #     x = x + energy_embedding
+
         if duration_target is not None:
             x, mel_len = self.length_regulator(x, duration_target, max_len)
             duration_rounded = duration_target
@@ -179,17 +214,6 @@ class VarianceAdaptor(nn.Module):
             )
             x, mel_len = self.length_regulator(x, duration_rounded, max_len)
             mel_mask = get_mask_from_lengths(mel_len, device=self.device)
-
-        if self.pitch_feature_level == "frame_level":
-            pitch_prediction, pitch_embedding = self.get_pitch_embedding(
-                x, pitch_target, mel_mask, p_control
-            )
-            x = x + pitch_embedding
-        if self.energy_feature_level == "frame_level":
-            energy_prediction, energy_embedding = self.get_energy_embedding(
-                x, energy_target, mel_mask, p_control
-            )
-            x = x + energy_embedding
 
         return (
             x,
@@ -342,37 +366,16 @@ class Conv(nn.Module):
         return x
 
 
-# TODO REMOVE IF NEVER USED AGAIN
+class LinearProj(torch.nn.Module):
+    def __init__(self, inputSize, outputSize):
+        super(LinearProj, self).__init__()
+        self.go = nn.Sequential(
+            torch.nn.Linear(inputSize, outputSize),
+            torch.nn.ReLU(),
+            torch.nn.Linear(inputSize, outputSize),
+            torch.nn.ReLU(),
+        )
 
-# class RevGradFunction(Function):
-#     @staticmethod
-#     def forward(ctx, input_, alpha_):
-#         ctx.save_for_backward(input_, alpha_)
-#         output = input_
-#         return output
-
-#     @staticmethod
-#     def backward(ctx, grad_output):  # pragma: no cover
-#         grad_input = None
-#         _, alpha_ = ctx.saved_tensors
-#         if ctx.needs_input_grad[0]:
-#             grad_input = -grad_output * alpha_
-#         return grad_input, None
-
-
-# revgrad = RevGradFunction.apply
-
-
-# class RevGrad(nn.Module):
-#     def __init__(self, alpha=1.0, *args, **kwargs):
-#         """
-#         A gradient reversal layer.
-#         This layer has no parameters, and simply reverses the gradient
-#         in the backward pass.
-#         """
-#         super().__init__(*args, **kwargs)
-
-#         self._alpha = torch.tensor(alpha, requires_grad=False)
-
-#     def forward(self, input_):
-#         return revgrad(input_, self._alpha)
+    def forward(self, x):
+        out = self.go(x)
+        return out
