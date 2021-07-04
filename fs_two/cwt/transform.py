@@ -27,7 +27,7 @@ import torch
 from torch.autograd import Variable
 
 from wavelets_pytorch.wavelets import Morlet
-from wavelets_pytorch.network import TorchFilterBank
+from wavelets_pytorch.torch_cwt import TorchFilterBank
 
 ##########################################################################################
 
