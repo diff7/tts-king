@@ -1,5 +1,6 @@
 import os
 import json
+
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -64,8 +65,6 @@ class FastSpeech2(nn.Module):
             embedding = (
                 self.speaker_emb(speakers).unsqueeze(1).expand(-1, 1, -1)
             )
-
-            output += embedding
         (
             output,
             p_predictions,
@@ -76,6 +75,7 @@ class FastSpeech2(nn.Module):
             mel_masks,
         ) = self.variance_adaptor(
             output,
+            embedding,
             src_masks,
             mel_masks,
             max_mel_len,

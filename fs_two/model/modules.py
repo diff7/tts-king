@@ -52,6 +52,12 @@ class VarianceAdaptor(nn.Module):
         self.pitch_predictor = VariancePredictor(model_config)
         self.energy_predictor = VariancePredictor(model_config)
 
+        hiden_size = model_config["transformer"]["variance_hidden"]
+
+        self.pithc_projection = LinearProj(hiden_size, hiden_size)
+        self.energy_projection = LinearProj(hiden_size, hiden_size)
+        self.speaker_projection = LinearProj(hiden_size, hiden_size)
+
         self.pitch_feature_level = preprocess_config["preprocessing"]["pitch"][
             "feature"
         ]
@@ -176,7 +182,7 @@ class VarianceAdaptor(nn.Module):
                 e_control,
             )
 
-            x = x + energy_embedding
+        x = x + self.speaker_projection(embedding)
 
         # if self.pitch_feature_level == "frame_level":
         #     pitch_prediction, pitch_embedding = self.get_pitch_embedding(
@@ -358,3 +364,18 @@ class Conv(nn.Module):
         x = x.contiguous().transpose(1, 2)
 
         return x
+
+
+class LinearProj(torch.nn.Module):
+    def __init__(self, inputSize, outputSize):
+        super(LinearProj, self).__init__()
+        self.go = nn.Sequential(
+            torch.nn.Linear(inputSize, outputSize),
+            torch.nn.ReLU(),
+            torch.nn.Linear(inputSize, outputSize),
+            torch.nn.ReLU(),
+        )
+
+    def forward(self, x):
+        out = self.go(x)
+        return out
