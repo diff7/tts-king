@@ -1,4 +1,4 @@
-exp_name: 'gan_loss_changed_smaller_set'
+exp_name: 'lin_projections'
 gpu: 3
 run_debug_eval: false
 logger:
@@ -49,8 +49,8 @@ hifi:
 
 train_config:
   path:
-    ckpt_path: "../output/ckpt/gan"
-    result_path: "../output/result/gan"
+    ckpt_path: "../output/ckpt/linproj"
+    result_path: "../output/result/linproj"
   optimizer:
     batch_size: 16
     betas: [0.95, 0.999]
@@ -61,9 +61,6 @@ train_config:
     warm_up_step: 4000
     anneal_steps: [300000, 400000, 500000]
     anneal_rate: 0.3
-  descriminator: # DEPRICATED
-    step: 4  # SLOW DWON GENERATOR # DEPRICATED
-    leg_up: 32000  # DEPRICATED
   step:
     total_step: 900000
     log_step: 200
@@ -140,10 +137,3 @@ model_config:
     model: "HiFi-GAN" # support 'HiFi-GAN', 'MelGAN'
     speaker: "universal" # support  'LJSpeech', 'universal'
     use_cpu: true
-
-gan:
-  n_layers: 4
-  num_D: 3
-  inut_dim: 80
-  ndf: 16
-  downsampling_factor: 4
