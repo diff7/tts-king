@@ -48,7 +48,7 @@ class VarianceAdaptor(nn.Module):
         self.device = model_config.gpu
         self.duration_predictor = VariancePredictor(model_config)
         self.length_regulator = LengthRegulator()
-        self.pitch_predictor = VariancePredictor(model_config)
+        self.pitch_predictor = VariancePredictor(model_config, )
         self.energy_predictor = VariancePredictor(model_config)
 
         self.pitch_feature_level = preprocess_config["preprocessing"]["pitch"][
@@ -241,7 +241,7 @@ class LengthRegulator(nn.Module):
 class VariancePredictor(nn.Module):
     """ Duration, Pitch and Energy Predictor """
 
-    def __init__(self, model_config):
+    def __init__(self, model_config, output_size=1):
         super(VariancePredictor, self).__init__()
 
         self.input_size = model_config["transformer"]["variance_hidden"]
@@ -283,7 +283,7 @@ class VariancePredictor(nn.Module):
             )
         )
 
-        self.linear_layer = nn.Linear(self.conv_output_size, 1)
+        self.linear_layer = nn.Linear(self.conv_output_size, output_size)
 
     def forward(self, encoder_output, mask):
         out = self.conv_layer(encoder_output)

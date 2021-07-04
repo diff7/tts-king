@@ -12,14 +12,15 @@ from scipy.interpolate import interp1d
 from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 
-from wavelets_pytorch.transform import WaveletTransform   
-from wavelets_pytorch.wavelets import Mexican_hat
+from fs_two.cwt.transform import WaveletTransform
+from fs_two.cwt.wavelets import Mexican_hat
 # from resemblyzer import VoiceEncoder, preprocess_wav
 
 import fs_two.audio as Audio
 
 # encoder = VoiceEncoder()
 wavelet_transformer = WaveletTransform(wavelet=Mexican_hat())
+
 
 def wav_rescale(wav_path, sampling_rate, max_wav_value):
     wav, _ = librosa.load(wav_path, sampling_rate)
@@ -174,7 +175,7 @@ class Preprocessor:
         with open(
             os.path.join(self.out_dir, "train.txt"), "w", encoding="utf-8"
         ) as f:
-            for m in out[self.val_size :]:
+            for m in out[self.val_size:]:
                 f.write(m + "\n")
         with open(
             os.path.join(self.out_dir, "val.txt"), "w", encoding="utf-8"
@@ -185,7 +186,8 @@ class Preprocessor:
         return out
 
     def process_utterance(self, speaker, basename):
-        wav_path = os.path.join(self.in_dir, speaker, "{}.wav".format(basename))
+        wav_path = os.path.join(self.in_dir, speaker,
+                                "{}.wav".format(basename))
         text_path = os.path.join(
             self.in_dir, speaker, "{}.lab".format(basename)
         )
@@ -205,7 +207,7 @@ class Preprocessor:
         # Read and trim wav files
         wav, _ = librosa.load(wav_path)
         wav = wav[
-            int(self.sampling_rate * start) : int(self.sampling_rate * end)
+            int(self.sampling_rate * start): int(self.sampling_rate * end)
         ].astype(np.float32)
 
         # Read raw text
@@ -246,18 +248,18 @@ class Preprocessor:
             pos = 0
             for i, d in enumerate(duration):
                 if d > 0:
-                    pitch[i] = np.mean(pitch[pos : pos + d])
+                    pitch[i] = np.mean(pitch[pos: pos + d])
                 else:
                     pitch[i] = 0
                 pos += d
             pitch = pitch[: len(duration)]
-        #to log scale and normilize
+        # to log scale and normilize
         pitch = np.log(pitch)
         pitch_mean = np.mean(pitch)
         pitch_std = np.std(pitch)
         pitch = (pitch - pitch_mean) / pitch_std
-        
-        #get cwt
+
+        # get cwt
         cwt_pitch = wavelet_transformer.cwt(pitch)
 
         if self.energy_phoneme_averaging:
@@ -265,7 +267,7 @@ class Preprocessor:
             pos = 0
             for i, d in enumerate(duration):
                 if d > 0:
-                    energy[i] = np.mean(energy[pos : pos + d])
+                    energy[i] = np.mean(energy[pos: pos + d])
                 else:
                     energy[i] = 0
                 pos += d
@@ -281,15 +283,18 @@ class Preprocessor:
 
         pitch_filename = "{}-pitch-{}.npy".format(speaker, basename)
         np.save(os.path.join(self.out_dir, "pitch", pitch_filename), pitch)
-        
+
         cwt_pitch_filename = "{}-cwt-pitch-{}.npy".format(speaker, basename)
-        np.save(os.path.join(self.out_dir, "pitch", cwt_pitch_filename), cwt_pitch)
-        
+        np.save(os.path.join(self.out_dir, "pitch",
+                             cwt_pitch_filename), cwt_pitch)
+
         pitch_mean_filename = "{}-pitch-mean-{}.npy".format(speaker, basename)
-        np.save(os.path.join(self.out_dir, "pitch", pitch_mean_filename), pitch_mean)
-        
+        np.save(os.path.join(self.out_dir, "pitch",
+                             pitch_mean_filename), pitch_mean)
+
         pitch_std_filename = "{}-pitch-std-{}.npy".format(speaker, basename)
-        np.save(os.path.join(self.out_dir, "pitch", pitch_std_filename), pitch_std)
+        np.save(os.path.join(self.out_dir, "pitch",
+                             pitch_std_filename), pitch_std)
 
         energy_filename = "{}-energy-{}.npy".format(speaker, basename)
         np.save(os.path.join(self.out_dir, "energy", energy_filename), energy)
