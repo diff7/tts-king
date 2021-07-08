@@ -128,7 +128,9 @@ class WaveletTransformBase(object):
         else:
             return np.abs(self.cwt(x)) ** 2
 
+    @abstractmethod
     def reconstruction(self, wavelet_data):
+        raise NotImplementedError
         dj = self.dj
         dt = self.dt
         if self._scales is None:
@@ -261,6 +263,20 @@ class WaveletTransform(WaveletTransformBase):
             cwt = cwt.squeeze(0)
         return cwt
 
+    def reconstruction(self, wavelet_data):
+        dj = self.dj
+        dt = self.dt
+        if self._scales is None:
+            self._build_filters()
+        s = self._scales
+        W_n = wavelet_data
+        C_d = self._wavelet.C_d
+        Y_00 = self._wavelet.time(0)
+        real_sum = np.sum(W_n.real.T / s ** .5, axis=-1).T
+        x_n = real_sum * (dj * dt ** .5 / (C_d * Y_00))
+
+        return x_n
+
     def _compute_single(self, x):
         assert x.ndim == 1, 'Input signal must have single dimension.'
         output = np.zeros((len(self.scales), len(x)), self.output_dtype)
@@ -273,7 +289,7 @@ class WaveletTransform(WaveletTransformBase):
 
 class WaveletTransformTorch(WaveletTransformBase):
 
-    def __init__(self, dt=1.0, dj=0.125, wavelet=Morlet(), unbias=False, cuda=True):
+    def __init__(self, dt=1.0, dj=0.125, wavelet=Morlet(), unbias=False, cuda=True, device=0):
         """
         This is PyTorch version of the CWT filter bank. Main work for this filter bank
         is performed by the convolution implementated in 'torch.nn.Conv1d'. Actual
@@ -287,7 +303,8 @@ class WaveletTransformTorch(WaveletTransformBase):
         """
         super(WaveletTransformTorch, self).__init__(dt, dj, wavelet, unbias)
         self._cuda = cuda
-        self._extractor = TorchFilterBank(self._filters, cuda)
+        self._extractor = TorchFilterBank(self._filters, cuda, device)
+        self._device = device
 
     def cwt(self, x):
         """
@@ -322,7 +339,7 @@ class WaveletTransformTorch(WaveletTransformBase):
         x.requires_grad_(requires_grad=False)
 
         if self._cuda:
-            x = x.cuda()
+            x = x.to(self._device)
         cwt = self._extractor(x)
 
         # Move back to CPU
@@ -345,6 +362,20 @@ class WaveletTransformTorch(WaveletTransformBase):
         if num_examples == 1:
             cwt = cwt.squeeze(0)
         return cwt
+
+    def reconstruction(self, wavelet_data):
+        dj = self.dj
+        dt = self.dt
+        if self._scales is None:
+            self._build_filters()
+        s = self._scales
+        W_n = wavelet_data
+        C_d = self._wavelet.C_d
+        Y_00 = self._wavelet.time(0)
+        real_sum = torch.t(torch.sum(torch.t(W_n) / s ** .5, axis=-1))
+        x_n = real_sum * (dj * dt ** .5 / (C_d * Y_00))
+
+        return x_n
 
     @property
     def dt(self):
