@@ -13,6 +13,7 @@ from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 
 from fs_two.cwt.cwt_utils import transform_cwt
+
 # from resemblyzer import VoiceEncoder, preprocess_wav
 
 import fs_two.audio as Audio
@@ -36,6 +37,8 @@ class Preprocessor:
         self.hop_length = config["preprocessing"]["stft"]["hop_length"]
         self.sampling_rate = config["preprocessing"]["audio"]["sampling_rate"]
         self.max_wav_value = config["preprocessing"]["audio"]["max_wav_value"]
+
+        self.speakers = get_valid_speakers(config)
 
         assert config["preprocessing"]["pitch"]["feature"] in [
             "phoneme_level",
@@ -85,6 +88,9 @@ class Preprocessor:
         # Compute pitch, energy, duration, and mel-spectrogram
         speakers = {}
         for i, speaker in enumerate(os.listdir(self.in_dir)):
+            if not if_in(speaker, self.speakers):
+                continue
+
             print(f"PROCESSIN SPEAKER {i+1} {speaker}")
             speakers[speaker] = i
             for wav_name in tqdm(
@@ -173,7 +179,7 @@ class Preprocessor:
         with open(
             os.path.join(self.out_dir, "train.txt"), "w", encoding="utf-8"
         ) as f:
-            for m in out[self.val_size:]:
+            for m in out[self.val_size :]:
                 f.write(m + "\n")
         with open(
             os.path.join(self.out_dir, "val.txt"), "w", encoding="utf-8"
@@ -184,8 +190,7 @@ class Preprocessor:
         return out
 
     def process_utterance(self, speaker, basename):
-        wav_path = os.path.join(self.in_dir, speaker,
-                                "{}.wav".format(basename))
+        wav_path = os.path.join(self.in_dir, speaker, "{}.wav".format(basename))
         text_path = os.path.join(
             self.in_dir, speaker, "{}.lab".format(basename)
         )
@@ -205,7 +210,7 @@ class Preprocessor:
         # Read and trim wav files
         wav, _ = librosa.load(wav_path)
         wav = wav[
-            int(self.sampling_rate * start): int(self.sampling_rate * end)
+            int(self.sampling_rate * start) : int(self.sampling_rate * end)
         ].astype(np.float32)
 
         # Read raw text
@@ -246,7 +251,7 @@ class Preprocessor:
             pos = 0
             for i, d in enumerate(duration):
                 if d > 0:
-                    pitch[i] = np.mean(pitch[pos: pos + d])
+                    pitch[i] = np.mean(pitch[pos : pos + d])
                 else:
                     pitch[i] = 0
                 pos += d
@@ -265,7 +270,7 @@ class Preprocessor:
             pos = 0
             for i, d in enumerate(duration):
                 if d > 0:
-                    energy[i] = np.mean(energy[pos: pos + d])
+                    energy[i] = np.mean(energy[pos : pos + d])
                 else:
                     energy[i] = 0
                 pos += d
@@ -283,16 +288,19 @@ class Preprocessor:
         np.save(os.path.join(self.out_dir, "pitch", pitch_filename), pitch)
 
         cwt_pitch_filename = "{}-cwt-pitch-{}.npy".format(speaker, basename)
-        np.save(os.path.join(self.out_dir, "pitch",
-                             cwt_pitch_filename), cwt_pitch)
+        np.save(
+            os.path.join(self.out_dir, "pitch", cwt_pitch_filename), cwt_pitch
+        )
 
         pitch_mean_filename = "{}-pitch-mean-{}.npy".format(speaker, basename)
-        np.save(os.path.join(self.out_dir, "pitch",
-                             pitch_mean_filename), pitch_mean)
+        np.save(
+            os.path.join(self.out_dir, "pitch", pitch_mean_filename), pitch_mean
+        )
 
         pitch_std_filename = "{}-pitch-std-{}.npy".format(speaker, basename)
-        np.save(os.path.join(self.out_dir, "pitch",
-                             pitch_std_filename), pitch_std)
+        np.save(
+            os.path.join(self.out_dir, "pitch", pitch_std_filename), pitch_std
+        )
 
         energy_filename = "{}-energy-{}.npy".format(speaker, basename)
         np.save(os.path.join(self.out_dir, "energy", energy_filename), energy)
@@ -378,3 +386,30 @@ class Preprocessor:
             min_value = min(min_value, min(values))
 
         return min_value, max_value
+
+
+def if_in(item, list_valid):
+    return item in set(list_valid)
+
+
+def get_valid_speakers(config):
+    base_path = config.path.preprocessed_path
+    train = get_files_list_from_txt(os.path.join(base_path, "train.txt"))
+    val = get_files_list_from_txt(os.path.join(base_path, "val.txt"))
+
+    speakers = set(train + val)
+    speakers_dirs = set(os.listdir(config.path.raw_path))
+    valid_speakers = speakers.intersection(speakers_dirs)
+    print(f"FOUND {len(valid_speakers)} VALID SPEAKERS")
+    return valid_speakers
+
+
+def get_files_list_from_txt(path):
+    with open(path, "r") as f:
+        txt = f.read()
+        speakers = [
+            name.replace("\n", "").split("|")[1]
+            for name in txt.split("\n")
+            if len(name) > 1
+        ]
+    return speakers

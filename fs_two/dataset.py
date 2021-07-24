@@ -17,7 +17,9 @@ def random_mask(text, _silences, max_masks_per_sentence, _mask):
 
     text = text.split(" ")
     max_len = len(text)
-    masks_count = int(max_masks_per_sentence*max_len) # max_masks_per_sentence = 0.15
+    masks_count = int(
+        max_masks_per_sentence * max_len
+    )  # max_masks_per_sentence = 0.15
     if masks_count == 0:
         return text
     mask_indexes = random.choices(list(range(max_len)), k=masks_count)
@@ -25,6 +27,7 @@ def random_mask(text, _silences, max_masks_per_sentence, _mask):
         if not text[ind] in _silences:
             text[ind] = _mask
     return " ".join(text)
+
 
 class Dataset(Dataset):
     def __init__(
@@ -141,7 +144,7 @@ class Dataset(Dataset):
         speakers = np.array(speakers)
         texts = pad_1D(texts)
         mels = pad_2D(mels)
-        pitches = pad_1D(pitches)
+        pitches = pad_2D(pitches)
         energies = pad_1D(energies)
         durations = pad_1D(durations)
 
