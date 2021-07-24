@@ -12,14 +12,12 @@ from scipy.interpolate import interp1d
 from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 
-from fs_two.cwt.transform import WaveletTransform
-from fs_two.cwt.wavelets import Mexican_hat
+from fs_two.cwt.cwt_utils import transform_cwt
 # from resemblyzer import VoiceEncoder, preprocess_wav
 
 import fs_two.audio as Audio
 
 # encoder = VoiceEncoder()
-wavelet_transformer = WaveletTransform(wavelet=Mexican_hat())
 
 
 def wav_rescale(wav_path, sampling_rate, max_wav_value):
@@ -260,7 +258,7 @@ class Preprocessor:
         pitch = (pitch - pitch_mean) / pitch_std
 
         # get cwt
-        cwt_pitch = wavelet_transformer.cwt(pitch)
+        cwt_pitch = transform_cwt(pitch)
 
         if self.energy_phoneme_averaging:
             # Phoneme-level average
