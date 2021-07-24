@@ -38,7 +38,8 @@ class Preprocessor:
         self.sampling_rate = config["preprocessing"]["audio"]["sampling_rate"]
         self.max_wav_value = config["preprocessing"]["audio"]["max_wav_value"]
 
-        self.speakers = get_valid_speakers(config)
+        if config.secondary:
+            self.speakers = get_valid_speakers(config)
 
         assert config["preprocessing"]["pitch"]["feature"] in [
             "phoneme_level",
@@ -88,8 +89,9 @@ class Preprocessor:
         # Compute pitch, energy, duration, and mel-spectrogram
         speakers = {}
         for i, speaker in enumerate(os.listdir(self.in_dir)):
-            if not if_in(speaker, self.speakers):
-                continue
+            if self.config.secondary:
+                if not if_in(speaker, self.speakers):
+                    continue
 
             print(f"PROCESSIN SPEAKER {i+1} {speaker}")
             speakers[speaker] = i

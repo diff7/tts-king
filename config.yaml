@@ -71,6 +71,7 @@ train_config:
   max_masks_per_sentence: 0.15
 
 preprocess_config:
+  secondary: true # assumes train and val files exist
   dataset: "MAIN"
 
   path:
