@@ -262,6 +262,10 @@ class Preprocessor:
         pitch = np.log(pitch)
         pitch_mean = np.mean(pitch)
         pitch_std = np.std(pitch)
+
+        if pitch_std == 0:
+            return None
+
         pitch = (pitch - pitch_mean) / pitch_std
 
         # get cwt
