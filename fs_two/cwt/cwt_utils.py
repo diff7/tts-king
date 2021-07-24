@@ -39,7 +39,6 @@ def inverse_cwt(wavelet_coefs, scales=[]):
 def scaler(tensor, axis=-1):
     mean = tensor.mean(axis)
     std = tensor.std(axis)
-    print(mean)
     res = (tensor - mean.reshape(-1, 1)) / std.reshape(-1, 1)
     return res
 
