@@ -17,7 +17,8 @@ class FastSpeech2(nn.Module):
         self.model_config = model_config
 
         self.encoder = Encoder(model_config)
-        self.variance_adaptor = VarianceAdaptor(preprocess_config, model_config)
+        self.variance_adaptor = VarianceAdaptor(
+            preprocess_config, model_config)
         self.decoder = Decoder(model_config)
         self.mel_linear = nn.Linear(
             model_config["transformer"]["decoder_hidden"],
@@ -73,6 +74,8 @@ class FastSpeech2(nn.Module):
             d_rounded,
             mel_lens,
             mel_masks,
+            pitch_mean,
+            pitch_std
         ) = self.variance_adaptor(
             output,
             embedding,
@@ -103,6 +106,8 @@ class FastSpeech2(nn.Module):
             src_lens,
             mel_lens,
             postnet_output,
+            pitch_mean,
+            pitch_std
         )
 
 

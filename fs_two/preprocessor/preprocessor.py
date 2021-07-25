@@ -181,7 +181,7 @@ class Preprocessor:
         with open(
             os.path.join(self.out_dir, "train.txt"), "w", encoding="utf-8"
         ) as f:
-            for m in out[self.val_size :]:
+            for m in out[self.val_size:]:
                 f.write(m + "\n")
         with open(
             os.path.join(self.out_dir, "val.txt"), "w", encoding="utf-8"
@@ -192,7 +192,8 @@ class Preprocessor:
         return out
 
     def process_utterance(self, speaker, basename):
-        wav_path = os.path.join(self.in_dir, speaker, "{}.wav".format(basename))
+        wav_path = os.path.join(self.in_dir, speaker,
+                                "{}.wav".format(basename))
         text_path = os.path.join(
             self.in_dir, speaker, "{}.lab".format(basename)
         )
@@ -212,7 +213,7 @@ class Preprocessor:
         # Read and trim wav files
         wav, _ = librosa.load(wav_path)
         wav = wav[
-            int(self.sampling_rate * start) : int(self.sampling_rate * end)
+            int(self.sampling_rate * start): int(self.sampling_rate * end)
         ].astype(np.float32)
 
         # Read raw text
@@ -253,7 +254,7 @@ class Preprocessor:
             pos = 0
             for i, d in enumerate(duration):
                 if d > 0:
-                    pitch[i] = np.mean(pitch[pos : pos + d])
+                    pitch[i] = np.mean(pitch[pos: pos + d])
                 else:
                     pitch[i] = 0
                 pos += d
@@ -276,7 +277,7 @@ class Preprocessor:
             pos = 0
             for i, d in enumerate(duration):
                 if d > 0:
-                    energy[i] = np.mean(energy[pos : pos + d])
+                    energy[i] = np.mean(energy[pos: pos + d])
                 else:
                     energy[i] = 0
                 pos += d
@@ -300,7 +301,8 @@ class Preprocessor:
 
         pitch_mean_filename = "{}-pitch-mean-{}.npy".format(speaker, basename)
         np.save(
-            os.path.join(self.out_dir, "pitch", pitch_mean_filename), pitch_mean
+            os.path.join(self.out_dir, "pitch",
+                         pitch_mean_filename), pitch_mean
         )
 
         pitch_std_filename = "{}-pitch-std-{}.npy".format(speaker, basename)
