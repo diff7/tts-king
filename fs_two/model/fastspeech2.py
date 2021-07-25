@@ -51,6 +51,9 @@ class FastSpeech2(nn.Module):
         p_control=1.0,
         e_control=1.0,
         d_control=1.0,
+        pitches_cwt = None,
+        pitches_mean = None,
+        pitches_std = None,
     ):
         src_masks = get_mask_from_lengths(
             src_lens, max_src_len, device=texts.device
@@ -68,7 +71,7 @@ class FastSpeech2(nn.Module):
             )
         (
             output,
-            p_predictions,
+            pitch_cwt_prediction,
             e_predictions,
             log_d_predictions,
             d_rounded,
@@ -88,7 +91,7 @@ class FastSpeech2(nn.Module):
             p_control,
             e_control,
             d_control,
-        )
+    )
 
         output, mel_masks = self.decoder(output, mel_masks)
         output = self.mel_linear(output)

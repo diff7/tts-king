@@ -10,7 +10,7 @@ import numpy as np
 from torch.autograd import Function
 
 from fs_two.utils.tools import get_mask_from_lengths, pad
-from fs_two.cwt.cwt_utils import transform_cwt, inverse_batch_cwt
+from fs_two.cwt.cwt_utils import inverse_batch_cwt
 
 
 class RMSNorm(nn.Module):
@@ -127,11 +127,11 @@ class VarianceAdaptor(nn.Module):
 
     def get_pitch_embedding(self, x, target, mask, control):
         # batch, seq_len, 10 -> batch, 10 -> batch, 1
-        prediction = self.pitch_predictor(x, mask)
-        pitch_mean = self.pitch_mean(prediction)
-        pitch_std = self.pitch_std(prediction)
+        pitch_cwt_prediction = self.pitch_predictor(x, mask)
+        pitch_mean = self.pitch_mean(pitch_cwt_prediction)
+        pitch_std = self.pitch_std(pitch_cwt_prediction)
         pitch_prediction = inverse_batch_cwt(
-            prediction.detach().cpu()).to(prediction.device)
+            pitch_cwt_prediction.detach().cpu()).to(prediction.device)
         pitch_prediction = (pitch_prediction *
                             pitch_std.detach()) + pitch_mean.detach()
 
@@ -140,11 +140,11 @@ class VarianceAdaptor(nn.Module):
                 torch.bucketize(target, self.pitch_bins)
             )
         else:
-            prediction = prediction * control
-            embedding = self.pitch_embedding(
+            pitch_prediction = pitch_prediction * control
+            pitch_embedding = self.pitch_embedding(
                 torch.bucketize(pitch_prediction, self.pitch_bins)
             )
-        return prediction, embedding, pitch_mean, pitch_std
+        return pitch_cwt_prediction, pitch_embedding, pitch_mean, pitch_std
 
     def get_energy_embedding(self, x, target, mask, control):
         prediction = self.energy_predictor(x, mask)
@@ -177,7 +177,7 @@ class VarianceAdaptor(nn.Module):
         log_duration_prediction = self.duration_predictor(x, src_mask)
 
         if self.pitch_feature_level == "phoneme_level":
-            pitch_prediction, pitch_embedding, pitch_mean, pitch_std = self.get_pitch_embedding(
+            pitch_cwt_prediction, pitch_embedding, pitch_mean, pitch_std = self.get_pitch_embedding(
                 x + self.pithc_projection(embedding),
                 pitch_target,
                 src_mask,
@@ -213,7 +213,7 @@ class VarianceAdaptor(nn.Module):
 
         return (
             x,
-            pitch_prediction,
+            pitch_cwt_prediction,
             energy_prediction,
             log_duration_prediction,
             duration_rounded,

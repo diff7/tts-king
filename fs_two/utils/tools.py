@@ -15,7 +15,7 @@ matplotlib.use("Agg")
 
 
 def to_device(data, device="cpu"):
-    if len(data) == 12:
+    if len(data) == 15:
         (
             ids,
             raw_texts,
@@ -29,6 +29,9 @@ def to_device(data, device="cpu"):
             pitches,
             energies,
             durations,
+            pitches_cwt,
+            pitches_mean,
+            pitches_std,
         ) = data
 
         speakers = torch.from_numpy(speakers).long().to(device)
@@ -39,6 +42,11 @@ def to_device(data, device="cpu"):
         pitches = torch.from_numpy(pitches).float().to(device)
         energies = torch.from_numpy(energies).to(device)
         durations = torch.from_numpy(durations).long().to(device)
+
+        pitches_cwt = torch.from_numpy(pitches_cwt).float().to(device)
+        pitches_mean = torch.from_numpy(pitches_mean).float().to(device)
+        pitches_std = torch.from_numpy(pitches_std).float().to(device)
+
         return (
             ids,
             raw_texts,
@@ -52,6 +60,9 @@ def to_device(data, device="cpu"):
             pitches,
             energies,
             durations,
+            pitches_cwt,
+            pitches_mean,
+            pitches_std,
         )
 
     if len(data) == 6:
