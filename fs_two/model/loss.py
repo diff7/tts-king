@@ -96,8 +96,10 @@ class FastSpeech2Loss(nn.Module):
             log_duration_predictions, log_duration_targets
         )
 
-        std_pitch_loss = self.mse_loss(pitch_std_pred, pitch_std)
-        mean_pitch_loss = self.mse_loss(pitch_mean_pred, pitch_mean)
+        std_pitch_loss = self.mse_loss(pitch_std_pred, pitch_std.unsqueeze(1))
+        mean_pitch_loss = self.mse_loss(
+            pitch_mean_pred, pitch_mean.unsqueeze(1)
+        )
 
         total_loss = (
             total_mel_loss

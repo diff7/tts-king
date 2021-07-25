@@ -11,10 +11,10 @@ from fs_two.model import FastSpeech2, ScheduledOptim
 
 def get_model(cfg, device, train=False):
 
-    model = FastSpeech2(cfg.preprocess_config, cfg.model_config)
+    model = FastSpeech2(cfg.preprocess_config, cfg.model_config, device=device)
     if cfg.restore_step:
         ckpt_path = os.path.join(
-            train_config["path"]["ckpt_path"],
+            cfg.train_config["path"]["ckpt_path"],
             "{}.pth.tar".format(cfg.restore_step),
         )
         ckpt = torch.load(ckpt_path, map_location=torch.device("cpu"))

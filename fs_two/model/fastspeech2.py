@@ -12,12 +12,16 @@ from fs_two.utils.tools import get_mask_from_lengths
 class FastSpeech2(nn.Module):
     """ FastSpeech2 """
 
-    def __init__(self, preprocess_config, model_config, n_speakers=None):
+    def __init__(
+        self, preprocess_config, model_config, n_speakers=None, device="cpu"
+    ):
         super(FastSpeech2, self).__init__()
         self.model_config = model_config
 
         self.encoder = Encoder(model_config)
-        self.variance_adaptor = VarianceAdaptor(preprocess_config, model_config)
+        self.variance_adaptor = VarianceAdaptor(
+            preprocess_config, model_config, device
+        )
         self.decoder = Decoder(model_config)
         self.mel_linear = nn.Linear(
             model_config["transformer"]["decoder_hidden"],

@@ -44,9 +44,9 @@ class RMSNorm(nn.Module):
 class VarianceAdaptor(nn.Module):
     """ Variance Adaptor """
 
-    def __init__(self, preprocess_config, model_config):
+    def __init__(self, preprocess_config, model_config, device):
         super(VarianceAdaptor, self).__init__()
-        self.device = model_config.gpu
+        self.device = device
 
         self.duration_predictor = VariancePredictor(model_config)
         self.length_regulator = LengthRegulator()
@@ -141,12 +141,12 @@ class VarianceAdaptor(nn.Module):
             pitch_cwt_prediction.transpose(1, 2)
         ).squeeze(1)
 
-        pitch_prediction = inverse_batch_cwt(
-            pitch_cwt_prediction.detach().cpu()
-        ).to(self.device)
+        pitch_prediction = inverse_batch_cwt(pitch_cwt_prediction.detach()).to(
+            self.device
+        )
         pitch_prediction = (
-            pitch_prediction * pitch_std.detach()
-        ) + pitch_mean.detach()
+            pitch_prediction * pitch_std.detach().to(self.device)
+        ) + pitch_mean.detach().to(self.device)
 
         # if target is not None:
         #     pitch_embedding = self.pitch_embedding(
