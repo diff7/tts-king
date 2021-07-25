@@ -50,7 +50,7 @@ class VarianceAdaptor(nn.Module):
 
         self.duration_predictor = VariancePredictor(model_config)
         self.length_regulator = LengthRegulator()
-        self.pitch_predictor = VariancePredictor(model_config, 10)
+        self.pitch_predictor = VariancePredictor(model_config, output_size=11)
         self.energy_predictor = VariancePredictor(model_config)
 
         hiden_size = model_config["transformer"]["variance_hidden"]
@@ -60,10 +60,10 @@ class VarianceAdaptor(nn.Module):
         self.speaker_projection = LinearProj(hiden_size, hiden_size)
 
         self.pitch_mean = nn.Sequential(
-            Conv(11, 1, 1, 1), nn.AdaptiveAvgPool1d(1)
+            nn.Conv1d(11, 1, 1, 1), nn.AdaptiveAvgPool1d(1)
         )
         self.pitch_std = nn.Sequential(
-            Conv(11, 1, 1, 1), nn.AdaptiveAvgPool1d(1)
+            nn.Conv1d(11, 1, 1, 1), nn.AdaptiveAvgPool1d(1)
         )
 
         self.pitch_feature_level = preprocess_config["preprocessing"]["pitch"][
@@ -131,9 +131,16 @@ class VarianceAdaptor(nn.Module):
 
     def get_pitch_embedding(self, x, target, mask, control):
         # batch, seq_len, 10 -> batch, 10 -> batch, 1
+        mask = mask.unsqueeze(2)
+        mask = mask.repeat(1, 1, 11)
         pitch_cwt_prediction = self.pitch_predictor(x, mask)
-        pitch_mean = self.pitch_mean(pitch_cwt_prediction)
-        pitch_std = self.pitch_std(pitch_cwt_prediction)
+        pitch_mean = self.pitch_mean(
+            pitch_cwt_prediction.transpose(1, 2)
+        ).squeeze(1)
+        pitch_std = self.pitch_std(
+            pitch_cwt_prediction.transpose(1, 2)
+        ).squeeze(1)
+
         pitch_prediction = inverse_batch_cwt(
             pitch_cwt_prediction.detach().cpu()
         ).to(self.device)
@@ -141,15 +148,16 @@ class VarianceAdaptor(nn.Module):
             pitch_prediction * pitch_std.detach()
         ) + pitch_mean.detach()
 
-        if target is not None:
-            embedding = self.pitch_embedding(
-                torch.bucketize(target, self.pitch_bins)
-            )
-        else:
-            pitch_prediction = pitch_prediction * control
-            pitch_embedding = self.pitch_embedding(
-                torch.bucketize(pitch_prediction, self.pitch_bins)
-            )
+        # if target is not None:
+        #     pitch_embedding = self.pitch_embedding(
+        #         torch.bucketize(target, self.pitch_bins)
+        #     )
+        # else:
+        pitch_prediction = pitch_prediction * control
+        pitch_embedding = self.pitch_embedding(
+            torch.bucketize(pitch_prediction, self.pitch_bins)
+        )
+
         return pitch_cwt_prediction, pitch_embedding, pitch_mean, pitch_std
 
     def get_energy_embedding(self, x, target, mask, control):
@@ -172,7 +180,7 @@ class VarianceAdaptor(nn.Module):
         src_mask,
         mel_mask=None,
         max_len=None,
-        pitch__cwt_target=None,
+        pitch_cwt_target=None,
         energy_target=None,
         duration_target=None,
         p_control=1.0,
@@ -190,7 +198,7 @@ class VarianceAdaptor(nn.Module):
                 pitch_std,
             ) = self.get_pitch_embedding(
                 x + self.pithc_projection(embedding),
-                pitch__cwt_target,
+                pitch_cwt_target,
                 src_mask,
                 p_control,
             )

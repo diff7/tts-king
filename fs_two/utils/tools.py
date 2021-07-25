@@ -15,7 +15,7 @@ matplotlib.use("Agg")
 
 
 def to_device(data, device="cpu"):
-    if len(data) == 15:
+    if len(data) == 14:
         (
             ids,
             raw_texts,

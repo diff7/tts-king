@@ -46,12 +46,12 @@ class FastSpeech2(nn.Module):
         max_mel_len=None,
         e_targets=None,
         d_targets=None,
-        p_control=1.0,
-        e_control=1.0,
-        d_control=1.0,
         pitches_cwt=None,
         pitches_mean=None,
         pitches_std=None,
+        p_control=1.0,
+        e_control=1.0,
+        d_control=1.0,
     ):
         src_masks = get_mask_from_lengths(
             src_lens, max_src_len, device=texts.device

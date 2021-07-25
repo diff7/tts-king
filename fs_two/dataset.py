@@ -73,12 +73,12 @@ class Dataset(Dataset):
             "{}-mel-{}.npy".format(speaker, basename),
         )
         mel = np.load(mel_path)
-        pitch_path = os.path.join(
-            self.preprocessed_path,
-            "pitch",
-            "{}-pitch-{}.npy".format(speaker, basename),
-        )
 
+        energy_path = os.path.join(
+            self.preprocessed_path,
+            "energy",
+            "{}-energy-{}.npy".format(speaker, basename),
+        )
         energy = np.load(energy_path)
         duration_path = os.path.join(
             self.preprocessed_path,
@@ -96,14 +96,14 @@ class Dataset(Dataset):
 
         pitch_mean_path = os.path.join(
             self.preprocessed_path,
-            "pitcmh",
+            "pitch",
             "{}-pitch-mean-{}.npy".format(speaker, basename),
         )
         pitch_mean = np.load(pitch_mean_path)
 
         pitch_std_path = os.path.join(
             self.preprocessed_path,
-            "pitcmh",
+            "pitch",
             "{}-pitch-std-{}.npy".format(speaker, basename),
         )
         pitch_std = np.load(pitch_std_path)
@@ -164,6 +164,9 @@ class Dataset(Dataset):
         mel_lens = np.array([mel.shape[0] for mel in mels])
 
         speakers = np.array(speakers)
+        pitches_mean = np.array(pitches_mean)
+        pitches_std = np.array(pitches_std)
+
         texts = pad_1D(texts)
         mels = pad_2D(mels)
         energies = pad_1D(energies)

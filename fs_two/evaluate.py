@@ -18,7 +18,6 @@ from fs_two.dataset import Dataset
 def evaluate(
     model, step, cfg, logger=None, train_val="val", vocoder=None, device=0
 ):
-    # Get dataset
     dataset = Dataset(
         "val.txt",
         cfg.preprocess_config,
@@ -38,7 +37,7 @@ def evaluate(
     Loss = FastSpeech2Loss(cfg.preprocess_config, cfg.model_config)
 
     # Evaluation
-    loss_sums = [0 for _ in range(4)]
+    loss_sums = [0 for _ in range(6)]
     for batchs in loader:
         for batch in batchs:
             batch = to_device(batch, device)
@@ -56,7 +55,14 @@ def evaluate(
     loss_means = [sum(loss_means)] + loss_means
     loss_logs = [step] + loss_means
 
-    message = "Validation Step {}, Total Loss: {:.4f}, Mel Loss: {:.4f}, Pitch Loss: {:.4f}, Energy Loss: {:.4f}, Duration Loss: {:.4f}".format(
+    message = """Validation Step {}, 
+                 Total Loss: {:.4f}, 
+                 Mel Loss: {:.4f}, 
+                 Pitch Loss: {:.4f}, 
+                 Energy Loss: {:.4f}, 
+                 Duration Loss: {:.4f},
+                 Mean {:.4f},
+                 STD {:.4f}""".format(
         *loss_logs
     )
 

@@ -1,6 +1,6 @@
-exp_name: 'lin_projections'
-gpu: 3
-run_debug_eval: false
+exp_name: 'CWT'
+gpu: 2
+run_debug_eval: true
 logger:
   offline: false
   wandb_key: "beca9453c7ef6a20e21d5705275a0ff72842cbf3"

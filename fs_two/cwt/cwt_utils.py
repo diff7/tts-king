@@ -52,5 +52,4 @@ def inverse_batch_cwt(wavelet_coefs, num_scales=10):
         lf0_rec[:, :, i] = wavelet_coefs[:, :, i] * ((i + 1 + 2.5) ** (-2.5))
     lf0_rec_sum = torch.sum(lf0_rec, axis=-1)
     lf0_rec_sum = scaler(lf0_rec_sum)
-    print(lf0_rec_sum[0][:10])
     return lf0_rec_sum
