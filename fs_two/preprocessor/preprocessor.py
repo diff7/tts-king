@@ -143,6 +143,7 @@ class Preprocessor:
         pitch_min, pitch_max = self.normalize(
             os.path.join(self.out_dir, "pitch"), pitch_mean, pitch_std
         )
+
         energy_min, energy_max = self.normalize(
             os.path.join(self.out_dir, "energy"), energy_mean, energy_std
         )
@@ -181,7 +182,7 @@ class Preprocessor:
         with open(
             os.path.join(self.out_dir, "train.txt"), "w", encoding="utf-8"
         ) as f:
-            for m in out[self.val_size:]:
+            for m in out[self.val_size :]:
                 f.write(m + "\n")
         with open(
             os.path.join(self.out_dir, "val.txt"), "w", encoding="utf-8"
@@ -192,8 +193,7 @@ class Preprocessor:
         return out
 
     def process_utterance(self, speaker, basename):
-        wav_path = os.path.join(self.in_dir, speaker,
-                                "{}.wav".format(basename))
+        wav_path = os.path.join(self.in_dir, speaker, "{}.wav".format(basename))
         text_path = os.path.join(
             self.in_dir, speaker, "{}.lab".format(basename)
         )
@@ -213,7 +213,7 @@ class Preprocessor:
         # Read and trim wav files
         wav, _ = librosa.load(wav_path)
         wav = wav[
-            int(self.sampling_rate * start): int(self.sampling_rate * end)
+            int(self.sampling_rate * start) : int(self.sampling_rate * end)
         ].astype(np.float32)
 
         # Read raw text
@@ -254,7 +254,7 @@ class Preprocessor:
             pos = 0
             for i, d in enumerate(duration):
                 if d > 0:
-                    pitch[i] = np.mean(pitch[pos: pos + d])
+                    pitch[i] = np.mean(pitch[pos : pos + d])
                 else:
                     pitch[i] = 0
                 pos += d
@@ -277,7 +277,7 @@ class Preprocessor:
             pos = 0
             for i, d in enumerate(duration):
                 if d > 0:
-                    energy[i] = np.mean(energy[pos: pos + d])
+                    energy[i] = np.mean(energy[pos : pos + d])
                 else:
                     energy[i] = 0
                 pos += d
@@ -301,8 +301,7 @@ class Preprocessor:
 
         pitch_mean_filename = "{}-pitch-mean-{}.npy".format(speaker, basename)
         np.save(
-            os.path.join(self.out_dir, "pitch",
-                         pitch_mean_filename), pitch_mean
+            os.path.join(self.out_dir, "pitch", pitch_mean_filename), pitch_mean
         )
 
         pitch_std_filename = "{}-pitch-std-{}.npy".format(speaker, basename)
@@ -385,9 +384,15 @@ class Preprocessor:
     def normalize(self, in_dir, mean, std):
         max_value = np.finfo(np.float64).min
         min_value = np.finfo(np.float64).max
-        for filename in os.listdir(in_dir):
+        files = [
+            f
+            for f in os.listdir(in_dir)
+            if not ("std" in f or "mean" in f or "cwt" in f)
+        ]
+        for filename in files:
             filename = os.path.join(in_dir, filename)
             values = (np.load(filename) - mean) / std
+            print(filename)
             np.save(filename, values)
 
             max_value = max(max_value, max(values))
