@@ -17,8 +17,7 @@ class FastSpeech2(nn.Module):
         self.model_config = model_config
 
         self.encoder = Encoder(model_config)
-        self.variance_adaptor = VarianceAdaptor(
-            preprocess_config, model_config)
+        self.variance_adaptor = VarianceAdaptor(preprocess_config, model_config)
         self.decoder = Decoder(model_config)
         self.mel_linear = nn.Linear(
             model_config["transformer"]["decoder_hidden"],
@@ -45,15 +44,14 @@ class FastSpeech2(nn.Module):
         mels=None,
         mel_lens=None,
         max_mel_len=None,
-        p_targets=None,
         e_targets=None,
         d_targets=None,
         p_control=1.0,
         e_control=1.0,
         d_control=1.0,
-        pitches_cwt = None,
-        pitches_mean = None,
-        pitches_std = None,
+        pitches_cwt=None,
+        pitches_mean=None,
+        pitches_std=None,
     ):
         src_masks = get_mask_from_lengths(
             src_lens, max_src_len, device=texts.device
@@ -78,20 +76,20 @@ class FastSpeech2(nn.Module):
             mel_lens,
             mel_masks,
             pitch_mean,
-            pitch_std
+            pitch_std,
         ) = self.variance_adaptor(
             output,
             embedding,
             src_masks,
             mel_masks,
             max_mel_len,
-            p_targets,
+            pitches_cwt,
             e_targets,
             d_targets,
             p_control,
             e_control,
             d_control,
-    )
+        )
 
         output, mel_masks = self.decoder(output, mel_masks)
         output = self.mel_linear(output)
@@ -100,7 +98,7 @@ class FastSpeech2(nn.Module):
 
         return (
             output,
-            p_predictions,
+            pitch_cwt_prediction,
             e_predictions,
             log_d_predictions,
             d_rounded,
@@ -110,7 +108,7 @@ class FastSpeech2(nn.Module):
             mel_lens,
             postnet_output,
             pitch_mean,
-            pitch_std
+            pitch_std,
         )
 
 

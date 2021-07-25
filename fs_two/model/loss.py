@@ -22,13 +22,15 @@ class FastSpeech2Loss(nn.Module):
             mel_targets,
             _,
             _,
-            pitch_targets,
             energy_targets,
             duration_targets,
+            pitches_cwt,
+            pitch_mean,
+            pitch_std,
         ) = inputs[6:]
         (
             mel_predictions,
-            pitch_predictions,
+            pitch_cwt_predictions,
             energy_predictions,
             log_duration_predictions,
             _,
@@ -37,6 +39,8 @@ class FastSpeech2Loss(nn.Module):
             _,
             _,
             postnet_mel_predictions,
+            pitch_mean_pred,
+            pitch_std_pred,
         ) = predictions
         src_masks = ~src_masks
         mel_masks = ~mel_masks
@@ -45,16 +49,16 @@ class FastSpeech2Loss(nn.Module):
         mel_masks = mel_masks[:, : mel_masks.shape[1]]
 
         log_duration_targets.requires_grad = False
-        pitch_targets.requires_grad = False
+        pitches_cwt.requires_grad = False
         energy_targets.requires_grad = False
         mel_targets.requires_grad = False
 
         if self.pitch_feature_level == "phoneme_level":
-            pitch_predictions = pitch_predictions.masked_select(src_masks)
-            pitch_targets = pitch_targets.masked_select(src_masks)
+            pitch_predictions = pitch_cwt_predictions.masked_select(src_masks)
+            pitch_targets = pitches_cwt.masked_select(src_masks)
         elif self.pitch_feature_level == "frame_level":
-            pitch_predictions = pitch_predictions.masked_select(mel_masks)
-            pitch_targets = pitch_targets.masked_select(mel_masks)
+            pitch_predictions = pitch_cwt_predictions.masked_select(mel_masks)
+            pitch_targets = pitches_cwt.masked_select(mel_masks)
 
         if self.energy_feature_level == "phoneme_level":
             energy_predictions = energy_predictions.masked_select(src_masks)
@@ -84,12 +88,23 @@ class FastSpeech2Loss(nn.Module):
         total_mel_loss = mel_loss + mel_loss_mae + postnet_mel_loss
 
         pitch_loss = self.mse_loss(pitch_predictions, pitch_targets)
+
         energy_loss = self.mse_loss(energy_predictions, energy_targets)
         duration_loss = self.mse_loss(
             log_duration_predictions, log_duration_targets
         )
 
-        total_loss = total_mel_loss + duration_loss + pitch_loss + energy_loss
+        std_pitch_loss = self.mse_loss(pitch_std_pred, pitch_std)
+        mean_pitch_loss = self.mse_loss(pitch_mean_pred, pitch_mean)
+
+        total_loss = (
+            total_mel_loss
+            + duration_loss
+            + pitch_loss
+            + energy_loss
+            + std_pitch_loss
+            + mean_pitch_loss
+        )
 
         return (
             total_loss,
@@ -97,4 +112,6 @@ class FastSpeech2Loss(nn.Module):
             pitch_loss,
             energy_loss,
             duration_loss,
+            mean_pitch_loss,
+            std_pitch_loss,
         )

@@ -59,6 +59,13 @@ class VarianceAdaptor(nn.Module):
         self.energy_projection = LinearProj(hiden_size, hiden_size)
         self.speaker_projection = LinearProj(hiden_size, hiden_size)
 
+        self.pitch_mean = nn.Sequential(
+            Conv(11, 1, 1, 1), nn.AdaptiveAvgPool1d(1)
+        )
+        self.pitch_std = nn.Sequential(
+            Conv(11, 1, 1, 1), nn.AdaptiveAvgPool1d(1)
+        )
+
         self.pitch_feature_level = preprocess_config["preprocessing"]["pitch"][
             "feature"
         ]
@@ -122,18 +129,17 @@ class VarianceAdaptor(nn.Module):
             n_bins, model_config["transformer"]["encoder_hidden"]
         )
 
-        self.pitch_mean = nn.Sequential(Conv(10, 10, 1, 1), nn.Linear(10, 1))
-        self.pitch_std = nn.Sequential(Conv(10, 10, 1, 1), nn.Linear(10, 1))
-
     def get_pitch_embedding(self, x, target, mask, control):
         # batch, seq_len, 10 -> batch, 10 -> batch, 1
         pitch_cwt_prediction = self.pitch_predictor(x, mask)
         pitch_mean = self.pitch_mean(pitch_cwt_prediction)
         pitch_std = self.pitch_std(pitch_cwt_prediction)
         pitch_prediction = inverse_batch_cwt(
-            pitch_cwt_prediction.detach().cpu()).to(prediction.device)
-        pitch_prediction = (pitch_prediction *
-                            pitch_std.detach()) + pitch_mean.detach()
+            pitch_cwt_prediction.detach().cpu()
+        ).to(self.device)
+        pitch_prediction = (
+            pitch_prediction * pitch_std.detach()
+        ) + pitch_mean.detach()
 
         if target is not None:
             embedding = self.pitch_embedding(
@@ -166,7 +172,7 @@ class VarianceAdaptor(nn.Module):
         src_mask,
         mel_mask=None,
         max_len=None,
-        pitch_target=None,
+        pitch__cwt_target=None,
         energy_target=None,
         duration_target=None,
         p_control=1.0,
@@ -177,9 +183,14 @@ class VarianceAdaptor(nn.Module):
         log_duration_prediction = self.duration_predictor(x, src_mask)
 
         if self.pitch_feature_level == "phoneme_level":
-            pitch_cwt_prediction, pitch_embedding, pitch_mean, pitch_std = self.get_pitch_embedding(
+            (
+                pitch_cwt_prediction,
+                pitch_embedding,
+                pitch_mean,
+                pitch_std,
+            ) = self.get_pitch_embedding(
                 x + self.pithc_projection(embedding),
-                pitch_target,
+                pitch__cwt_target,
                 src_mask,
                 p_control,
             )
@@ -220,7 +231,7 @@ class VarianceAdaptor(nn.Module):
             mel_len,
             mel_mask,
             pitch_mean,
-            pitch_std
+            pitch_std,
         )
 
 

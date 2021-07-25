@@ -78,12 +78,7 @@ class Dataset(Dataset):
             "pitch",
             "{}-pitch-{}.npy".format(speaker, basename),
         )
-        pitch = np.load(pitch_path)
-        energy_path = os.path.join(
-            self.preprocessed_path,
-            "energy",
-            "{}-energy-{}.npy".format(speaker, basename),
-        )
+
         energy = np.load(energy_path)
         duration_path = os.path.join(
             self.preprocessed_path,
@@ -119,13 +114,11 @@ class Dataset(Dataset):
             "text": phone,
             "raw_text": raw_text,
             "mel": mel,
-            "pitch": pitch,
             "energy": energy,
             "duration": duration,
             "pitch_mean": pitch_mean,
             "pitch_std": pitch_std,
-            "pitch_cwt": pitch_cwt
-
+            "pitch_cwt": pitch_cwt,
         }
 
         return sample
@@ -159,8 +152,7 @@ class Dataset(Dataset):
         texts = [data[idx]["text"] for idx in idxs]
         raw_texts = [data[idx]["raw_text"] for idx in idxs]
         mels = [data[idx]["mel"] for idx in idxs]
-        
-        pitches = [data[idx]["pitch"] for idx in idxs]
+
         pitches_mean = [data[idx]["pitch_mean"] for idx in idxs]
         pitches_std = [data[idx]["pitch_std"] for idx in idxs]
         pitches_cwt = [data[idx]["pitch_cwt"] for idx in idxs]
@@ -174,7 +166,6 @@ class Dataset(Dataset):
         speakers = np.array(speakers)
         texts = pad_1D(texts)
         mels = pad_2D(mels)
-        pitches = pad_1D(pitches)
         energies = pad_1D(energies)
         durations = pad_1D(durations)
 
@@ -190,12 +181,11 @@ class Dataset(Dataset):
             mels,
             mel_lens,
             max(mel_lens),
-            pitches,
             energies,
             durations,
             pitches_cwt,
             pitches_mean,
-            pitches_std
+            pitches_std,
         )
 
     def collate_fn(self, data):

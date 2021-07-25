@@ -26,7 +26,6 @@ def to_device(data, device="cpu"):
             mels,
             mel_lens,
             max_mel_len,
-            pitches,
             energies,
             durations,
             pitches_cwt,
@@ -39,7 +38,6 @@ def to_device(data, device="cpu"):
         src_lens = torch.from_numpy(src_lens).to(device)
         mels = torch.from_numpy(mels).float().to(device)
         mel_lens = torch.from_numpy(mel_lens).to(device)
-        pitches = torch.from_numpy(pitches).float().to(device)
         energies = torch.from_numpy(energies).to(device)
         durations = torch.from_numpy(durations).long().to(device)
 
@@ -57,7 +55,6 @@ def to_device(data, device="cpu"):
             mels,
             mel_lens,
             max_mel_len,
-            pitches,
             energies,
             durations,
             pitches_cwt,
@@ -99,6 +96,8 @@ def log(
         "Loss/pitch_loss",
         "Loss/energy_loss",
         "Loss/duration_loss ",
+        "Mean pitch loss",
+        "Std pitch loss",
     ]
 
     if losses is not None:
