@@ -59,6 +59,8 @@ class ConvNorm(torch.nn.Module):
             bias=bias,
         )
         if w_init_gain == "tanh":
+            nn.init.xavier_normal_(self.conv.weight, torch.nn.init.calculate_gain('tanh'))
+        else:
             nn.init.xavier_normal_(self.conv.weight)
 
     def forward(self, signal):
