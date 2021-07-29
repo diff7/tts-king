@@ -58,17 +58,21 @@ class VarianceAdaptor(nn.Module):
         self.speaker_projection = LinearProj(hiden_size, hiden_size)
 
         self.pitch_mean = nn.Sequential(
-            nn.Conv1d(11, 3, 3, 1, padding=5),
-            torch.nn.ReLU(),
-            nn.Conv1d(3, 1, 1, 1),
-            torch.nn.ReLU(),
+            Conv(11, 3, 3, 1, padding=5),
+            nn.ReLU(),
+            RMSNorm(3),
+            Conv(3, 1, 1, 1),
+            RMSNorm(1),
+            nn.ReLU(),
             nn.AdaptiveAvgPool1d(1),  # We do not know the length
         )
         self.pitch_std = nn.Sequential(
-            nn.Conv1d(11, 5, 2, 1, padding=1),
-            torch.nn.ReLU(),
-            nn.Conv1d(5, 1, 1, 1),
-            torch.nn.ReLU(),
+            Conv(11, 5, 2, 1, padding=1),
+            nn.ReLU(),
+            RMSNorm(5),
+            Conv(5, 1, 1, 1),
+            RMSNorm(1),
+            nn.ReLU(),
             nn.AdaptiveAvgPool1d(1),  # We do not know the length
         )
 
@@ -150,8 +154,8 @@ class VarianceAdaptor(nn.Module):
         else:
             pitch_cwt = pitch_target_cwt
 
-        pitch_mean = self.pitch_mean(pitch_cwt.transpose(1, 2)).squeeze(1)
-        pitch_std = self.pitch_std(pitch_cwt.transpose(1, 2)).squeeze(1)
+        pitch_mean = self.pitch_mean(pitch_cwt).squeeze(1)
+        pitch_std = self.pitch_std(pitch_cwt).squeeze(1)
 
         pitch_prediction = (
             pitch_prediction * pitch_std.detach().to(self.device)
