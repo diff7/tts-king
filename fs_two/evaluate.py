@@ -59,10 +59,8 @@ def evaluate(
                  Total Loss: {:.4f}, 
                  Mel Loss: {:.4f}, 
                  Pitch Loss: {:.4f}, 
-                 Energy Loss: {:.4f}, 
-                 Duration Loss: {:.4f},
-                 Mean {:.4f},
-                 STD {:.4f}""".format(
+                 Mean pitch {:.4f},
+                 Std pitch {:.4f}""".format(
         *loss_logs
     )
 

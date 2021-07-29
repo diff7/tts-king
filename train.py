@@ -65,8 +65,8 @@ def train_logger(losses, step, total_step, outer_bar, log, logger):
                 Pitch Loss: {:.4f},
                 Energy Loss: {:.4f},
                 Duration Loss: {:.4f}
-                Mean pitch loss: {:.4f}
-                Std pitch loss: {:.4f}
+                Mean pitch: {:.4f}
+                Std pitch: {:.4f}
                 """.format(
         *losses
     )

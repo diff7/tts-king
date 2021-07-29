@@ -145,23 +145,23 @@ def synth_one_sample(
     mel_len = predictions[8][rand_id].item()
     mel_target = targets[6][rand_id, :mel_len].detach().transpose(0, 1)
     mel_prediction = predictions[9][rand_id, :mel_len].detach().transpose(0, 1)
-    duration = targets[11][rand_id, :src_len].detach().cpu().numpy()
+    duration = targets[10][rand_id, :src_len].detach().cpu().numpy()
     if (
         preprocess_config["preprocessing"]["pitch"]["feature"]
         == "phoneme_level"
     ):
-        pitch = targets[9][rand_id, :src_len].detach().cpu().numpy()
+        pitch = targets[11][rand_id, :src_len].detach().cpu().numpy()
         pitch = expand(pitch, duration)
     else:
-        pitch = targets[9][rand_id, :mel_len].detach().cpu().numpy()
+        pitch = targets[11][rand_id, :mel_len].detach().cpu().numpy()
     if (
         preprocess_config["preprocessing"]["energy"]["feature"]
         == "phoneme_level"
     ):
-        energy = targets[10][rand_id, :src_len].detach().cpu().numpy()
+        energy = targets[9][rand_id, :src_len].detach().cpu().numpy()
         energy = expand(energy, duration)
     else:
-        energy = targets[10][rand_id, :mel_len].detach().cpu().numpy()
+        energy = targets[9][rand_id, :mel_len].detach().cpu().numpy()
 
     with open(
         os.path.join(

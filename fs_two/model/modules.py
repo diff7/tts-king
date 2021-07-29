@@ -1,7 +1,5 @@
 import os
 import json
-import copy
-import math
 from collections import OrderedDict
 
 import torch
@@ -60,10 +58,18 @@ class VarianceAdaptor(nn.Module):
         self.speaker_projection = LinearProj(hiden_size, hiden_size)
 
         self.pitch_mean = nn.Sequential(
-            nn.Conv1d(11, 1, 1, 1), nn.AdaptiveAvgPool1d(1)
+            nn.Conv1d(11, 3, 3, 1, padding=5),
+            torch.nn.ReLU(),
+            nn.Conv1d(3, 1, 1, 1),
+            torch.nn.ReLU(),
+            nn.AdaptiveAvgPool1d(1),  # We do not know the length
         )
         self.pitch_std = nn.Sequential(
-            nn.Conv1d(11, 1, 1, 1), nn.AdaptiveAvgPool1d(1)
+            nn.Conv1d(11, 5, 2, 1, padding=1),
+            torch.nn.ReLU(),
+            nn.Conv1d(5, 1, 1, 1),
+            torch.nn.ReLU(),
+            nn.AdaptiveAvgPool1d(1),  # We do not know the length
         )
 
         self.pitch_feature_level = preprocess_config["preprocessing"]["pitch"][
@@ -129,33 +135,31 @@ class VarianceAdaptor(nn.Module):
             n_bins, model_config["transformer"]["encoder_hidden"]
         )
 
-    def get_pitch_embedding(self, x, target, mask, control):
+    def get_pitch_embedding(self, x, pitch_target_cwt, mask, control=1):
         # batch, seq_len, 10 -> batch, 10 -> batch, 1
         mask = mask.unsqueeze(2)
         mask = mask.repeat(1, 1, 11)
         pitch_cwt_prediction = self.pitch_predictor(x, mask)
-        pitch_mean = self.pitch_mean(
-            pitch_cwt_prediction.transpose(1, 2)
-        ).squeeze(1)
-        pitch_std = self.pitch_std(
-            pitch_cwt_prediction.transpose(1, 2)
-        ).squeeze(1)
 
         pitch_prediction = inverse_batch_cwt(pitch_cwt_prediction.detach()).to(
             self.device
         )
+
+        if pitch_target_cwt is None:
+            pitch_cwt = pitch_cwt_prediction
+        else:
+            pitch_cwt = pitch_target_cwt
+
+        pitch_mean = self.pitch_mean(pitch_cwt.transpose(1, 2)).squeeze(1)
+        pitch_std = self.pitch_std(pitch_cwt.transpose(1, 2)).squeeze(1)
+
         pitch_prediction = (
             pitch_prediction * pitch_std.detach().to(self.device)
         ) + pitch_mean.detach().to(self.device)
 
-        # if target is not None:
-        #     pitch_embedding = self.pitch_embedding(
-        #         torch.bucketize(target, self.pitch_bins)
-        #     )
-        # else:
-        pitch_prediction = pitch_prediction * control
+        pitch = inverse_batch_cwt(pitch_cwt.detach()).to(self.device) * control
         pitch_embedding = self.pitch_embedding(
-            torch.bucketize(pitch_prediction, self.pitch_bins)
+            torch.bucketize(pitch, self.pitch_bins)
         )
 
         return pitch_cwt_prediction, pitch_embedding, pitch_mean, pitch_std
@@ -384,13 +388,11 @@ class Conv(nn.Module):
 
 
 class LinearProj(torch.nn.Module):
+    # TODO change to attention or new MLP
     def __init__(self, inputSize, outputSize):
         super(LinearProj, self).__init__()
         self.go = nn.Sequential(
-            torch.nn.Linear(inputSize, outputSize),
-            torch.nn.ReLU(),
-            torch.nn.Linear(inputSize, outputSize),
-            torch.nn.ReLU(),
+            torch.nn.Linear(inputSize, outputSize), torch.nn.ReLU()
         )
 
     def forward(self, x):

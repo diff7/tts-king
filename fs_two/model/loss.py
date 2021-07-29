@@ -89,16 +89,16 @@ class FastSpeech2Loss(nn.Module):
         postnet_mel_loss = self.mse_loss(postnet_mel_predictions, mel_targets)
         total_mel_loss = mel_loss + mel_loss_mae + postnet_mel_loss
 
-        pitch_loss = self.mse_loss(pitch_predictions, pitch_targets)
+        pitch_loss = self.mae_loss(pitch_predictions, pitch_targets)
 
         energy_loss = self.mse_loss(energy_predictions, energy_targets)
         duration_loss = self.mse_loss(
             log_duration_predictions, log_duration_targets
         )
 
-        std_pitch_loss = self.mse_loss(pitch_std_pred, pitch_std.unsqueeze(1))
-        mean_pitch_loss = self.mse_loss(
-            pitch_mean_pred, pitch_mean.unsqueeze(1)
+        std_pitch_loss = self.mse_loss(pitch_std_pred, pitch_std.unsqueeze(1)
+        )
+        mean_pitch_loss = self.mse_loss(pitch_mean_pred, pitch_mean.unsqueeze(1)
         )
 
         total_loss = (

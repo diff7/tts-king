@@ -1,6 +1,6 @@
 exp_name: 'CWT'
-gpu: 2
-run_debug_eval: true
+gpu: 1
+run_debug_eval: false
 logger:
   offline: false
   wandb_key: "beca9453c7ef6a20e21d5705275a0ff72842cbf3"
@@ -63,7 +63,7 @@ train_config:
     anneal_rate: 0.3
   step:
     total_step: 900000
-    log_step: 200
+    log_step: 50
     synth_step: 1000
     val_step: 1000
     save_step: 5000
@@ -71,7 +71,7 @@ train_config:
   max_masks_per_sentence: 0.15
 
 preprocess_config:
-  secondary: true # assumes train and val files exist
+  secondary: false # assumes train and val files exist
   dataset: "MAIN"
 
   path:
