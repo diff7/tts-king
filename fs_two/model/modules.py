@@ -150,9 +150,9 @@ class VarianceAdaptor(nn.Module):
             pitch_prediction * pitch_std.detach().to(self.device)
         ) + pitch_mean.detach().to(self.device)
 
-        pitch = inverse_batch_cwt(pitch_cwt.detach()).to(self.device) * control
+        #pitch = inverse_batch_cwt(pitch_cwt.detach()).to(self.device) * control
         pitch_embedding = self.pitch_embedding(
-            torch.bucketize(pitch, self.pitch_bins)
+            torch.bucketize(pitch_prediction, self.pitch_bins)
         )
 
         return pitch_cwt_prediction, pitch_embedding, pitch_mean, pitch_std
