@@ -27,6 +27,7 @@ class FastSpeech2(nn.Module):
             model_config["transformer"]["decoder_hidden"],
             preprocess_config["preprocessing"]["mel"]["n_mel_channels"],
         )
+        nn.init.xavier_normal_(self.mel_linear.weight)
         self.speaker_emb = None
 
         if model_config["multi_speaker"]:

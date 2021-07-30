@@ -128,7 +128,7 @@ class PositionwiseFeedForward(nn.Module):
             kernel_size=kernel_size[0],
             padding=(kernel_size[0] - 1) // 2,
         )
-        nn.init.kaiming_normal_(self.w_1.weight)
+        nn.init.kaiming_normal_(self.w_1.weight, nonlinearity='relu')
         # position-wise
         self.w_2 = nn.Conv1d(
             d_hid,
@@ -136,7 +136,7 @@ class PositionwiseFeedForward(nn.Module):
             kernel_size=kernel_size[1],
             padding=(kernel_size[1] - 1) // 2,
         )
-
+        nn.init.xavier_normal_(self.w_2.weight)
         self.layer_norm = RMSNorm(d_in)
         self.dropout = nn.Dropout(dropout)
 

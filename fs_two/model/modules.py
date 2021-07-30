@@ -58,17 +58,21 @@ class VarianceAdaptor(nn.Module):
         self.speaker_projection = LinearProj(hiden_size, hiden_size)
 
         self.pitch_mean = nn.Sequential(
-            nn.Conv1d(11, 3, 3, 1, padding=3),
-            torch.nn.ReLU(),
-            nn.Conv1d(3, 1, 1, 1),
-            torch.nn.ReLU(),
+            Conv(11, 3, kernel_size=3, stride=1, padding=5),
+            nn.ReLU(),
+            RMSNorm(3),
+            Conv(3, 1, kernel_size=1, stride=1),
+            RMSNorm(1),
+            nn.ReLU(),
             nn.AdaptiveAvgPool1d(1),  # We do not know the length
         )
         self.pitch_std = nn.Sequential(
-            nn.Conv1d(11, 5, 2, 1, padding=1),
-            torch.nn.ReLU(),
-            nn.Conv1d(5, 1, 1, 1),
-            torch.nn.ReLU(),
+            Conv(11, 5, kernel_size=2, stride=1, padding=1),
+            nn.ReLU(),
+            RMSNorm(5),
+            Conv(5, 1, kernel_size=1, stride=1),
+            RMSNorm(1),
+            nn.ReLU(),
             nn.AdaptiveAvgPool1d(1),  # We do not know the length
         )
 
@@ -150,8 +154,8 @@ class VarianceAdaptor(nn.Module):
         else:
             pitch_cwt = pitch_target_cwt
 
-        pitch_mean = self.pitch_mean(pitch_cwt.transpose(1, 2)).squeeze(1)
-        pitch_std = self.pitch_std(pitch_cwt.transpose(1, 2)).squeeze(1)
+        pitch_mean = self.pitch_mean(pitch_cwt).squeeze(1)
+        pitch_std = self.pitch_std(pitch_cwt).squeeze(1)
 
         pitch_prediction = (
             pitch_prediction * pitch_std.detach().to(self.device)
@@ -329,6 +333,7 @@ class VariancePredictor(nn.Module):
         )
 
         self.linear_layer = nn.Linear(self.conv_output_size, output_size)
+        nn.init.xavier_normal_(self.linear_layer.weight)
 
     def forward(self, encoder_output, mask):
         out = self.conv_layer(encoder_output)
@@ -378,6 +383,7 @@ class Conv(nn.Module):
             dilation=dilation,
             bias=bias,
         )
+        nn.init.kaiming_normal_(self.conv.weight, nonlinearity="relu")
 
     def forward(self, x):
         x = x.contiguous().transpose(1, 2)
@@ -391,10 +397,10 @@ class LinearProj(torch.nn.Module):
     # TODO change to attention or new MLP
     def __init__(self, inputSize, outputSize):
         super(LinearProj, self).__init__()
-        self.go = nn.Sequential(
-            torch.nn.Linear(inputSize, outputSize), torch.nn.ReLU()
-        )
+        self.lin = nn.Linear(inputSize, outputSize)
+        self.act = nn.ReLU()
+        nn.init.kaiming_normal_(self.lin.weight, nonlinearity="relu")
 
     def forward(self, x):
-        out = self.go(x)
+        out = self.act(self.lin(x))
         return out
