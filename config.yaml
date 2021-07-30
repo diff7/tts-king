@@ -63,7 +63,7 @@ train_config:
     anneal_rate: 0.3
   step:
     total_step: 900000
-    log_step: 50
+    log_step: 100
     synth_step: 1000
     val_step: 1000
     save_step: 5000

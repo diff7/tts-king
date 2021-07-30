@@ -58,7 +58,7 @@ class VarianceAdaptor(nn.Module):
         self.speaker_projection = LinearProj(hiden_size, hiden_size)
 
         self.pitch_mean = nn.Sequential(
-            nn.Conv1d(11, 3, 3, 1, padding=5),
+            nn.Conv1d(11, 3, 3, 1, padding=3),
             torch.nn.ReLU(),
             nn.Conv1d(3, 1, 1, 1),
             torch.nn.ReLU(),
