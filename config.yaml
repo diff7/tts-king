@@ -2,7 +2,7 @@ exp_name: 'CWT'
 gpu: 3
 run_debug_eval: false
 logger:
-  offline: true
+  offline: false
   wandb_key: "beca9453c7ef6a20e21d5705275a0ff72842cbf3"
 
 
@@ -49,21 +49,21 @@ hifi:
 
 train_config:
   path:
-    ckpt_path: "../output/ckpt/linproj"
-    result_path: "../output/result/linproj"
+    ckpt_path: "../output/ckpt/CWT"
+    result_path: "../output/result/CWT"
   optimizer:
     batch_size: 16
     betas: [0.95, 0.999]
     eps: 0.00001
     weight_decay: 0.0
     grad_clip_thresh: 1.0
-    grad_acc_step: 4
+    grad_acc_step: 6
     warm_up_step: 4000
     anneal_steps: [300000, 400000, 500000]
-    anneal_rate: 0.3
+    anneal_rate: 0.7
   step:
     total_step: 900000
-    log_step: 50
+    log_step: 300
     synth_step: 1000
     val_step: 1000
     save_step: 5000
