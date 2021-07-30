@@ -57,24 +57,8 @@ class VarianceAdaptor(nn.Module):
         self.energy_projection = LinearProj(hiden_size, hiden_size)
         self.speaker_projection = LinearProj(hiden_size, hiden_size)
 
-        self.pitch_mean = nn.Sequential(
-            Conv(11, 3, kernel_size=3, stride=1, padding=5),
-            nn.ReLU(),
-            RMSNorm(3),
-            Conv(3, 1, kernel_size=1, stride=1),
-            RMSNorm(1),
-            nn.ReLU(),
-            nn.AdaptiveAvgPool1d(1),  # We do not know the length
-        )
-        self.pitch_std = nn.Sequential(
-            Conv(11, 5, kernel_size=2, stride=1, padding=1),
-            nn.ReLU(),
-            RMSNorm(5),
-            Conv(5, 1, kernel_size=1, stride=1),
-            RMSNorm(1),
-            nn.ReLU(),
-            nn.AdaptiveAvgPool1d(1),  # We do not know the length
-        )
+        self.pitch_mean = CNNscalar(hiden_size, cwt_size=11)
+        self.pitch_std = CNNscalar(hiden_size, cwt_size=11)
 
         self.pitch_feature_level = preprocess_config["preprocessing"]["pitch"][
             "feature"
@@ -149,14 +133,19 @@ class VarianceAdaptor(nn.Module):
             self.device
         )
 
-        if pitch_target_cwt is None:
-            pitch_cwt = pitch_cwt_prediction
-        else:
-            pitch_cwt = pitch_target_cwt
+        # NOTE: Might be more stable if train on Ground Truth
+        # if pitch_target_cwt is None:
+        #     pitch_cwt = pitch_cwt_prediction
+        # else:
+        #     pitch_cwt = pitch_target_cwt
+        pitch_cwt = pitch_cwt_prediction
 
-        pitch_mean = self.pitch_mean(pitch_cwt).squeeze(1)
-        pitch_std = self.pitch_std(pitch_cwt).squeeze(1)
+        pitch_mean = self.pitch_mean(x, pitch_cwt_prediction)
+        pitch_std = self.pitch_std(x, pitch_cwt_prediction)
 
+        # print(pitch_prediction.shape)
+        # print(pitch_std.shape)
+        # print(pitch_mean.shape)
         pitch_prediction = (
             pitch_prediction * pitch_std.detach().to(self.device)
         ) + pitch_mean.detach().to(self.device)
@@ -404,3 +393,29 @@ class LinearProj(torch.nn.Module):
     def forward(self, x):
         out = self.act(self.lin(x))
         return out
+
+
+class CNNscalar(torch.nn.Module):
+    # TODO change to attention or new MLP
+    def __init__(self, hidden_size, cwt_size):
+        super(CNNscalar, self).__init__()
+        self.net_hidden = nn.Sequential(
+            nn.Conv1d(hidden_size, 1, kernel_size=3, stride=1, padding=0),
+            nn.ReLU(),
+        )
+
+        self.net_cwt = nn.Sequential(
+            nn.Conv1d(cwt_size, 1, kernel_size=3, stride=1, padding=0),
+            nn.ReLU(),
+        )
+
+        self.avg = nn.AdaptiveAvgPool1d(1)
+
+    def forward(self, hidden, cwt):
+        hidden = hidden.transpose(1, 2)
+        cwt = cwt.transpose(1, 2)
+        out_hidden = self.net_hidden(hidden)
+        out_cwt = self.net_cwt(cwt)
+        out = out_hidden + out_cwt
+
+        return self.avg(out)
