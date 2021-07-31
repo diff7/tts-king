@@ -37,13 +37,6 @@ def inverse_cwt(wavelet_coefs, num_scales=10):
 # reverse  = inverse_batch_cwt(wavelet_coefs, scales=10)*std + mean
 
 
-def scaler(tensor, axis=-1):
-    mean = tensor.mean(axis)
-    std = tensor.std(axis)
-    res = (tensor - mean.reshape(-1, 1)) / std.reshape(-1, 1)
-    return res
-
-
 class TorchStandardScaler:
     def fit(self, x):
         self.mean = x.mean(0, keepdim=True)
