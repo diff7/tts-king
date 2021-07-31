@@ -48,9 +48,8 @@ def main_train_step(
         # Clipping gradients to avoid gradient explosion
 
         # Update weights
-        optimizer.update_lr()
+        optimizer.step_and_update_lr()
         nn.utils.clip_grad_norm_(model.parameters(), grad_clip_thresh)
-        optimizer.real_step()
         optimizer.zero_grad()
 
     return losses, output

@@ -46,19 +46,24 @@ class VarianceAdaptor(nn.Module):
         super(VarianceAdaptor, self).__init__()
         self.device = device
 
+        hidden_size = model_config["transformer"]["variance_hidden"]
+
         self.duration_predictor = VariancePredictor(model_config)
         self.length_regulator = LengthRegulator()
-        self.pitch_predictor = VariancePredictor(model_config, output_size=11)
+        self.pitch_predictor = VariancePredictor(
+            model_config, output_size=11, dropout=0.2
+        )
+
+        # PitchPredictor(hidden_size, cwt_size=11)
+
         self.energy_predictor = VariancePredictor(model_config)
 
-        hiden_size = model_config["transformer"]["variance_hidden"]
+        self.pithc_projection = LinearProj(hidden_size, hidden_size)
+        self.energy_projection = LinearProj(hidden_size, hidden_size)
+        self.speaker_projection = LinearProj(hidden_size, hidden_size)
 
-        self.pithc_projection = LinearProj(hiden_size, hiden_size)
-        self.energy_projection = LinearProj(hiden_size, hiden_size)
-        self.speaker_projection = LinearProj(hiden_size, hiden_size)
-
-        self.pitch_mean = CNNscalar(hiden_size, cwt_size=11)
-        self.pitch_std = CNNscalar(hiden_size, cwt_size=11)
+        self.pitch_mean = CNNscalar(hidden_size, cwt_size=11)
+        self.pitch_std = CNNscalar(hidden_size, cwt_size=11)
 
         self.pitch_feature_level = preprocess_config["preprocessing"]["pitch"][
             "feature"
@@ -130,27 +135,24 @@ class VarianceAdaptor(nn.Module):
         pitch_cwt_prediction = self.pitch_predictor(x, mask)
 
         # NOTE: Might be more stable if train on Ground Truth
-        if pitch_target_cwt is None:
-             pitch_cwt = pitch_cwt_prediction
-        else:
-             pitch_cwt = pitch_target_cwt
+        # if pitch_target_cwt is None:
+        #     pitch_cwt = pitch_cwt_prediction
+        # else:
+        #     pitch_cwt = pitch_target_cwt
+        pitch_cwt = pitch_cwt_prediction
 
-        pitch_mean = self.pitch_mean(x, pitch_cwt)
-        pitch_std = self.pitch_std(x, pitch_cwt)
+        pitch_mean = self.pitch_mean(x.detach(), pitch_cwt)
+        pitch_std = self.pitch_std(x.detach(), pitch_cwt)
 
-        pitch = inverse_batch_cwt(pitch_cwt.detach()).to(
-            self.device
-        )
+        pitch = inverse_batch_cwt(pitch_cwt.detach()).to(self.device)
 
-        print(pitch.shape)
-        print(pitch_std.shape)
-        print(pitch_mean.shape)
-        pitch = (
-            pitch * pitch_std.detach().to(self.device)
-        ) + pitch_mean.detach().to(self.device)
+        # print(pitch.shape)
+        # print(pitch_std.shape)
+        # print(pitch_mean.shape)
+        pitch = (pitch * pitch_std.detach()) + pitch_mean.detach()
 
         pitch_embedding = self.pitch_embedding(
-            torch.bucketize(pitch*control, self.pitch_bins)
+            torch.bucketize(pitch * control, self.pitch_bins)
         )
         return pitch_cwt_prediction, pitch_embedding, pitch_mean, pitch_std
 
@@ -275,7 +277,7 @@ class LengthRegulator(nn.Module):
 class VariancePredictor(nn.Module):
     """ Duration, Pitch and Energy Predictor """
 
-    def __init__(self, model_config, output_size=1):
+    def __init__(self, model_config, output_size=1, dropout=None):
         super(VariancePredictor, self).__init__()
 
         self.input_size = model_config["transformer"]["variance_hidden"]
@@ -284,7 +286,10 @@ class VariancePredictor(nn.Module):
         self.conv_output_size = model_config["variance_predictor"][
             "filter_size"
         ]
-        self.dropout = model_config["variance_predictor"]["dropout"]
+        if dropout is None:
+            self.dropout = model_config["variance_predictor"]["dropout"]
+        else:
+            self.dropout = dropout
 
         self.conv_layer = nn.Sequential(
             OrderedDict(
@@ -378,7 +383,7 @@ class Conv(nn.Module):
         return x
 
 
-class LinearProj(torch.nn.Module):
+class LinearProj(nn.Module):
     # TODO change to attention or new MLP
     def __init__(self, inputSize, outputSize):
         super(LinearProj, self).__init__()
@@ -391,27 +396,20 @@ class LinearProj(torch.nn.Module):
         return out
 
 
-class CNNscalar(torch.nn.Module):
+class CNNscalar(nn.Module):
     # TODO change to attention or new MLP
     def __init__(self, hidden_size, cwt_size):
         super(CNNscalar, self).__init__()
-        self.net_hidden = nn.Sequential(
-            nn.Conv1d(hidden_size, 1, kernel_size=3, stride=1, padding=0),
-            nn.ReLU(),
-        )
-
-        self.net_cwt = nn.Sequential(
-            nn.Conv1d(cwt_size, 1, kernel_size=3, stride=1, padding=0),
-            nn.ReLU(),
-        )
-
         self.avg = nn.AdaptiveAvgPool1d(1)
+        self.linear_hidden = nn.Linear(hidden_size, 1)
+        self.linear_cwt = nn.Linear(cwt_size, 1)
+        self.relu = nn.ReLU()
 
     def forward(self, hidden, cwt):
         hidden = hidden.transpose(1, 2)
         cwt = cwt.transpose(1, 2)
-        out_hidden = self.net_hidden(hidden)
-        out_cwt = self.net_cwt(cwt)
-        out = out_hidden + out_cwt
-
-        return self.avg(out)
+        out_hidden = self.avg(hidden).squeeze(2)
+        out_cwt = self.avg(cwt).squeeze(2)
+        out_hidden = self.linear_hidden(out_hidden)
+        out_cwt = self.linear_cwt(out_cwt)
+        return self.relu(out_hidden) + self.relu(out_cwt) + 1e-6

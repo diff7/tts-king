@@ -44,6 +44,20 @@ def scaler(tensor, axis=-1):
     return res
 
 
+class TorchStandardScaler:
+    def fit(self, x):
+        self.mean = x.mean(0, keepdim=True)
+        self.std = x.std(0, unbiased=False, keepdim=True)
+
+    def transform(self, x):
+        x -= self.mean
+        x /= self.std + 1e-12
+        return x
+
+
+scaler_tc = TorchStandardScaler()
+
+
 def inverse_batch_cwt(wavelet_coefs, num_scales=10):
     batch_size = wavelet_coefs.shape[0]
     length = wavelet_coefs.shape[1]
@@ -51,5 +65,9 @@ def inverse_batch_cwt(wavelet_coefs, num_scales=10):
     for i in range(0, num_scales):
         lf0_rec[:, :, i] = wavelet_coefs[:, :, i] * ((i + 1 + 2.5) ** (-2.5))
     lf0_rec_sum = torch.sum(lf0_rec, axis=-1)
-    lf0_rec_sum = scaler(lf0_rec_sum)
+    # lf0_rec_sum = scaler(lf0_rec_sum)
+    scaler_tc.fit(lf0_rec_sum)
+    lf0_rec_sum = scaler_tc.transform(lf0_rec_sum)
+
+    torch.nan_to_num(lf0_rec_sum, nan=0.0)
     return lf0_rec_sum

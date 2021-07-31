@@ -106,8 +106,8 @@ class FastSpeech2Loss(nn.Module):
             + duration_loss
             + pitch_loss
             + energy_loss
-            + std_pitch_loss
             + mean_pitch_loss
+            + std_pitch_loss
         )
 
         return (

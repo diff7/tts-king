@@ -42,6 +42,7 @@ def to_device(data, device="cpu"):
         durations = torch.from_numpy(durations).long().to(device)
 
         pitches_cwt = torch.from_numpy(pitches_cwt).float().to(device)
+        pitches_cwt = torch.nan_to_num(pitches_cwt, nan=0.0)
         pitches_mean = torch.from_numpy(pitches_mean).float().to(device)
         pitches_std = torch.from_numpy(pitches_std).float().to(device)
 
