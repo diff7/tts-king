@@ -129,32 +129,29 @@ class VarianceAdaptor(nn.Module):
         mask = mask.repeat(1, 1, 11)
         pitch_cwt_prediction = self.pitch_predictor(x, mask)
 
-        pitch_prediction = inverse_batch_cwt(pitch_cwt_prediction.detach()).to(
+        # NOTE: Might be more stable if train on Ground Truth
+        if pitch_target_cwt is None:
+             pitch_cwt = pitch_cwt_prediction
+        else:
+             pitch_cwt = pitch_target_cwt
+
+        pitch_mean = self.pitch_mean(x, pitch_cwt)
+        pitch_std = self.pitch_std(x, pitch_cwt)
+
+        pitch = inverse_batch_cwt(pitch_cwt.detach()).to(
             self.device
         )
 
-        # NOTE: Might be more stable if train on Ground Truth
-        # if pitch_target_cwt is None:
-        #     pitch_cwt = pitch_cwt_prediction
-        # else:
-        #     pitch_cwt = pitch_target_cwt
-        pitch_cwt = pitch_cwt_prediction
-
-        pitch_mean = self.pitch_mean(x, pitch_cwt_prediction)
-        pitch_std = self.pitch_std(x, pitch_cwt_prediction)
-
-        # print(pitch_prediction.shape)
-        # print(pitch_std.shape)
-        # print(pitch_mean.shape)
-        pitch_prediction = (
-            pitch_prediction * pitch_std.detach().to(self.device)
+        print(pitch.shape)
+        print(pitch_std.shape)
+        print(pitch_mean.shape)
+        pitch = (
+            pitch * pitch_std.detach().to(self.device)
         ) + pitch_mean.detach().to(self.device)
 
-        #pitch = inverse_batch_cwt(pitch_cwt.detach()).to(self.device) * control
         pitch_embedding = self.pitch_embedding(
-            torch.bucketize(pitch_prediction, self.pitch_bins)
+            torch.bucketize(pitch*control, self.pitch_bins)
         )
-
         return pitch_cwt_prediction, pitch_embedding, pitch_mean, pitch_std
 
     def get_energy_embedding(self, x, target, mask, control):
@@ -199,7 +196,6 @@ class VarianceAdaptor(nn.Module):
                 src_mask,
                 p_control,
             )
-
             x = x + pitch_embedding
 
         if self.energy_feature_level == "phoneme_level":

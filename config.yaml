@@ -1,5 +1,5 @@
 exp_name: 'CWT'
-gpu: 3
+gpu: 2
 run_debug_eval: false
 logger:
   offline: false
@@ -8,16 +8,7 @@ logger:
 
 tts:
   weights_path: #'/home/egor/Desktop/projects/TTS MAIN/weights/fs2/masked/180000.pth.tar'
-  betas:
-  eps:
-  weight_decay:
-  results_path:
-  save_weights_dir:
-  num_audio_exampls:
-  epochs: 100
-  validation_interval: 10
-  restore_step: 0
-  
+  restore_step: 0  
   
 hifi:
   weights_path:  '/home/dev/other/fsp/weights/trained_original/hifi/generator_v1.pth' #'/home/egor/Desktop/projects/TTS MAIN/weights/hifi/generator_v1.pth'
@@ -57,13 +48,13 @@ train_config:
     eps: 0.00001
     weight_decay: 0.0
     grad_clip_thresh: 1.0
-    grad_acc_step: 6
+    grad_acc_step: 4
     warm_up_step: 4000
     anneal_steps: [300000, 400000, 500000]
     anneal_rate: 0.7
   step:
     total_step: 900000
-    log_step: 300
+    log_step: 50
     synth_step: 1000
     val_step: 1000
     save_step: 5000
