@@ -143,11 +143,16 @@ class Ranger21(TO.Optimizer):
         warmup_type="linear",
         warmup_pct_default=0.22,
         logging_active=True,
+        total_iterations=None,
     ):
 
         # todo - checks on incoming params
         defaults = dict(
-            lr=lr, momentum=momentum, betas=betas, eps=eps, weight_decay=weight_decay
+            lr=lr,
+            momentum=momentum,
+            betas=betas,
+            eps=eps,
+            weight_decay=weight_decay,
         )
         super().__init__(params, defaults)
 
@@ -159,6 +164,7 @@ class Ranger21(TO.Optimizer):
 
         self.num_batches_per_epoch = num_batches_per_epoch
         self.num_epochs = num_epochs
+        self.total_iterations = total_iterations
 
         if not self.use_madgrad:
             self.core_engine = "AdamW"
@@ -202,7 +208,9 @@ class Ranger21(TO.Optimizer):
                 )
             self.cheb_schedule = get_chebs(num_epochs)
 
-        self.total_iterations = num_epochs * num_batches_per_epoch
+        if self.total_iterations is None:
+            self.total_iterations = num_epochs * num_batches_per_epoch
+
         if not self.total_iterations:
             raise ValueError(
                 "missing total iterations, which is calced from num epochs and num iters per epoch param"
@@ -229,7 +237,9 @@ class Ranger21(TO.Optimizer):
 
             # this can be unreasonable for short runs...so let's compare vs warmup pct % of total epochs
             if beta_pct > 0.45:
-                warmup_auto_pct = int(self.warmup_pct_default * self.total_iterations)
+                warmup_auto_pct = int(
+                    self.warmup_pct_default * self.total_iterations
+                )
                 self.num_warmup_iters = warmup_auto_pct
             else:
                 self.num_warmup_iters = beta_warmup_iters
@@ -251,7 +261,9 @@ class Ranger21(TO.Optimizer):
                 self.total_iterations - self.start_warm_down
             )
             self.warmdown_displayed = False  # print when warmdown begins...
-            self.warmup_curr_pct = 0.01  # used to verify warmup reaches full set point.
+            self.warmup_curr_pct = (
+                0.01  # used to verify warmup reaches full set point.
+            )
 
             """
             print(f"debug warmdown:\n")
@@ -449,7 +461,9 @@ class Ranger21(TO.Optimizer):
                     )
 
                 self.warmup_complete = True
-                print(f"\n** Ranger21 update = Warmup complete - lr set to {lr}\n")
+                print(
+                    f"\n** Ranger21 update = Warmup complete - lr set to {lr}\n"
+                )
             return lr
 
         if style == "linear":
@@ -504,7 +518,9 @@ class Ranger21(TO.Optimizer):
             # print(f"lr reduction = {reduction} for {warmdown_pct} with iter {warmdown_iteration} and total iter {iteration}")
             new_lr = self.starting_lr - reduction
             if new_lr < self.min_lr:
-                print(f"error in warmdown - lr below min lr. current lr = {new_lr}")
+                print(
+                    f"error in warmdown - lr below min lr. current lr = {new_lr}"
+                )
                 print(f"auto handling but please report issue!")
                 new_lr = self.min_lr
 
@@ -706,7 +722,7 @@ class Ranger21(TO.Optimizer):
 
         # stable weight decay
         if self.use_madgrad:
-            variance_normalized = torch.pow(variance_ma_sum / param_size, 1/3)
+            variance_normalized = torch.pow(variance_ma_sum / param_size, 1 / 3)
         else:
             variance_normalized = math.sqrt(variance_ma_sum / param_size)
         # variance_mean = variance_ma_sum / param_size
@@ -775,7 +791,9 @@ class Ranger21(TO.Optimizer):
                 # apply norm loss
                 unorm = self.unit_norm(p.data)
                 correction = (
-                    2 * self.normloss_factor * (1 - torch.div(1, unorm + self.eps))
+                    2
+                    * self.normloss_factor
+                    * (1 - torch.div(1, unorm + self.eps))
                 )
                 p.mul_(1 - lr * correction)
 
@@ -875,9 +893,9 @@ class Ranger21(TO.Optimizer):
                         # Maintains the maximum of all 2nd moment running avg. till now
                         torch.max(max_variance_ma, variance_ma, out=variance_ma)
                         # Use the max. for normalizing running avg. of gradient
-                        denom = (variance_ma.sqrt() / math.sqrt(bias_correction2)).add_(
-                            group["eps"]
-                        )
+                        denom = (
+                            variance_ma.sqrt() / math.sqrt(bias_correction2)
+                        ).add_(group["eps"])
 
                     # centralize gradients
                     if self.use_gc:
@@ -889,7 +907,9 @@ class Ranger21(TO.Optimizer):
                         grad = normalize_gradient(grad)
 
                     if not self.use_adabelief:
-                        grad_ma.mul_(beta1 ** 2).add_(grad, alpha=1 - beta1 ** 2)
+                        grad_ma.mul_(beta1 ** 2).add_(
+                            grad, alpha=1 - beta1 ** 2
+                        )
 
                     noise_norm = math.sqrt((1 + beta2) ** 2 + beta2 ** 2)
 

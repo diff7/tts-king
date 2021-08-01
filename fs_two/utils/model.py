@@ -19,6 +19,7 @@ def get_model(cfg, device, train=False):
         )
         ckpt = torch.load(ckpt_path, map_location=torch.device("cpu"))
         model.load_state_dict(ckpt["model"])
+        print('Loaded model from',cfg.restore_stetore_step)
 
     if train:
         # model = nn.DataParallel(model)

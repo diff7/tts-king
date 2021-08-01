@@ -1,4 +1,4 @@
-exp_name: 'CWT'
+exp_name: 'CWT_finetune_detach'
 gpu: 2
 run_debug_eval: false
 logger:
@@ -7,7 +7,7 @@ logger:
 
 
 tts:
-  weights_path: #'/home/egor/Desktop/projects/TTS MAIN/weights/fs2/masked/180000.pth.tar'
+  weights_path: "/home/dev/other/fsp/output/ckpt/CWT/185000.pth.tar"        #'/home/egor/Desktop/projects/TTS MAIN/weights/fs2/masked/180000.pth.tar'
   restore_step: 0  
   
 hifi:

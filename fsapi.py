@@ -78,7 +78,7 @@ class FSTWOapi:
         return postnet_output
 
 
-def load_speakers_json(dir_path):    
+def load_speakers_json(dir_path):
     json_paht = os.path.join(dir_path, "speakers.json")
     if os.path.exists(json_paht):
         with open(
