@@ -370,6 +370,9 @@ class ScheduledOptim:
                 weight_decay=train_config["optimizer"]["weight_decay"],
                 use_adabelief=True,
                 total_iterations=train_config["step"]["total_step"],
+                num_epochs=1000,
+                num_batches_per_epoch=602,
+                num_warmup_iterations=1000,
             )
         )
         self.n_warmup_steps = train_config["optimizer"]["warm_up_step"]
