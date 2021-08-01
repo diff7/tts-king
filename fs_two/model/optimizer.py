@@ -7,6 +7,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
+from .ranger21 import Ranger21
+
 
 class PCGrad:
     def __init__(self, optimizer):
@@ -360,11 +362,14 @@ class ScheduledOptim:
     def __init__(self, model, train_config, model_config, current_step):
 
         self._optimizer = PCGrad(
-            Ranger(
+            Ranger21(
                 model.parameters(),
+                lr=5e-4,
                 betas=train_config["optimizer"]["betas"],
                 eps=train_config["optimizer"]["eps"],
                 weight_decay=train_config["optimizer"]["weight_decay"],
+                use_adabelief=True,
+                
             )
         )
         self.n_warmup_steps = train_config["optimizer"]["warm_up_step"]
