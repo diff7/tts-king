@@ -9,7 +9,7 @@ import numpy as np
 from fs_two.model import FastSpeech2, ScheduledOptim
 
 
-def get_model(cfg, device, train=False):
+def get_model(cfg, device, train=False, isModel=True, isEmbedding=True):
 
     model = FastSpeech2(cfg.preprocess_config, cfg.model_config, device=device)
     if cfg.restore_step:
@@ -18,8 +18,11 @@ def get_model(cfg, device, train=False):
             "{}.pth.tar".format(cfg.restore_step),
         )
         ckpt = torch.load(ckpt_path, map_location=torch.device("cpu"))
-        model.load_state_dict(ckpt["model"])
-        print('Loaded model from',cfg.restore_stetore_step)
+        if isModel:
+            model.load_state_dict(ckpt["model"])
+        if isEmbedding:
+            model.load_state_dict(ckpt["embedding"])
+        print('Loaded model from', cfg.restore_stetore_step)
 
     if train:
         # model = nn.DataParallel(model)
@@ -28,8 +31,6 @@ def get_model(cfg, device, train=False):
         scheduled_optim = ScheduledOptim(
             model, cfg.train_config, cfg.model_config, cfg.tts.restore_step
         )
-        if cfg.restore_step:
-            scheduled_optim.load_state_dict(ckpt["optimizer"])
         return model, scheduled_optim
     model.to(device)
     model.eval()

@@ -58,10 +58,6 @@ class VarianceAdaptor(nn.Module):
 
         self.energy_predictor = VariancePredictor(model_config)
 
-        self.pithc_projection = LinearProj(hidden_size, hidden_size)
-        self.energy_projection = LinearProj(hidden_size, hidden_size)
-        self.speaker_projection = LinearProj(hidden_size, hidden_size)
-
         self.pitch_mean = CNNscalar(hidden_size, cwt_size=11)
         self.pitch_std = CNNscalar(hidden_size, cwt_size=11)
 
@@ -185,7 +181,7 @@ class VarianceAdaptor(nn.Module):
     ):
 
         log_duration_prediction = self.duration_predictor(x, src_mask)
-
+        x = x + embedding
         if self.pitch_feature_level == "phoneme_level":
             (
                 pitch_cwt_prediction,
@@ -193,7 +189,7 @@ class VarianceAdaptor(nn.Module):
                 pitch_mean,
                 pitch_std,
             ) = self.get_pitch_embedding(
-                x + self.pithc_projection(embedding),
+                x,
                 pitch_cwt_target,
                 src_mask,
                 p_control,
@@ -202,14 +198,12 @@ class VarianceAdaptor(nn.Module):
 
         if self.energy_feature_level == "phoneme_level":
             energy_prediction, energy_embedding = self.get_energy_embedding(
-                x + self.energy_projection(embedding),
+                x,
                 energy_target,
                 src_mask,
                 e_control,
             )
             x = x + energy_embedding
-
-        x = x + self.speaker_projection(embedding)
 
         if duration_target is not None:
             x, mel_len = self.length_regulator(x, duration_target, max_len)
@@ -383,19 +377,6 @@ class Conv(nn.Module):
         return x
 
 
-class LinearProj(nn.Module):
-    # TODO change to attention or new MLP
-    def __init__(self, inputSize, outputSize):
-        super(LinearProj, self).__init__()
-        self.lin = nn.Linear(inputSize, outputSize)
-        self.act = nn.ReLU()
-        nn.init.kaiming_normal_(self.lin.weight, nonlinearity="relu")
-
-    def forward(self, x):
-        out = self.act(self.lin(x))
-        return out
-
-
 class CNNscalar(nn.Module):
     # TODO change to attention or new MLP
     def __init__(self, hidden_size, cwt_size):
@@ -404,6 +385,8 @@ class CNNscalar(nn.Module):
         self.linear_hidden = nn.Linear(hidden_size, 1)
         self.linear_cwt = nn.Linear(cwt_size, 1)
         self.relu = nn.ReLU()
+        nn.init.kaiming_normal_(self.linear_hidden.weight, nonlinearity="relu")
+        nn.init.kaiming_normal_(self.linear_cwt.weight, nonlinearity="relu")
 
     def forward(self, hidden, cwt):
         hidden = hidden.transpose(1, 2)
@@ -412,4 +395,4 @@ class CNNscalar(nn.Module):
         out_cwt = self.avg(cwt).squeeze(2)
         out_hidden = self.linear_hidden(out_hidden)
         out_cwt = self.linear_cwt(out_cwt)
-        return self.relu(out_hidden) + self.relu(out_cwt) + 1e-6
+        return self.relu(out_hidden) + self.relu(out_cwt)

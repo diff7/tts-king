@@ -197,7 +197,8 @@ def main(cfg):
                         "train",
                         audio=wav_prediction,
                         sampling_rate=sampling_rate,
-                        tag="Training/step_{}_{}_synthesized".format(step, tag),
+                        tag="Training/step_{}_{}_synthesized".format(
+                            step, tag),
                     )
 
                 if step % cfg.train_config.step.val_step == 0:
@@ -210,9 +211,15 @@ def main(cfg):
                     model.train()
 
                 if step % cfg.train_config.step.save_step == 0:
+                    model_weight = model.state_dict()
+                    embed_weight = model_weight['speaker_emb.weight']
+                    del model_weight['speaker_emb.weight']
+                    print("FOR TEST")
+                    print(embed_weight)
                     torch.save(
                         {
-                            "model": model.state_dict(),
+                            "model": model_weight,
+                            "embedding": embed_weight,
                             "optimizer": optimizer._optimizer.optimizer.state_dict(),
                         },
                         os.path.join(
