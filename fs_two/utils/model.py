@@ -12,17 +12,14 @@ from fs_two.model import FastSpeech2, ScheduledOptim
 def get_model(cfg, device, train=False, isModel=True, isEmbedding=True):
 
     model = FastSpeech2(cfg.preprocess_config, cfg.model_config, device=device)
-    if cfg.restore_step:
-        ckpt_path = os.path.join(
-            cfg.train_config["path"]["ckpt_path"],
-            "{}.pth.tar".format(cfg.restore_step),
-        )
-        ckpt = torch.load(ckpt_path, map_location=torch.device("cpu"))
+    if cfg.tts.load_path:
+
+        ckpt = torch.load(cfg.tts.load_path, map_location=torch.device("cpu"))
         if isModel:
             model.load_state_dict(ckpt["model"])
         if isEmbedding:
             model.load_state_dict(ckpt["embedding"])
-        print('Loaded model from', cfg.restore_stetore_step)
+        print("Loaded model from", cfg.tts.load_path)
 
     if train:
         # model = nn.DataParallel(model)

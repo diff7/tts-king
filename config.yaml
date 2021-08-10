@@ -1,4 +1,4 @@
-exp_name: 'CWT_finetune_detach'
+exp_name: '9 speakers ENG'
 gpu: 2
 run_debug_eval: false
 logger:
@@ -7,7 +7,7 @@ logger:
 
 
 tts:
-  weights_path: "/home/dev/other/fsp/output/ckpt/CWT/185000.pth.tar"        #'/home/egor/Desktop/projects/TTS MAIN/weights/fs2/masked/180000.pth.tar'
+  load_path: "/home/dev/other/fsp/weights/ljspeech.pth.tar"        #'/home/egor/Desktop/projects/TTS MAIN/weights/fs2/masked/180000.pth.tar'
   restore_step: 0  
   
 hifi:
@@ -40,8 +40,8 @@ hifi:
 
 train_config:
   path:
-    ckpt_path: "../output/ckpt/CWT"
-    result_path: "../output/result/CWT"
+    ckpt_path: "../output/ckpt/9_speakers"
+    result_path: "../output/result/9_peakers"
   optimizer:
     batch_size: 16
     betas: [0.95, 0.999]
