@@ -131,16 +131,15 @@ class VarianceAdaptor(nn.Module):
         pitch_cwt_prediction = self.pitch_predictor(x, mask)
 
         # NOTE: Might be more stable if train on Ground Truth
-        # if pitch_target_cwt is None:
-        #     pitch_cwt = pitch_cwt_prediction
-        # else:
-        #     pitch_cwt = pitch_target_cwt
-        pitch_cwt = pitch_cwt_prediction
+        if pitch_target_cwt is None:
+             pitch_cwt = pitch_cwt_prediction
+        else:
+             pitch_cwt = pitch_target_cwt
 
-        pitch_mean = self.pitch_mean(x, pitch_cwt)
-        pitch_std = self.pitch_std(x, pitch_cwt)
+        pitch_mean = self.pitch_mean(x, pitch_cwt.detach())
+        pitch_std = self.pitch_std(x, pitch_cwt.detach())
 
-        pitch = inverse_batch_cwt(pitch_cwt)
+        pitch = inverse_batch_cwt(pitch_cwt.detach())
 
         # print(pitch.shape)
         # print(pitch_std.shape)

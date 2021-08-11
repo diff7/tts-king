@@ -1,5 +1,5 @@
-exp_name: '9 speakers ENG'
-gpu: 2
+exp_name: 'Ruslan'
+gpu: 3
 run_debug_eval: false
 logger:
   offline: false
@@ -7,7 +7,7 @@ logger:
 
 
 tts:
-  load_path: "/home/dev/other/fsp/weights/ljspeech.pth.tar"        #'/home/egor/Desktop/projects/TTS MAIN/weights/fs2/masked/180000.pth.tar'
+  load_path: #"/home/dev/other/fsp/weights/ljspeech.pth.tar"        #'/home/egor/Desktop/projects/TTS MAIN/weights/fs2/masked/180000.pth.tar'
   restore_step: 0  
   
 hifi:
@@ -62,7 +62,7 @@ train_config:
   max_masks_per_sentence: 0.15
 
 preprocess_config:
-  secondary: false # assumes train and val files exist
+  secondary: true # assumes train and val files exist
   dataset: "MAIN"
 
   path:
