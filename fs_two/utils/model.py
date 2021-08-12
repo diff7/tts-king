@@ -16,9 +16,12 @@ def get_model(cfg, device, train=False, isModel=True, isEmbedding=True):
 
         ckpt = torch.load(cfg.tts.load_path, map_location=torch.device("cpu"))
         if isModel:
-            model.load_state_dict(ckpt["model"])
+            model.load_state_dict(ckpt["model"], strict=False)
         if isEmbedding:
-            model.load_state_dict(ckpt["embedding"])
+            try:
+                model.load_state_dict(ckpt["embedding"], strict=False)
+            except:
+                print("missing embedding")
         print("Loaded model from", cfg.tts.load_path)
 
     if train:
