@@ -1,17 +1,17 @@
-exp_name: 'Ruslan'
+exp_name: 'LJ'
 gpu: 3
 run_debug_eval: false
 logger:
-  offline: false
+  offline: true
   wandb_key: "beca9453c7ef6a20e21d5705275a0ff72842cbf3"
 
 
 tts:
-  load_path: #"/home/dev/other/fsp/weights/ljspeech.pth.tar"        #'/home/egor/Desktop/projects/TTS MAIN/weights/fs2/masked/180000.pth.tar'
+  load_path: "/home/dev/other/fsp/weights/ljspeech.pth.tar"        #'/home/egor/Desktop/projects/TTS MAIN/weights/fs2/masked/180000.pth.tar'
   restore_step: 0  
   
 hifi:
-  weights_path:  '/home/dev/other/fsp/weights/trained_original/hifi/generator_v1.pth' #'/home/egor/Desktop/projects/TTS MAIN/weights/hifi/generator_v1.pth'
+  weights_path:  #'/home/dev/other/fsp/weights/trained_original/hifi/generator_v1.pth' #'/home/egor/Desktop/projects/TTS MAIN/weights/hifi/generator_v1.pth'
   MAX_WAV_VALUE: 32768
   resblock: "1"
   num_gpus: 0
@@ -40,8 +40,8 @@ hifi:
 
 train_config:
   path:
-    ckpt_path: "../output/ckpt/9_speakers"
-    result_path: "../output/result/9_peakers"
+    ckpt_path: "../output/ckpt/LJ"
+    result_path: "../output/result/LJ"
   optimizer:
     batch_size: 16
     betas: [0.95, 0.999]
@@ -62,13 +62,13 @@ train_config:
   max_masks_per_sentence: 0.15
 
 preprocess_config:
-  secondary: true # assumes train and val files exist
-  dataset: "MAIN"
+  secondary: false # assumes train and val files exist
+  dataset: "LJ"
 
   path:
-    lexicon_path: "/home/dev/other/fsp/data/dataset_main/rus_all.dict" 
-    raw_path: "/home/dev/other/fsp/data/dataset_main/speakers"
-    preprocessed_path: "/home/dev/other/fsp/data/dataset_main/processed"
+    lexicon_path: /home/dev/other/fsp/data/LJspeech/LJSpeech-1.1/librispeech-lexicon.txt/  #"/home/dev/other/fsp/data/dataset_main/rus_all.dict" 
+    raw_path: /home/dev/other/fsp/data/LJspeech/LJSpeech-1.1/wavs/   #"/home/dev/other/fsp/data/dataset_main/speakers"
+    preprocessed_path: /home/dev/other/fsp/data/LJspeech/LJSpeech-1.1/processed/ #"/home/dev/other/fsp/data/dataset_main/processed"
 
     #lexicon_path: "/home/dev/other/fsp/data/dataset_old/vocab_all.dict" 
     #raw_path: "/home/dev/other/fsp/data/dataset_old/shamanai"
@@ -92,10 +92,10 @@ preprocess_config:
       mel_fmax: 8000 # please set to 8000 for HiFi-GAN vocoder, set to null for MelGAN vocoder
     pitch:
       feature: "phoneme_level" # support 'phoneme_level' or 'frame_level'
-      normalization: True
+      normalization: true
     energy:
       feature: "phoneme_level" # support 'phoneme_level' or 'frame_level'
-      normalization: True
+      normalization: true
 
 model_config:
   transformer:

@@ -130,6 +130,7 @@ class Preprocessor:
             pitch_mean = pitch_scaler.mean_[0]
             pitch_std = pitch_scaler.scale_[0]
         else:
+
             # A numerical trick to avoid normalization...
             pitch_mean = 0
             pitch_std = 1
@@ -139,7 +140,6 @@ class Preprocessor:
         else:
             energy_mean = 0
             energy_std = 1
-
         pitch_min, pitch_max = self.normalize(
             os.path.join(self.out_dir, "pitch"), pitch_mean, pitch_std
         )

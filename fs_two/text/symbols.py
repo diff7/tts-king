@@ -22,10 +22,10 @@ _russian = ["@" + s for s in russian.valid_symbols + [_mask]]
 # Export all symbols:
 symbols = (
     [_pad]
-    # + list(_special)
-    # + list(_punctuation)
-    # + list(_letters)
-    # + _arpabet
+    + list(_special)
+    + list(_punctuation)
+    + list(_letters)
+    + _arpabet
     # + _pinyin
     + _silences
     + _russian

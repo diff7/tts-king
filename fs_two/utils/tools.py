@@ -11,7 +11,6 @@ from matplotlib import pyplot as plt
 
 matplotlib.use("Agg")
 
-# TODO SET  device from congig
 
 
 def to_device(data, device="cpu"):
@@ -33,6 +32,8 @@ def to_device(data, device="cpu"):
             pitches_std,
         ) = data
 
+        print('TEXT',raw_texts[0])
+        print('PHONE',texts[0])
         speakers = torch.from_numpy(speakers).long().to(device)
         texts = torch.from_numpy(texts).long().to(device)
         src_lens = torch.from_numpy(src_lens).to(device)
@@ -383,3 +384,4 @@ def pad(input_ele, mel_max_length=None):
         out_list.append(one_batch_padded)
     out_padded = torch.stack(out_list)
     return out_padded
+
