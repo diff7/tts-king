@@ -51,7 +51,7 @@ class VarianceAdaptor(nn.Module):
         self.duration_predictor = VariancePredictor(model_config)
         self.length_regulator = LengthRegulator()
         self.pitch_predictor = VariancePredictor(
-            model_config, output_size=11, dropout=0.2
+            model_config, output_size=11, dropout=0.5
         )
 
         # PitchPredictor(hidden_size, cwt_size=11)
@@ -131,15 +131,17 @@ class VarianceAdaptor(nn.Module):
         pitch_cwt_prediction = self.pitch_predictor(x, mask)
 
         # NOTE: Might be more stable if train on Ground Truth
-        if pitch_target_cwt is None:
-             pitch_cwt = pitch_cwt_prediction
-        else:
-             pitch_cwt = pitch_target_cwt
+        # if pitch_target_cwt is None:
+        #     pitch_cwt = pitch_cwt_prediction
+        # else:
+        #     pitch_cwt = pitch_target_cwt
+
+        pitch_cwt = pitch_cwt_prediction
 
         pitch_mean = self.pitch_mean(x, pitch_cwt.detach())
         pitch_std = self.pitch_std(x, pitch_cwt.detach())
 
-        pitch = inverse_batch_cwt(pitch_cwt.detach())
+        pitch = inverse_batch_cwt(pitch_cwt)
 
         # print(pitch.shape)
         # print(pitch_std.shape)

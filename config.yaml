@@ -1,17 +1,17 @@
-exp_name: 'LJ'
+exp_name: 'LJ - CHANGE train batch size etc'
 gpu: 3
 run_debug_eval: false
 logger:
-  offline: true
+  offline: false
   wandb_key: "beca9453c7ef6a20e21d5705275a0ff72842cbf3"
 
 
 tts:
-  load_path: "/home/dev/other/fsp/weights/ljspeech.pth.tar"        #'/home/egor/Desktop/projects/TTS MAIN/weights/fs2/masked/180000.pth.tar'
+  load_path: #'/home/dev/other/fsp/output/ckpt/LJ/95000.pth.tar'        #'/home/egor/Desktop/projects/TTS MAIN/weights/fs2/masked/180000.pth.tar'
   restore_step: 0  
   
 hifi:
-  weights_path:  #'/home/dev/other/fsp/weights/trained_original/hifi/generator_v1.pth' #'/home/egor/Desktop/projects/TTS MAIN/weights/hifi/generator_v1.pth'
+  weights_path: '/home/dev/other/fsp/weights/trained_original/hifi/generator_v1.pth' #'/home/egor/Desktop/projects/TTS MAIN/weights/hifi/generator_v1.pth'
   MAX_WAV_VALUE: 32768
   resblock: "1"
   num_gpus: 0
@@ -44,14 +44,15 @@ train_config:
     result_path: "../output/result/LJ"
   optimizer:
     batch_size: 16
-    betas: [0.95, 0.999]
-    eps: 0.00001
+    betas: [0.9, 0.98]
+    eps: 0.000000001
     weight_decay: 0.0
     grad_clip_thresh: 1.0
-    grad_acc_step: 4
+    grad_acc_step: 1
     warm_up_step: 4000
     anneal_steps: [300000, 400000, 500000]
-    anneal_rate: 0.7
+    anneal_rate: 0.3
+
   step:
     total_step: 900000
     log_step: 100
@@ -59,7 +60,7 @@ train_config:
     val_step: 1000
     save_step: 5000
   
-  max_masks_per_sentence: 0.15
+  max_masks_per_sentence: 0
 
 preprocess_config:
   secondary: false # assumes train and val files exist
