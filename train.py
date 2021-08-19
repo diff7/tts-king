@@ -49,8 +49,8 @@ def main_train_step(
 
         # Update weights
         # optimizer.update_lr()
-        # nn.utils.clip_grad_norm_(model.parameters(), grad_clip_thresh)
-        optimizer.real_step()
+        nn.utils.clip_grad_norm_(model.parameters(), grad_clip_thresh)
+        optimizer.step_and_update_lr()
         optimizer.zero_grad()
 
     return losses, output
@@ -218,7 +218,7 @@ def main(cfg):
                         {
                             "model": model_weight,
                             "embedding": embed_weight,
-                            "optimizer": optimizer._optimizer.optimizer.state_dict(),
+                            "optimizer": optimizer._optimizer.state_dict(),
                         },
                         os.path.join(
                             cfg.train_config["path"]["ckpt_path"],

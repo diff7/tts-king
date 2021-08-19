@@ -1,4 +1,4 @@
-exp_name: 'LJ - CHANGE train batch size etc'
+exp_name: 'LJ - Rollback'
 gpu: 3
 run_debug_eval: false
 logger:
@@ -40,8 +40,8 @@ hifi:
 
 train_config:
   path:
-    ckpt_path: "../output/ckpt/LJ"
-    result_path: "../output/result/LJ"
+    ckpt_path: "../output/ckpt/LJ_Rollback"
+    result_path: "../output/result/LJ_Rollback"
   optimizer:
     batch_size: 16
     betas: [0.9, 0.98]

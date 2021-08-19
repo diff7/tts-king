@@ -53,21 +53,13 @@ class FastSpeech2Loss(nn.Module):
         energy_targets.requires_grad = False
         mel_targets.requires_grad = False
 
-        if self.pitch_feature_level == "phoneme_level":
-            pitch_mask = src_masks.unsqueeze(2)
-            pitch_mask = pitch_mask.repeat(1, 1, 11)
-            pitch_predictions = pitch_cwt_predictions.masked_select(pitch_mask)
-            pitch_targets = pitches_cwt.masked_select(pitch_mask)
-        elif self.pitch_feature_level == "frame_level":
-            pitch_predictions = pitch_cwt_predictions.masked_select(mel_masks)
-            pitch_targets = pitches_cwt.masked_select(mel_masks)
+        pitch_mask = src_masks.unsqueeze(2)
+        pitch_mask = pitch_mask.repeat(1, 1, 11)
+        pitch_predictions = pitch_cwt_predictions.masked_select(pitch_mask)
+        pitch_targets = pitches_cwt.masked_select(pitch_mask)
 
-        if self.energy_feature_level == "phoneme_level":
-            energy_predictions = energy_predictions.masked_select(src_masks)
-            energy_targets = energy_targets.masked_select(src_masks)
-        if self.energy_feature_level == "frame_level":
-            energy_predictions = energy_predictions.masked_select(mel_masks)
-            energy_targets = energy_targets.masked_select(mel_masks)
+        energy_predictions = energy_predictions.masked_select(src_masks)
+        energy_targets = energy_targets.masked_select(src_masks)
 
         log_duration_predictions = log_duration_predictions.masked_select(
             src_masks

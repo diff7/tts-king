@@ -11,10 +11,13 @@ from .SubLayers import MultiHeadAttention, PositionwiseFeedForward
 class FFTBlock(torch.nn.Module):
     """FFT Block"""
 
-    def __init__(self, d_model, n_head, d_k, d_v, d_inner, kernel_size, dropout=0.1):
+    def __init__(
+        self, d_model, n_head, d_k, d_v, d_inner, kernel_size, dropout=0.1
+    ):
         super(FFTBlock, self).__init__()
         self.slf_attn = MultiHeadAttention(
-            n_head, d_model, d_k, d_v, dropout=dropout)
+            n_head, d_model, d_k, d_v, dropout=dropout
+        )
         self.pos_ffn = PositionwiseFeedForward(
             d_model, d_inner, kernel_size, dropout=dropout
         )
@@ -58,10 +61,6 @@ class ConvNorm(torch.nn.Module):
             dilation=dilation,
             bias=bias,
         )
-        if w_init_gain == "tanh":
-            nn.init.xavier_normal_(self.conv.weight, torch.nn.init.calculate_gain('tanh'))
-        else:
-            nn.init.xavier_normal_(self.conv.weight)
 
     def forward(self, signal):
         conv_signal = self.conv(signal)
@@ -135,8 +134,9 @@ class PostNet(nn.Module):
         x = x.contiguous().transpose(1, 2)
 
         for i in range(len(self.convolutions) - 1):
-            x = F.dropout(torch.tanh(
-                self.convolutions[i](x)), 0.5, self.training)
+            x = F.dropout(
+                torch.tanh(self.convolutions[i](x)), 0.5, self.training
+            )
         x = F.dropout(self.convolutions[-1](x), 0.5, self.training)
 
         x = x.contiguous().transpose(1, 2)

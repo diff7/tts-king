@@ -11,34 +11,6 @@ from fs_two.utils.tools import get_mask_from_lengths, pad
 from fs_two.cwt.cwt_utils import inverse_batch_cwt
 
 
-class RMSNorm(nn.Module):
-    def __init__(
-        self, dimension: int, epsilon: float = 1e-8, is_bias: bool = False
-    ):
-        """
-        Args:
-            dimension (int): the dimension of the layer output to normalize
-            epsilon (float): an epsilon to prevent dividing by zero
-                in case the layer has zero variance. (default = 1e-8)
-            is_bias (bool): a boolean value whether to include bias term
-                while normalization
-        """
-        super().__init__()
-        self.dimension = dimension
-        self.epsilon = epsilon
-        self.is_bias = is_bias
-        self.scale = nn.Parameter(torch.ones(self.dimension))
-        if self.is_bias:
-            self.bias = nn.Parameter(torch.zeros(self.dimension))
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x_std = torch.sqrt(torch.mean(x ** 2, -1, keepdim=True))
-        x_norm = x / (x_std + self.epsilon)
-        if self.is_bias:
-            return self.scale * x_norm + self.bias
-        return self.scale * x_norm
-
-
 class VarianceAdaptor(nn.Module):
     """ Variance Adaptor """
 
@@ -51,15 +23,15 @@ class VarianceAdaptor(nn.Module):
         self.duration_predictor = VariancePredictor(model_config)
         self.length_regulator = LengthRegulator()
         self.pitch_predictor = VariancePredictor(
-            model_config, output_size=11, dropout=0.5
+            model_config, output_size=11, dropout=0.1
         )
 
         # PitchPredictor(hidden_size, cwt_size=11)
 
         self.energy_predictor = VariancePredictor(model_config)
 
-        self.pitch_mean = CNNscalar(hidden_size, cwt_size=11)
-        self.pitch_std = CNNscalar(hidden_size, cwt_size=11)
+        self.pitch_mean = CNNscalar(size_one=hidden_size, size_two=11)
+        self.pitch_std = CNNscalar(size_one=hidden_size, size_two=11)
 
         self.pitch_feature_level = preprocess_config["preprocessing"]["pitch"][
             "feature"
@@ -138,8 +110,8 @@ class VarianceAdaptor(nn.Module):
 
         pitch_cwt = pitch_cwt_prediction
 
-        pitch_mean = self.pitch_mean(x, pitch_cwt.detach())
-        pitch_std = self.pitch_std(x, pitch_cwt.detach())
+        pitch_mean = self.pitch_mean(x.detach(), pitch_cwt.detach())
+        pitch_std = self.pitch_std(x.detach(), pitch_cwt.detach())
 
         pitch = inverse_batch_cwt(pitch_cwt)
 
@@ -299,7 +271,7 @@ class VariancePredictor(nn.Module):
                         ),
                     ),
                     ("relu_1", nn.ReLU()),
-                    ("layer_norm_1", RMSNorm(self.filter_size)),
+                    ("layer_norm_1", nn.LayerNorm(self.filter_size)),
                     ("dropout_1", nn.Dropout(self.dropout)),
                     (
                         "conv1d_2",
@@ -311,7 +283,7 @@ class VariancePredictor(nn.Module):
                         ),
                     ),
                     ("relu_2", nn.ReLU()),
-                    ("layer_norm_2", RMSNorm(self.filter_size)),
+                    ("layer_norm_2", nn.LayerNorm(self.filter_size)),
                     ("dropout_2", nn.Dropout(self.dropout)),
                 ]
             )
@@ -378,22 +350,56 @@ class Conv(nn.Module):
         return x
 
 
-class CNNscalar(nn.Module):
-    # TODO change to attention or new MLP
-    def __init__(self, hidden_size, cwt_size):
-        super(CNNscalar, self).__init__()
-        self.avg = nn.AdaptiveAvgPool1d(1)
-        self.linear_hidden = nn.Linear(hidden_size, 1)
-        self.linear_cwt = nn.Linear(cwt_size, 1)
-        self.relu = nn.ReLU()
-        nn.init.kaiming_normal_(self.linear_hidden.weight, nonlinearity="relu")
-        nn.init.kaiming_normal_(self.linear_cwt.weight, nonlinearity="relu")
+class CNNflat(nn.Module):
+    def __init__(self, size, reduce=30):
+        super(CNNflat, self).__init__()
+        self.net = nn.Sequential(
+            nn.Conv1d(size, 1, 1),
+            nn.AdaptiveAvgPool1d(reduce),
+            nn.LayerNorm(reduce),
+            nn.ReLU(),
+        )
 
-    def forward(self, hidden, cwt):
-        hidden = hidden.transpose(1, 2)
-        cwt = cwt.transpose(1, 2)
-        out_hidden = self.avg(hidden).squeeze(2)
-        out_cwt = self.avg(cwt).squeeze(2)
-        out_hidden = self.linear_hidden(out_hidden)
-        out_cwt = self.linear_cwt(out_cwt)
-        return self.relu(out_hidden) + self.relu(out_cwt)
+    def forward(self, x):
+        x = x.transpose(1, 2)
+        return self.net(x)
+
+
+class CNNscalar(nn.Module):
+    def __init__(self, size_one, size_two, reduce=30):
+        super(CNNscalar, self).__init__()
+        self.flat_one = CNNflat(size_one, reduce)
+        self.flat_two = CNNflat(size_two, reduce)
+        self.linear = nn.Linear(reduce, 1)
+        self.relu = nn.ReLU()
+
+    def forward(self, x_one, x_two):
+        x_one = self.flat_one(x_one)
+        x_two = self.flat_two(x_two)
+        out = self.linear(x_one + x_two)
+        return self.relu(out).squeeze(1)
+
+
+# class CNNscalar(nn.Module):
+#     # TODO change to attention or new MLP
+#     def __init__(self, hidden_size, cwt_size):
+#         super(CNNscalar, self).__init__()
+#         self.avg = nn.AdaptiveAvgPool1d(1)
+#         self.norm_cwt = nn.LayerNorm(cwt_size)
+#         self.norm_hidden = nn.LayerNorm(hidden_size)
+
+#         self.linear_cwt = nn.Linear(cwt_size, 1)
+#         self.linear_hidden = nn.Linear(hidden_size, 1)
+
+#         self.relu = nn.ReLU()
+
+#     def forward(self, hidden, cwt):
+#         print("hidden:", hidden.shape)
+#         print("cwt:", cwt.shape)
+#         hidden = hidden.transpose(1, 2)
+#         cwt = cwt.transpose(1, 2)
+#         out_hidden = self.norm_hidden(self.avg(hidden).squeeze(2))
+#         out_cwt = self.norm_cwt(self.avg(cwt).squeeze(2))
+#         out_hidden = self.linear_hidden(out_hidden)
+#         out_cwt = self.linear_cwt(out_cwt)
+#         return self.relu(out_hidden) + self.relu(out_cwt)
