@@ -25,6 +25,8 @@ class FSTWOapi:
         self.weights_path = weights_path
         if weights_path is not None:
             checkpoint = torch.load(weights_path, map_location="cpu")
+            state = checkpoint["model"]
+            state['speaker_emb.weight'] = checkpoint["embedding"]
             self.model.load_state_dict(checkpoint["model"])
 
         self.cfg = config
@@ -73,6 +75,8 @@ class FSTWOapi:
             src_lens,
             mel_lens,
             postnet_output,
+            pitch_mean,
+            pitch_std,
         ) = result
 
         return postnet_output
