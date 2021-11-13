@@ -10,7 +10,7 @@ from fs_two.utils.tools import get_mask_from_lengths
 
 
 class FastSpeech2(nn.Module):
-    """ FastSpeech2 """
+    """FastSpeech2"""
 
     def __init__(
         self, preprocess_config, model_config, n_speakers=None, device="cpu"
@@ -51,6 +51,7 @@ class FastSpeech2(nn.Module):
         max_mel_len=None,
         e_targets=None,
         d_targets=None,
+        pitches_raw=None,
         pitches_cwt=None,
         pitches_mean=None,
         pitches_std=None,
@@ -74,7 +75,7 @@ class FastSpeech2(nn.Module):
             )
         (
             output,
-            pitch_cwt_prediction,
+            pitch_prediction,
             e_predictions,
             log_d_predictions,
             d_rounded,
@@ -88,6 +89,7 @@ class FastSpeech2(nn.Module):
             src_masks,
             mel_masks,
             max_mel_len,
+            pitches_raw,
             pitches_cwt,
             e_targets,
             d_targets,
@@ -103,7 +105,7 @@ class FastSpeech2(nn.Module):
 
         return (
             output,
-            pitch_cwt_prediction,
+            pitch_prediction,
             e_predictions,
             log_d_predictions,
             d_rounded,

@@ -1,5 +1,5 @@
-exp_name: 'LJ - Rollback'
-gpu: 3
+exp_name: 'multi'
+gpu: 1
 run_debug_eval: false
 logger:
   offline: false
@@ -7,11 +7,11 @@ logger:
 
 
 tts:
-  load_path: #'/home/dev/other/fsp/output/ckpt/LJ/95000.pth.tar'        #'/home/egor/Desktop/projects/TTS MAIN/weights/fs2/masked/180000.pth.tar'
+  load_path: #"/home/dev/other/fsp/weights/ljspeech.pth.tar"        #'/home/egor/Desktop/projects/TTS MAIN/weights/fs2/masked/180000.pth.tar'
   restore_step: 0  
   
 hifi:
-  weights_path: '/home/dev/other/fsp/weights/trained_original/hifi/generator_v1.pth' #'/home/egor/Desktop/projects/TTS MAIN/weights/hifi/generator_v1.pth'
+  weights_path:  '/home/dev/other/fsp/weights/trained_original/hifi/generator_v1.pth' #'/home/egor/Desktop/projects/TTS MAIN/weights/hifi/generator_v1.pth'
   MAX_WAV_VALUE: 32768
   resblock: "1"
   num_gpus: 0
@@ -40,19 +40,18 @@ hifi:
 
 train_config:
   path:
-    ckpt_path: "../output/ckpt/LJ_Rollback"
-    result_path: "../output/result/LJ_Rollback"
+    ckpt_path: "../output/ckpt/multi_final"
+    result_path: "../output/result/multi_final"
   optimizer:
     batch_size: 16
-    betas: [0.9, 0.98]
-    eps: 0.000000001
+    betas: [0.95, 0.999]
+    eps: 0.00001
     weight_decay: 0.0
     grad_clip_thresh: 1.0
-    grad_acc_step: 1
+    grad_acc_step: 4
     warm_up_step: 4000
     anneal_steps: [300000, 400000, 500000]
-    anneal_rate: 0.3
-
+    anneal_rate: 0.7
   step:
     total_step: 900000
     log_step: 100
@@ -60,16 +59,16 @@ train_config:
     val_step: 1000
     save_step: 5000
   
-  max_masks_per_sentence: 0
+  max_masks_per_sentence: 0.15
 
 preprocess_config:
-  secondary: false # assumes train and val files exist
-  dataset: "LJ"
+  secondary: true # assumes train and val files exist
+  dataset: "MAIN"
 
   path:
-    lexicon_path: /home/dev/other/fsp/data/LJspeech/LJSpeech-1.1/librispeech-lexicon.txt/  #"/home/dev/other/fsp/data/dataset_main/rus_all.dict" 
-    raw_path: /home/dev/other/fsp/data/LJspeech/LJSpeech-1.1/wavs/   #"/home/dev/other/fsp/data/dataset_main/speakers"
-    preprocessed_path: /home/dev/other/fsp/data/LJspeech/LJSpeech-1.1/processed/ #"/home/dev/other/fsp/data/dataset_main/processed"
+    lexicon_path: "/home/dev/other/fsp/data/dataset_main/rus_all.dict" 
+    raw_path: "/home/dev/other/fsp/data/dataset_main/speakers"
+    preprocessed_path: "/home/dev/other/fsp/data/dataset_main/processed"
 
     #lexicon_path: "/home/dev/other/fsp/data/dataset_old/vocab_all.dict" 
     #raw_path: "/home/dev/other/fsp/data/dataset_old/shamanai"
@@ -93,10 +92,10 @@ preprocess_config:
       mel_fmax: 8000 # please set to 8000 for HiFi-GAN vocoder, set to null for MelGAN vocoder
     pitch:
       feature: "phoneme_level" # support 'phoneme_level' or 'frame_level'
-      normalization: true
+      normalization: True
     energy:
       feature: "phoneme_level" # support 'phoneme_level' or 'frame_level'
-      normalization: true
+      normalization: True
 
 model_config:
   transformer:
@@ -116,7 +115,7 @@ model_config:
     filter_size: 256
     kernel_size: 3
     dropout: 0.5
-
+  use_cwt: False
   variance_embedding:
     pitch_quantization: "linear" # support 'linear' or 'log', 'log' is allowed only if the pitch values are not normalized during preprocessing
     energy_quantization: "linear" # support 'linear' or 'log', 'log' is allowed only if the energy values are not normalized during preprocessing

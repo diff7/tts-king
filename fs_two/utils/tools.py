@@ -12,9 +12,8 @@ from matplotlib import pyplot as plt
 matplotlib.use("Agg")
 
 
-
 def to_device(data, device="cpu"):
-    if len(data) == 14:
+    if len(data) == 15:
         (
             ids,
             raw_texts,
@@ -27,6 +26,7 @@ def to_device(data, device="cpu"):
             max_mel_len,
             energies,
             durations,
+            pitches_raw,
             pitches_cwt,
             pitches_mean,
             pitches_std,
@@ -42,6 +42,8 @@ def to_device(data, device="cpu"):
 
         pitches_cwt = torch.from_numpy(pitches_cwt).float().to(device)
         pitches_cwt = torch.nan_to_num(pitches_cwt, nan=0.0)
+
+        pitches_raw = torch.from_numpy(pitches_raw).float().to(device)
         pitches_mean = torch.from_numpy(pitches_mean).float().to(device)
         pitches_std = torch.from_numpy(pitches_std).float().to(device)
 
@@ -57,6 +59,7 @@ def to_device(data, device="cpu"):
             max_mel_len,
             energies,
             durations,
+            pitches_raw,
             pitches_cwt,
             pitches_mean,
             pitches_std,

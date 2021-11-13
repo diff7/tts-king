@@ -92,6 +92,14 @@ class Dataset(Dataset):
             "pitch",
             "{}-cwt-pitch-{}.npy".format(speaker, basename),
         )
+
+        pitch_path = os.path.join(
+            self.preprocessed_path,
+            "pitch",
+            "{}-pitch-{}.npy".format(speaker, basename),
+        )
+
+        pitch_raw = np.load(pitch_path)
         pitch_cwt = np.load(pitch_cwt_path)
 
         pitch_mean_path = os.path.join(
@@ -116,6 +124,7 @@ class Dataset(Dataset):
             "mel": mel,
             "energy": energy,
             "duration": duration,
+            "pitch_raw": pitch_raw,
             "pitch_mean": pitch_mean,
             "pitch_std": pitch_std,
             "pitch_cwt": pitch_cwt,
@@ -156,6 +165,7 @@ class Dataset(Dataset):
         pitches_mean = [data[idx]["pitch_mean"] for idx in idxs]
         pitches_std = [data[idx]["pitch_std"] for idx in idxs]
         pitches_cwt = [data[idx]["pitch_cwt"] for idx in idxs]
+        pitches_raw = [data[idx]["pitch_raw"] for idx in idxs]
 
         energies = [data[idx]["energy"] for idx in idxs]
         durations = [data[idx]["duration"] for idx in idxs]
@@ -170,6 +180,7 @@ class Dataset(Dataset):
         texts = pad_1D(texts)
         mels = pad_2D(mels)
         energies = pad_1D(energies)
+        pitches_raw = pad_1D(pitches_raw)
         durations = pad_1D(durations)
 
         pitches_cwt = pad_2D(pitches_cwt)
@@ -186,6 +197,7 @@ class Dataset(Dataset):
             max(mel_lens),
             energies,
             durations,
+            pitches_raw,
             pitches_cwt,
             pitches_mean,
             pitches_std,

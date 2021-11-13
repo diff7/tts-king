@@ -22,9 +22,16 @@ class VarianceAdaptor(nn.Module):
 
         self.duration_predictor = VariancePredictor(model_config)
         self.length_regulator = LengthRegulator()
-        self.pitch_predictor = VariancePredictor(
-            model_config, output_size=11, dropout=0.1
-        )
+
+        
+        if model_config.use_cwt:
+            self.use_cwt = True
+            self.pitch_predictor = VariancePredictor(
+                model_config, output_size=11, dropout=0.1
+            )
+        else:
+            self.use_cwt = False
+            self.pitch_predictor = VariancePredictor(model_config)
 
         # PitchPredictor(hidden_size, cwt_size=11)
 
@@ -96,7 +103,20 @@ class VarianceAdaptor(nn.Module):
             n_bins, model_config["transformer"]["encoder_hidden"]
         )
 
-    def get_pitch_embedding(self, x, pitch_target_cwt, mask, control=1):
+
+    def get_pitch_embedding_normal(self, x, target, mask, control=1):
+        prediction = self.pitch_predictor(x, mask)
+        if target is not None:
+            embedding = self.pitch_embedding(torch.bucketize(target, self.pitch_bins))
+        else:
+            prediction = prediction * control
+            embedding = self.pitch_embedding(
+                torch.bucketize(prediction, self.pitch_bins)
+            )
+        return prediction, embedding
+
+
+    def get_pitch_embedding_cwt(self, x, pitch_target_cwt, mask, control=1):
         # batch, seq_len, 10 -> batch, 10 -> batch, 1
         mask = mask.unsqueeze(2)
         mask = mask.repeat(1, 1, 11)
@@ -145,6 +165,7 @@ class VarianceAdaptor(nn.Module):
         src_mask,
         mel_mask=None,
         max_len=None,
+        pitch_raw_target = None,
         pitch_cwt_target=None,
         energy_target=None,
         duration_target=None,
@@ -155,28 +176,40 @@ class VarianceAdaptor(nn.Module):
 
         log_duration_prediction = self.duration_predictor(x, src_mask)
         x = x + embedding
-        if self.pitch_feature_level == "phoneme_level":
+        if self.use_cwt:
             (
-                pitch_cwt_prediction,
+                pitch_prediction,
                 pitch_embedding,
                 pitch_mean,
                 pitch_std,
-            ) = self.get_pitch_embedding(
+            ) = self.get_pitch_embedding_cwt(
                 x,
                 pitch_cwt_target,
                 src_mask,
                 p_control,
             )
-            x = x + pitch_embedding
-
-        if self.energy_feature_level == "phoneme_level":
-            energy_prediction, energy_embedding = self.get_energy_embedding(
+        else:
+            (
+                pitch_prediction,
+                pitch_embedding,
+            ) = self.get_pitch_embedding_normal(
+                x,
+                pitch_raw_target,
+                src_mask,
+                p_control,
+            )
+            pitch_mean = None
+            pitch_std = None
+        
+        x = x + pitch_embedding
+        
+        energy_prediction, energy_embedding = self.get_energy_embedding(
                 x,
                 energy_target,
                 src_mask,
                 e_control,
             )
-            x = x + energy_embedding
+        x = x + energy_embedding
 
         if duration_target is not None:
             x, mel_len = self.length_regulator(x, duration_target, max_len)
@@ -194,7 +227,7 @@ class VarianceAdaptor(nn.Module):
 
         return (
             x,
-            pitch_cwt_prediction,
+            pitch_prediction,
             energy_prediction,
             log_duration_prediction,
             duration_rounded,

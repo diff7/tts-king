@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 class FastSpeech2Loss(nn.Module):
-    """ FastSpeech2 Loss """
+    """FastSpeech2 Loss"""
 
     def __init__(self, preprocess_config, model_config):
         super(FastSpeech2Loss, self).__init__()
@@ -16,7 +16,13 @@ class FastSpeech2Loss(nn.Module):
         self.mse_loss = nn.MSELoss()
         self.mae_loss = nn.L1Loss()
 
+        if model_config.use_cwt:
+            self.use_cwt = True
+        else:
+            self.use_cwt = False
+
     def forward(self, inputs, predictions):
+        # TARGETS
         speaker_targets = inputs[2]
         (
             mel_targets,
@@ -24,13 +30,16 @@ class FastSpeech2Loss(nn.Module):
             _,
             energy_targets,
             duration_targets,
-            pitches_cwt,
+            pitches_raw_targets,
+            pitches_cwt_targets,
             pitch_mean,
             pitch_std,
         ) = inputs[6:]
+
+        # PREDICTIONS
         (
             mel_predictions,
-            pitch_cwt_predictions,
+            pitch_predictions,
             energy_predictions,
             log_duration_predictions,
             _,
@@ -49,14 +58,19 @@ class FastSpeech2Loss(nn.Module):
         mel_masks = mel_masks[:, : mel_masks.shape[1]]
 
         log_duration_targets.requires_grad = False
-        pitches_cwt.requires_grad = False
+        pitches_raw_targets.requires_grad = False
+        pitches_cwt_targets.requires_grad = False
         energy_targets.requires_grad = False
         mel_targets.requires_grad = False
 
-        pitch_mask = src_masks.unsqueeze(2)
-        pitch_mask = pitch_mask.repeat(1, 1, 11)
-        pitch_predictions = pitch_cwt_predictions.masked_select(pitch_mask)
-        pitch_targets = pitches_cwt.masked_select(pitch_mask)
+        if self.use_cwt:
+            pitch_mask = src_masks.unsqueeze(2)
+            pitch_mask = pitch_mask.repeat(1, 1, 11)
+            pitch_predictions = pitch_predictions.masked_select(pitch_mask)
+            pitch_targets = pitches_cwt_targets.masked_select(pitch_mask)
+        else:
+            pitch_predictions = pitch_predictions.masked_select(src_masks)
+            pitch_targets = pitches_raw_targets.masked_select(src_masks)
 
         energy_predictions = energy_predictions.masked_select(src_masks)
         energy_targets = energy_targets.masked_select(src_masks)
@@ -88,10 +102,17 @@ class FastSpeech2Loss(nn.Module):
             log_duration_predictions, log_duration_targets
         )
 
-        std_pitch_loss = self.mse_loss(pitch_std_pred, pitch_std.unsqueeze(1))
-        mean_pitch_loss = self.mse_loss(
-            pitch_mean_pred, pitch_mean.unsqueeze(1)
-        )
+        if self.use_cwt:
+            std_pitch_loss = self.mse_loss(
+                pitch_std_pred, pitch_std.unsqueeze(1)
+            )
+            mean_pitch_loss = self.mse_loss(
+                pitch_mean_pred, pitch_mean.unsqueeze(1)
+            )
+        else:
+            # std and mean are used only for CWT prediction
+            std_pitch_loss = torch.tensor([0]).to(pitch_loss.device)
+            mean_pitch_loss = torch.tensor([0]).to(pitch_loss.device)
 
         total_loss = (
             total_mel_loss
