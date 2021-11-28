@@ -38,9 +38,6 @@ class Preprocessor:
         self.sampling_rate = config["preprocessing"]["audio"]["sampling_rate"]
         self.max_wav_value = config["preprocessing"]["audio"]["max_wav_value"]
 
-        if config.secondary:
-            self.speakers = get_valid_speakers(config)
-
         assert config["preprocessing"]["pitch"]["feature"] in [
             "phoneme_level",
             "frame_level",
@@ -50,18 +47,14 @@ class Preprocessor:
             "frame_level",
         ]
         self.pitch_phoneme_averaging = (
-            config["preprocessing"]["pitch"]["feature"] == "phoneme_level"
-        )
+            config["preprocessing"]["pitch"]["feature"] == "phoneme_level")
         self.energy_phoneme_averaging = (
-            config["preprocessing"]["energy"]["feature"] == "phoneme_level"
-        )
+            config["preprocessing"]["energy"]["feature"] == "phoneme_level")
 
         self.pitch_normalization = config["preprocessing"]["pitch"][
-            "normalization"
-        ]
+            "normalization"]
         self.energy_normalization = config["preprocessing"]["energy"][
-            "normalization"
-        ]
+            "normalization"]
 
         self.STFT = Audio.stft.TacotronSTFT(
             config["preprocessing"]["stft"]["filter_length"],
@@ -95,9 +88,8 @@ class Preprocessor:
 
             print(f"PROCESSIN SPEAKER {i+1} {speaker}")
             speakers[speaker] = i
-            for wav_name in tqdm(
-                os.listdir(os.path.join(self.in_dir, speaker))
-            ):
+            for wav_name in tqdm(os.listdir(os.path.join(self.in_dir,
+                                                         speaker))):
                 if ".wav" not in wav_name:
                     continue
 
@@ -141,12 +133,10 @@ class Preprocessor:
             energy_mean = 0
             energy_std = 1
         pitch_min, pitch_max = self.normalize(
-            os.path.join(self.out_dir, "pitch"), pitch_mean, pitch_std
-        )
+            os.path.join(self.out_dir, "pitch"), pitch_mean, pitch_std)
 
         energy_min, energy_max = self.normalize(
-            os.path.join(self.out_dir, "energy"), energy_mean, energy_std
-        )
+            os.path.join(self.out_dir, "energy"), energy_mean, energy_std)
 
         # Save files
         with open(os.path.join(self.out_dir, "speakers.json"), "w") as f:
@@ -169,52 +159,45 @@ class Preprocessor:
             }
             f.write(json.dumps(stats))
 
-        print(
-            "Total time: {} hours".format(
-                n_frames * self.hop_length / self.sampling_rate / 3600
-            )
-        )
+        print("Total time: {} hours".format(n_frames * self.hop_length /
+                                            self.sampling_rate / 3600))
 
         random.shuffle(out)
         out = [r for r in out if r is not None]
 
         # Write metadata
-        with open(
-            os.path.join(self.out_dir, "train.txt"), "w", encoding="utf-8"
-        ) as f:
-            for m in out[self.val_size :]:
+        with open(os.path.join(self.out_dir, "train.txt"),
+                  "w",
+                  encoding="utf-8") as f:
+            for m in out[self.val_size:]:
                 f.write(m + "\n")
-        with open(
-            os.path.join(self.out_dir, "val.txt"), "w", encoding="utf-8"
-        ) as f:
-            for m in out[: self.val_size]:
+        with open(os.path.join(self.out_dir, "val.txt"), "w",
+                  encoding="utf-8") as f:
+            for m in out[:self.val_size]:
                 f.write(m + "\n")
 
         return out
 
     def process_utterance(self, speaker, basename):
-        wav_path = os.path.join(self.in_dir, speaker, "{}.wav".format(basename))
-        text_path = os.path.join(
-            self.in_dir, speaker, "{}.lab".format(basename)
-        )
-        tg_path = os.path.join(
-            self.in_dir, speaker, "{}.TextGrid".format(basename)
-        )
+        wav_path = os.path.join(self.in_dir, speaker,
+                                "{}.wav".format(basename))
+        text_path = os.path.join(self.in_dir, speaker,
+                                 "{}.lab".format(basename))
+        tg_path = os.path.join(self.in_dir, speaker,
+                               "{}.TextGrid".format(basename))
 
         # Get alignments
         textgrid = tgt.io.read_textgrid(tg_path)
         phone, duration, start, end = self.get_alignment(
-            textgrid.get_tier_by_name("phones")
-        )
+            textgrid.get_tier_by_name("phones"))
         text = "{" + " ".join(phone) + "}"
         if start >= end:
             return None
 
         # Read and trim wav files
         wav, _ = librosa.load(wav_path)
-        wav = wav[
-            int(self.sampling_rate * start) : int(self.sampling_rate * end)
-        ].astype(np.float32)
+        wav = wav[int(self.sampling_rate * start):int(self.sampling_rate *
+                                                      end)].astype(np.float32)
 
         # Read raw text
         with open(text_path, "r") as f:
@@ -226,18 +209,17 @@ class Preprocessor:
             self.sampling_rate,
             frame_period=self.hop_length / self.sampling_rate * 1000,
         )
-        pitch = pw.stonemask(
-            wav.astype(np.float64), pitch, t, self.sampling_rate
-        )
+        pitch = pw.stonemask(wav.astype(np.float64), pitch, t,
+                             self.sampling_rate)
 
-        pitch = pitch[: sum(duration)]
+        pitch = pitch[:sum(duration)]
         if np.sum(pitch != 0) <= 1:
             return None
 
         # Compute mel-scale spectrogram and energy
         mel_spectrogram, energy = Audio.tools.get_mel_from_wav(wav, self.STFT)
-        mel_spectrogram = mel_spectrogram[:, : sum(duration)]
-        energy = energy[: sum(duration)]
+        mel_spectrogram = mel_spectrogram[:, :sum(duration)]
+        energy = energy[:sum(duration)]
 
         if self.pitch_phoneme_averaging:
             # perform linear interpolation
@@ -254,11 +236,11 @@ class Preprocessor:
             pos = 0
             for i, d in enumerate(duration):
                 if d > 0:
-                    pitch[i] = np.mean(pitch[pos : pos + d])
+                    pitch[i] = np.mean(pitch[pos:pos + d])
                 else:
                     pitch[i] = 0
                 pos += d
-            pitch = pitch[: len(duration)]
+            pitch = pitch[:len(duration)]
         # to log scale and normilize
         pitch = np.log(pitch)
         pitch_mean = np.mean(pitch)
@@ -277,11 +259,11 @@ class Preprocessor:
             pos = 0
             for i, d in enumerate(duration):
                 if d > 0:
-                    energy[i] = np.mean(energy[pos : pos + d])
+                    energy[i] = np.mean(energy[pos:pos + d])
                 else:
                     energy[i] = 0
                 pos += d
-            energy = energy[: len(duration)]
+            energy = energy[:len(duration)]
 
         # Resemble
         # res_wav = preprocess_wav(wav_path)
@@ -295,19 +277,16 @@ class Preprocessor:
         np.save(os.path.join(self.out_dir, "pitch", pitch_filename), pitch)
 
         cwt_pitch_filename = "{}-cwt-pitch-{}.npy".format(speaker, basename)
-        np.save(
-            os.path.join(self.out_dir, "pitch", cwt_pitch_filename), cwt_pitch
-        )
+        np.save(os.path.join(self.out_dir, "pitch", cwt_pitch_filename),
+                cwt_pitch)
 
         pitch_mean_filename = "{}-pitch-mean-{}.npy".format(speaker, basename)
-        np.save(
-            os.path.join(self.out_dir, "pitch", pitch_mean_filename), pitch_mean
-        )
+        np.save(os.path.join(self.out_dir, "pitch", pitch_mean_filename),
+                pitch_mean)
 
         pitch_std_filename = "{}-pitch-std-{}.npy".format(speaker, basename)
-        np.save(
-            os.path.join(self.out_dir, "pitch", pitch_std_filename), pitch_std
-        )
+        np.save(os.path.join(self.out_dir, "pitch", pitch_std_filename),
+                pitch_std)
 
         energy_filename = "{}-energy-{}.npy".format(speaker, basename)
         np.save(os.path.join(self.out_dir, "energy", energy_filename), energy)
@@ -360,10 +339,8 @@ class Preprocessor:
 
             durations.append(
                 int(
-                    np.round(e * self.sampling_rate / self.hop_length)
-                    - np.round(s * self.sampling_rate / self.hop_length)
-                )
-            )
+                    np.round(e * self.sampling_rate / self.hop_length) -
+                    np.round(s * self.sampling_rate / self.hop_length)))
 
         # Trim tailing silences
         phones = phones[:end_idx]
@@ -385,8 +362,7 @@ class Preprocessor:
         max_value = np.finfo(np.float64).min
         min_value = np.finfo(np.float64).max
         files = [
-            f
-            for f in os.listdir(in_dir)
+            f for f in os.listdir(in_dir)
             if not ("std" in f or "mean" in f or "cwt" in f)
         ]
         for filename in files:
@@ -405,24 +381,11 @@ def if_in(item, list_valid):
     return item in set(list_valid)
 
 
-def get_valid_speakers(config):
-    base_path = config.path.preprocessed_path
-    train = get_files_list_from_txt(os.path.join(base_path, "train.txt"))
-    val = get_files_list_from_txt(os.path.join(base_path, "val.txt"))
-
-    speakers = set(train + val)
-    speakers_dirs = set(os.listdir(config.path.raw_path))
-    valid_speakers = speakers.intersection(speakers_dirs)
-    print(f"FOUND {len(valid_speakers)} VALID SPEAKERS")
-    return valid_speakers
-
-
 def get_files_list_from_txt(path):
     with open(path, "r") as f:
         txt = f.read()
         speakers = [
-            name.replace("\n", "").split("|")[1]
-            for name in txt.split("\n")
+            name.replace("\n", "").split("|")[1] for name in txt.split("\n")
             if len(name) > 1
         ]
     return speakers

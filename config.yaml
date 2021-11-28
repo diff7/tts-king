@@ -3,15 +3,15 @@ gpu: 'cpu'
 run_debug_eval: false
 logger:
   offline: false
-  wandb_key: "beca9453c7ef6a20e21d5705275a0ff72842cbf3"
+  wandb_key: 
 
 
 tts:
-  weights_path: '/home/egor/Desktop/projects/TTS MAIN/weights/fs2/multi_final/290000.pth.tar' #"/home/dev/other/fsp/weights/ljspeech.pth.tar"        
+  weights_path: './pretrained/290000.pth.tar'
   restore_step: 0  
   
 hifi:
-  weights_path: '/home/egor/Desktop/projects/TTS MAIN/weights/hifi/generator_v1.pth' #'/home/dev/other/fsp/weights/trained_original/hifi/generator_v1.pth'
+  weights_path: './pretrained/hifi.pth'
   MAX_WAV_VALUE: 32768
   resblock: "1"
   num_gpus: 0
@@ -62,17 +62,13 @@ train_config:
   max_masks_per_sentence: 0.15
 
 preprocess_config:
-  secondary: true # assumes train and val files exist
   dataset: "MAIN"
 
   path:
-    lexicon_path: "/home/dev/other/fsp/data/dataset_main/rus_all.dict" 
-    raw_path: "/home/dev/other/fsp/data/dataset_main/speakers"
-    preprocessed_path: "/home/dev/other/fsp/data/dataset_main/processed"
+    lexicon_path: "./rus_all.dict"  
+    raw_path: "./speakers"
+    preprocessed_path: "./processed"
 
-    #lexicon_path: "/home/dev/other/fsp/data/dataset_old/vocab_all.dict" 
-    #raw_path: "/home/dev/other/fsp/data/dataset_old/shamanai"
-    #preprocessed_path: "/home/dev/other/fsp/data/dataset_old/shaman_processed"
 
   preprocessing:
     val_size: 512
